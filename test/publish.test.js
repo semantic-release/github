@@ -2,10 +2,12 @@ import {escape} from 'querystring';
 import test from 'ava';
 import nock from 'nock';
 import {stub, match} from 'sinon';
-import {authenticate, upload} from './helpers/mock-github';
 import publish from '../lib/publish';
+import {authenticate, upload} from './helpers/mock-github';
 
-test.beforeEach(async t => {
+/* eslint camelcase: ["error", {properties: "never"}] */
+
+test.beforeEach(t => {
   // Save the current process.env
   t.context.env = Object.assign({}, process.env);
   // Delete env variables in case they are on the machine running the tests

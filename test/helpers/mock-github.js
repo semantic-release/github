@@ -22,7 +22,7 @@ export function authenticate(
  * @return {Object} A `nock` object ready to respond to a github file upload request.
  */
 export function upload({githubToken = 'GH_TOKEN', githubUrl = 'https://uploads.github.com'} = {}) {
-  return nock(`${githubUrl}${githubUrl !== 'https://uploads.github.com' ? '/api/uploads' : ''}`, {
+  return nock(`${githubUrl}${githubUrl === 'https://uploads.github.com' ? '' : '/api/uploads'}`, {
     reqheaders: {Authorization: `token ${githubToken}`},
   });
 }
