@@ -125,16 +125,12 @@ test.serial('Publish a release with an array of assets', async t => {
     .reply({});
 
   const githubUpload = upload({githubToken})
-    .post(
-      `/repos/${owner}/${repo}/releases/${releaseId}/assets?filePath=${escape(
-        'test/fixtures/upload.txt'
-      )}&name=${escape('upload.txt')}`
-    )
+    .post(`/repos/${owner}/${repo}/releases/${releaseId}/assets?name=${escape('upload.txt')}`)
     .reply(200, {browser_download_url: assetUrl})
     .post(
-      `/repos/${owner}/${repo}/releases/${releaseId}/assets?filePath=${escape(
-        'test/fixtures/upload_other.txt'
-      )}&name=${escape('other_file.txt')}&label=${escape('Other File')}`
+      `/repos/${owner}/${repo}/releases/${releaseId}/assets?name=${escape('other_file.txt')}&label=${escape(
+        'Other File'
+      )}`
     )
     .reply(200, {browser_download_url: otherAssetUrl});
 
@@ -180,16 +176,12 @@ test.serial('Verify Github auth and release', async t => {
     .reply({});
 
   const githubUpload = upload({githubToken: process.env.GH_TOKEN})
-    .post(
-      `/repos/${owner}/${repo}/releases/${releaseId}/assets?filePath=${escape(
-        'test/fixtures/upload.txt'
-      )}&name=${escape('upload.txt')}`
-    )
+    .post(`/repos/${owner}/${repo}/releases/${releaseId}/assets?name=${escape('upload.txt')}`)
     .reply(200, {browser_download_url: assetUrl})
     .post(
-      `/repos/${owner}/${repo}/releases/${releaseId}/assets?filePath=${escape(
-        'test/fixtures/upload_other.txt'
-      )}&name=${escape('other_file.txt')}&label=${escape('Other File')}`
+      `/repos/${owner}/${repo}/releases/${releaseId}/assets?name=${escape('other_file.txt')}&label=${escape(
+        'Other File'
+      )}`
     )
     .reply(200, {browser_download_url: otherAssetUrl});
 
