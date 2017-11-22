@@ -1,10 +1,10 @@
 import test from 'ava';
 import nock from 'nock';
 import SemanticReleaseError from '@semantic-release/error';
-import {authenticate} from './helpers/mock-github';
 import verify from '../lib/verify';
+import {authenticate} from './helpers/mock-github';
 
-test.beforeEach(async t => {
+test.beforeEach(t => {
   // Save the current process.env
   t.context.env = Object.assign({}, process.env);
   // Delete env variables in case they are on the machine running the tests

@@ -3,10 +3,12 @@ import {escape} from 'querystring';
 import test from 'ava';
 import {stub, match} from 'sinon';
 import clearModule from 'clear-module';
-import {authenticate, upload} from './helpers/mock-github';
 import SemanticReleaseError from '@semantic-release/error';
+import {authenticate, upload} from './helpers/mock-github';
 
-test.beforeEach(async t => {
+/* eslint camelcase: ["error", {properties: "never"}] */
+
+test.beforeEach(t => {
   // Save the current process.env
   t.context.env = Object.assign({}, process.env);
   // Delete env variables in case they are on the machine running the tests
@@ -25,7 +27,7 @@ test.beforeEach(async t => {
   t.context.logger = {log: t.context.log, error: t.context.error};
 });
 
-test.afterEach.always(async t => {
+test.afterEach.always(t => {
   // Restore process.env
   process.env = Object.assign({}, t.context.env);
 });
