@@ -1,4 +1,3 @@
-import {promisify} from 'util';
 import {escape} from 'querystring';
 import test from 'ava';
 import {stub, match} from 'sinon';
@@ -36,14 +35,13 @@ test.serial('Verify Github auth', async t => {
   process.env.GITHUB_TOKEN = 'github_token';
   const owner = 'test_user';
   const repo = 'test_repo';
-  const options = {};
-  const pkg = {name: 'package-name', repository: {url: `git+https://othertesturl.com/${owner}/${repo}.git`}};
+  const options = {repositoryUrl: `git+https://othertesturl.com/${owner}/${repo}.git`};
 
   const github = authenticate({githubToken: process.env.GITHUB_TOKEN})
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {permissions: {push: true}});
 
-  await t.notThrows(promisify(t.context.m.verifyConditions)({}, {pkg, options}));
+  await t.notThrows(t.context.m.verifyConditions({}, {options}));
 
   t.true(github.isDone());
 });
@@ -52,14 +50,16 @@ test.serial('Verify Github auth with publish options', async t => {
   process.env.GITHUB_TOKEN = 'github_token';
   const owner = 'test_user';
   const repo = 'test_repo';
-  const options = {publish: {path: '@semantic-release/github'}};
-  const pkg = {name: 'package-name', repository: {url: `git+https://othertesturl.com/${owner}/${repo}.git`}};
+  const options = {
+    publish: {path: '@semantic-release/github'},
+    repositoryUrl: `git+https://othertesturl.com/${owner}/${repo}.git`,
+  };
 
   const github = authenticate({githubToken: process.env.GITHUB_TOKEN})
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {permissions: {push: true}});
 
-  await t.notThrows(promisify(t.context.m.verifyConditions)({}, {pkg, options}));
+  await t.notThrows(t.context.m.verifyConditions({}, {options}));
 
   t.true(github.isDone());
 });
@@ -69,14 +69,16 @@ test.serial('Verify Github auth and assets config', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const assets = [{path: 'lib/file.js'}, 'file.js'];
-  const options = {publish: [{path: '@semantic-release/npm'}, {path: '@semantic-release/github', assets}]};
-  const pkg = {name: 'package-name', repository: {url: `git+https://othertesturl.com/${owner}/${repo}.git`}};
+  const options = {
+    publish: [{path: '@semantic-release/npm'}, {path: '@semantic-release/github', assets}],
+    repositoryUrl: `git+https://othertesturl.com/${owner}/${repo}.git`,
+  };
 
   const github = authenticate({githubToken: process.env.GH_TOKEN})
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {permissions: {push: true}});
 
-  await t.notThrows(promisify(t.context.m.verifyConditions)({}, {pkg, options}));
+  await t.notThrows(t.context.m.verifyConditions({}, {options}));
 
   t.true(github.isDone());
 });
@@ -86,10 +88,12 @@ test.serial('Throw SemanticReleaseError if invalid config', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const assets = [{wrongProperty: 'lib/file.js'}];
-  const options = {publish: [{path: '@semantic-release/npm'}, {path: '@semantic-release/github', assets}]};
-  const pkg = {name: 'package-name', repository: {url: `git+https://othertesturl.com/${owner}/${repo}.git`}};
+  const options = {
+    publish: [{path: '@semantic-release/npm'}, {path: '@semantic-release/github', assets}],
+    repositoryUrl: `git+https://othertesturl.com/${owner}/${repo}.git`,
+  };
 
-  const error = await t.throws(promisify(t.context.m.verifyConditions)({}, {pkg, options}));
+  const error = await t.throws(t.context.m.verifyConditions({}, {options}));
 
   t.true(error instanceof SemanticReleaseError);
   t.is(error.code, 'EINVALIDASSETS');
@@ -104,8 +108,7 @@ test.serial('Publish a release with an array of assets', async t => {
     {path: 'test/fixtures/upload_other.txt', name: 'other_file.txt', label: 'Other File'},
   ];
   const nextRelease = {version: '1.0.0', gitHead: '123', gitTag: 'v1.0.0', notes: 'Test release note body'};
-  const options = {branch: 'master'};
-  const pkg = {name: 'package-name', repository: {url: `https://github.com/${owner}/${repo}.git`}};
+  const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
   const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
   const assetUrl = `https://github.com/${owner}/${repo}/releases/download/${nextRelease.version}/upload.txt`;
   const otherAssetUrl = `https://github.com/${owner}/${repo}/releases/download/${nextRelease.version}/other_file.txt`;
@@ -134,7 +137,7 @@ test.serial('Publish a release with an array of assets', async t => {
     )
     .reply(200, {browser_download_url: otherAssetUrl});
 
-  await promisify(t.context.m.publish)({githubToken, assets}, {pkg, nextRelease, options, logger: t.context.logger});
+  await t.context.m.publish({githubToken, assets}, {nextRelease, options, logger: t.context.logger});
 
   t.true(t.context.log.calledWith(match.string, releaseUrl));
   t.true(t.context.log.calledWith(match.string, assetUrl));
@@ -151,10 +154,10 @@ test.serial('Verify Github auth and release', async t => {
     'test/fixtures/upload.txt',
     {path: 'test/fixtures/upload_other.txt', name: 'other_file.txt', label: 'Other File'},
   ];
-  const pkg = {name: 'package-name', repository: {url: `https://github.com/${owner}/${repo}.git`}};
   const options = {
     publish: [{path: '@semantic-release/npm'}, {path: '@semantic-release/github', assets}],
     branch: 'master',
+    repositoryUrl: `https://github.com/${owner}/${repo}.git`,
   };
   const nextRelease = {version: '1.0.0', gitHead: '123', gitTag: 'v1.0.0', notes: 'Test release note body'};
   const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
@@ -185,8 +188,8 @@ test.serial('Verify Github auth and release', async t => {
     )
     .reply(200, {browser_download_url: otherAssetUrl});
 
-  await t.notThrows(promisify(t.context.m.verifyConditions)({}, {pkg, options}));
-  await promisify(t.context.m.publish)({assets}, {pkg, nextRelease, options, logger: t.context.logger});
+  await t.notThrows(t.context.m.verifyConditions({}, {options}));
+  await t.context.m.publish({assets}, {nextRelease, options, logger: t.context.logger});
 
   t.true(t.context.log.calledWith(match.string, releaseUrl));
   t.true(t.context.log.calledWith(match.string, assetUrl));

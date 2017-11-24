@@ -34,10 +34,7 @@ test.serial('Verify package, token and repository access', async t => {
     .reply(200, {permissions: {push: true}});
 
   await t.notThrows(
-    verify(
-      {githubToken, assets},
-      {name: 'package-name', repository: {url: `git+https://othertesturl.com/${owner}/${repo}.git`}}
-    )
+    verify({githubToken, assets}, {repositoryUrl: `git+https://othertesturl.com/${owner}/${repo}.git`})
   );
   t.true(github.isDone());
 });
@@ -54,10 +51,7 @@ test.serial('Verify package, token and repository access and custom URL', async 
     .reply(200, {permissions: {push: true}});
 
   await t.notThrows(
-    verify(
-      {githubUrl, githubToken, githubApiPathPrefix},
-      {name: 'package-name', repository: {url: `git@othertesturl.com:${owner}/${repo}.git`}}
-    )
+    verify({githubUrl, githubToken, githubApiPathPrefix}, {repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`})
   );
   t.true(github.isDone());
 });
@@ -80,7 +74,7 @@ test.serial('Verify package, token and repository with environment varialbes', a
   await t.notThrows(
     verify(
       {githubUrl: process.env.GH_URL, githubApiPathPrefix: process.env.GH_PREFIX},
-      {name: 'package-name', repository: {url: `git@othertesturl.com:${owner}/${repo}.git`}}
+      {repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`}
     )
   );
   t.true(github.isDone());
@@ -104,41 +98,17 @@ test.serial('Verify package, token and repository access with alternative enviro
   await t.notThrows(
     verify(
       {githubUrl: process.env.GITHUB_URL, githubApiPathPrefix: process.env.GITHUB_PREFIX},
-      {name: 'package-name', repository: {url: `git@othertesturl.com:${owner}/${repo}.git`}}
+      {repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`}
     )
   );
   t.true(github.isDone());
-});
-
-test.serial('Throw SemanticReleaseError for missing package name', async t => {
-  const error = await t.throws(verify({}, {repository: {url: 'http://github.com/whats/up.git'}}));
-
-  t.true(error instanceof SemanticReleaseError);
-  t.is(error.code, 'ENOPKGNAME');
-});
-
-test.serial('Throw SemanticReleaseError for missing repository', async t => {
-  const error = await t.throws(verify({}, {name: 'package'}));
-
-  t.true(error instanceof SemanticReleaseError);
-  t.is(error.code, 'ENOPKGREPO');
-});
-
-test.serial('Throw SemanticReleaseError for missing repository url', async t => {
-  const error = await t.throws(verify({}, {name: 'package', repository: {}}));
-
-  t.true(error instanceof SemanticReleaseError);
-  t.is(error.code, 'ENOPKGREPO');
 });
 
 test.serial('Throw SemanticReleaseError if "assets" option is not a string or an array of objects', async t => {
   const githubToken = 'github_token';
   const assets = 42;
   const error = await t.throws(
-    verify(
-      {githubToken, assets},
-      {name: 'package', repository: {url: 'https://github.com/semantic-release/github.git'}}
-    )
+    verify({githubToken, assets}, {repositoryUrl: 'https://github.com/semantic-release/github.git'})
   );
 
   t.true(error instanceof SemanticReleaseError);
@@ -149,10 +119,7 @@ test.serial('Throw SemanticReleaseError if "assets" option is an Array with inva
   const githubToken = 'github_token';
   const assets = ['file.js', 42];
   const error = await t.throws(
-    verify(
-      {githubToken, assets},
-      {name: 'package', repository: {url: 'https://github.com/semantic-release/github.git'}}
-    )
+    verify({githubToken, assets}, {repositoryUrl: 'https://github.com/semantic-release/github.git'})
   );
 
   t.true(error instanceof SemanticReleaseError);
@@ -163,10 +130,7 @@ test.serial('Throw SemanticReleaseError if "assets" option is an Object missing 
   const githubToken = 'github_token';
   const assets = {name: 'file.js'};
   const error = await t.throws(
-    verify(
-      {githubToken, assets},
-      {name: 'package', repository: {url: 'https://github.com/semantic-release/github.git'}}
-    )
+    verify({githubToken, assets}, {repositoryUrl: 'https://github.com/semantic-release/github.git'})
   );
 
   t.true(error instanceof SemanticReleaseError);
@@ -178,12 +142,7 @@ test.serial(
   async t => {
     const githubToken = 'github_token';
     const assets = [{path: 'lib/file.js'}, {name: 'file.js'}];
-    const error = await t.throws(
-      verify(
-        {githubToken, assets},
-        {name: 'package', repository: {url: 'https://github.com/semantic-release/github.git'}}
-      )
-    );
+    const error = await t.throws(verify({githubToken, assets}, 'https://github.com/semantic-release/github.git'));
 
     t.true(error instanceof SemanticReleaseError);
     t.is(error.code, 'EINVALIDASSETS');
@@ -191,9 +150,7 @@ test.serial(
 );
 
 test.serial('Throw SemanticReleaseError for missing github token', async t => {
-  const error = await t.throws(
-    verify({}, {name: 'package', repository: {url: 'https://github.com/semantic-release/github.git'}})
-  );
+  const error = await t.throws(verify({}, {repositoryUrl: 'https://github.com/semantic-release/github.git'}));
 
   t.true(error instanceof SemanticReleaseError);
   t.is(error.code, 'ENOGHTOKEN');
@@ -208,13 +165,20 @@ test.serial('Throw SemanticReleaseError for invalid token', async t => {
     .get(`/repos/${owner}/${repo}`)
     .reply(401);
 
-  const error = await t.throws(
-    verify({githubToken}, {name: 'package-name', repository: {url: `https://github.com:${owner}/${repo}.git`}})
-  );
+  const error = await t.throws(verify({githubToken}, {repositoryUrl: `https://github.com:${owner}/${repo}.git`}));
 
   t.true(error instanceof SemanticReleaseError);
   t.is(error.code, 'EINVALIDGHTOKEN');
   t.true(github.isDone());
+});
+
+test.serial('Throw SemanticReleaseError for invalid repositoryUrl', async t => {
+  const githubToken = 'github_token';
+
+  const error = await t.throws(verify({githubToken}, {repositoryUrl: 'invalid_url'}));
+
+  t.true(error instanceof SemanticReleaseError);
+  t.is(error.code, 'EINVALIDGITURL');
 });
 
 test.serial("Throw SemanticReleaseError if token doesn't have the push permission on the repository", async t => {
@@ -226,9 +190,7 @@ test.serial("Throw SemanticReleaseError if token doesn't have the push permissio
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {permissions: {push: false}});
 
-  const error = await t.throws(
-    verify({githubToken}, {name: 'package-name', repository: {url: `https://github.com:${owner}/${repo}.git`}})
-  );
+  const error = await t.throws(verify({githubToken}, {repositoryUrl: `https://github.com:${owner}/${repo}.git`}));
 
   t.true(error instanceof SemanticReleaseError);
   t.is(error.code, 'EGHNOPERMISSION');
@@ -244,9 +206,7 @@ test.serial("Throw SemanticReleaseError if the repository doesn't exist", async 
     .get(`/repos/${owner}/${repo}`)
     .reply(404);
 
-  const error = await t.throws(
-    verify({githubToken}, {name: 'package-name', repository: {url: `https://github.com:${owner}/${repo}.git`}})
-  );
+  const error = await t.throws(verify({githubToken}, {repositoryUrl: `https://github.com:${owner}/${repo}.git`}));
 
   t.true(error instanceof SemanticReleaseError);
   t.is(error.code, 'EMISSINGREPO');
@@ -262,9 +222,7 @@ test.serial('Throw error if github return any other errors', async t => {
     .get(`/repos/${owner}/${repo}`)
     .reply(500);
 
-  const error = await t.throws(
-    verify({githubToken}, {name: 'package-name', repository: {url: `https://github.com:${owner}/${repo}.git`}})
-  );
+  const error = await t.throws(verify({githubToken}, {repositoryUrl: `https://github.com:${owner}/${repo}.git`}));
 
   t.is(error.code, 500);
   t.true(github.isDone());
