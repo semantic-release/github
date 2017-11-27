@@ -24,7 +24,7 @@
     "parse-github-url": "^1.0.1"
   },
   "devDependencies": {
-    "ava": "^0.23.0",
+    "ava": "^0.24.0",
     "clear-module": "^2.1.0",
     "codecov": "^3.0.0",
     "commitizen": "^2.9.6",
