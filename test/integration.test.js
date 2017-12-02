@@ -117,15 +117,17 @@ test.serial('Publish a release with an array of assets', async t => {
   const github = authenticate({githubToken})
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {permissions: {push: true}})
+    .get(`/repos/${owner}/${repo}/git/refs/tags/${nextRelease.gitTag}`)
+    .reply(404)
+    .post(`/repos/${owner}/${repo}/git/refs`, {ref: `refs/tags/${nextRelease.gitTag}`, sha: nextRelease.gitHead})
+    .reply({})
     .post(`/repos/${owner}/${repo}/releases`, {
       tag_name: nextRelease.gitTag,
       target_commitish: options.branch,
       name: nextRelease.gitTag,
       body: nextRelease.notes,
     })
-    .reply(200, {html_url: releaseUrl, id: releaseId})
-    .post(`/repos/${owner}/${repo}/git/refs`, {ref: `refs/tags/${nextRelease.gitTag}`, sha: nextRelease.gitHead})
-    .reply({});
+    .reply(200, {html_url: releaseUrl, id: releaseId});
 
   const githubUpload = upload({githubToken})
     .post(`/repos/${owner}/${repo}/releases/${releaseId}/assets?name=${escape('upload.txt')}`)
@@ -168,15 +170,17 @@ test.serial('Verify Github auth and release', async t => {
   const github = authenticate({githubToken: process.env.GH_TOKEN})
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {permissions: {push: true}})
+    .get(`/repos/${owner}/${repo}/git/refs/tags/${nextRelease.gitTag}`)
+    .reply(404)
+    .post(`/repos/${owner}/${repo}/git/refs`, {ref: `refs/tags/${nextRelease.gitTag}`, sha: nextRelease.gitHead})
+    .reply({})
     .post(`/repos/${owner}/${repo}/releases`, {
       tag_name: nextRelease.gitTag,
       target_commitish: options.branch,
       name: nextRelease.gitTag,
       body: nextRelease.notes,
     })
-    .reply(200, {html_url: releaseUrl, id: releaseId})
-    .post(`/repos/${owner}/${repo}/git/refs`, {ref: `refs/tags/${nextRelease.gitTag}`, sha: nextRelease.gitHead})
-    .reply({});
+    .reply(200, {html_url: releaseUrl, id: releaseId});
 
   const githubUpload = upload({githubToken: process.env.GH_TOKEN})
     .post(`/repos/${owner}/${repo}/releases/${releaseId}/assets?name=${escape('upload.txt')}`)
