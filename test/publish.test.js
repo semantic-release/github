@@ -95,11 +95,13 @@ test.serial('Publish a release with one asset', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
   process.env.GH_TOKEN = 'github_token';
-  const pluginConfig = {assets: 'test/fixtures/upload.txt'};
+  const pluginConfig = {
+    assets: [['test/fixtures/**', '!**/*.txt'], {path: 'test/fixtures/.dotfile', label: 'A dotfile with no ext'}],
+  };
   const nextRelease = {version: '1.0.0', gitHead: '123', gitTag: 'v1.0.0', notes: 'Test release note body'};
   const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
   const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
-  const assetUrl = `https://github.com/${owner}/${repo}/releases/download/${nextRelease.version}/upload.txt`;
+  const assetUrl = `https://github.com/${owner}/${repo}/releases/download/${nextRelease.version}/.dotfile`;
   const releaseId = 1;
   const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
   const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
@@ -120,9 +122,9 @@ test.serial('Publish a release with one asset', async t => {
   const githubUpload = upload({
     githubToken: process.env.GH_TOKEN,
     uploadUrl: 'https://github.com',
-    contentLength: (await stat('test/fixtures/upload.txt')).size,
+    contentLength: (await stat('test/fixtures/.dotfile')).size,
   })
-    .post(`${uploadUri}?name=${escape('upload.txt')}`)
+    .post(`${uploadUri}?name=${escape('.dotfile')}&label=${escape('A dotfile with no ext')}`)
     .reply(200, {browser_download_url: assetUrl});
 
   await publish(pluginConfig, options, nextRelease, t.context.logger);
@@ -139,7 +141,13 @@ test.serial('Publish a release with one asset and custom github url', async t =>
   process.env.GH_URL = 'https://othertesturl.com:443';
   process.env.GH_TOKEN = 'github_token';
   process.env.GH_PREFIX = 'prefix';
-  const pluginConfig = {assets: 'test/fixtures/upload.txt'};
+  const pluginConfig = {
+    assets: [
+      ['test/fixtures/*.txt', '!**/*_other.txt'],
+      {path: ['test/fixtures/*.txt', '!**/*_other.txt'], label: 'A text file'},
+      'test/fixtures/upload.txt',
+    ],
+  };
   const nextRelease = {version: '1.0.0', gitHead: '123', gitTag: 'v1.0.0', notes: 'Test release note body'};
   const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
   const releaseUrl = `${process.env.GH_URL}/${owner}/${repo}/releases/${nextRelease.version}`;
@@ -170,7 +178,7 @@ test.serial('Publish a release with one asset and custom github url', async t =>
     githubToken: process.env.GH_TOKEN,
     contentLength: (await stat('test/fixtures/upload.txt')).size,
   })
-    .post(`${uploadUri}?name=${escape('upload.txt')}`)
+    .post(`${uploadUri}?name=${escape('upload.txt')}&label=${escape('A text file')}`)
     .reply(200, {browser_download_url: assetUrl});
 
   await publish(pluginConfig, options, nextRelease, t.context.logger);
@@ -187,7 +195,7 @@ test.serial('Publish a release with an array of missing assets', async t => {
   const githubToken = 'github_token';
   const pluginConfig = {
     githubToken,
-    assets: ['test/fixtures', {path: 'test/fixtures/missing.txt', name: 'missing.txt', label: 'Missing File'}],
+    assets: ['test/fixtures/empty', {path: 'test/fixtures/missing.txt', name: 'missing.txt'}],
   };
   const nextRelease = {version: '1.0.0', gitHead: '123', gitTag: 'v1.0.0', notes: 'Test release note body'};
   const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
@@ -213,7 +221,7 @@ test.serial('Publish a release with an array of missing assets', async t => {
 
   t.true(t.context.log.calledWith(match.string, releaseUrl));
   t.true(t.context.error.calledWith(match.string, 'test/fixtures/missing.txt'));
-  t.true(t.context.error.calledWith(match.string, 'test/fixtures'));
+  t.true(t.context.error.calledWith(match.string, 'test/fixtures/empty'));
   t.true(github.isDone());
 });
 

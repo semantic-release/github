@@ -104,7 +104,7 @@ test.serial('Verify package, token and repository access with alternative enviro
   t.true(github.isDone());
 });
 
-test.serial('Throw SemanticReleaseError if "assets" option is not a string or an array of objects', async t => {
+test.serial('Throw SemanticReleaseError if "assets" option is not a String or an Array of Objects', async t => {
   const githubToken = 'github_token';
   const assets = 42;
   const error = await t.throws(
@@ -124,6 +124,76 @@ test.serial('Throw SemanticReleaseError if "assets" option is an Array with inva
 
   t.true(error instanceof SemanticReleaseError);
   t.is(error.code, 'EINVALIDASSETS');
+});
+
+test.serial('Verify "assets" is a String', async t => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  const githubToken = 'github_token';
+  const assets = 'file2.js';
+
+  const github = authenticate({githubToken})
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {permissions: {push: true}});
+
+  await t.notThrows(verify({githubToken, assets}, {repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`}));
+  t.true(github.isDone());
+});
+
+test.serial('Verify "assets" is an Object with a path property', async t => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  const githubToken = 'github_token';
+  const assets = {path: 'file2.js'};
+
+  const github = authenticate({githubToken})
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {permissions: {push: true}});
+
+  await t.notThrows(verify({githubToken, assets}, {repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`}));
+  t.true(github.isDone());
+});
+
+test.serial('Verify "assets" is an Array of Object with a path property', async t => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  const githubToken = 'github_token';
+  const assets = [{path: 'file1.js'}, {path: 'file2.js'}];
+
+  const github = authenticate({githubToken})
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {permissions: {push: true}});
+
+  await t.notThrows(verify({githubToken, assets}, {repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`}));
+  t.true(github.isDone());
+});
+
+test.serial('Verify "assets" is an Array of glob Arrays', async t => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  const githubToken = 'github_token';
+  const assets = [['dist/**', '!**/*.js'], 'file2.js'];
+
+  const github = authenticate({githubToken})
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {permissions: {push: true}});
+
+  await t.notThrows(verify({githubToken, assets}, {repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`}));
+  t.true(github.isDone());
+});
+
+test.serial('Verify "assets" is an Array of Object with a glob Arrays in path property', async t => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  const githubToken = 'github_token';
+  const assets = [{path: ['dist/**', '!**/*.js']}, {path: 'file2.js'}];
+
+  const github = authenticate({githubToken})
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {permissions: {push: true}});
+
+  await t.notThrows(verify({githubToken, assets}, {repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`}));
+  t.true(github.isDone());
 });
 
 test.serial('Throw SemanticReleaseError if "assets" option is an Object missing the "path" property', async t => {
