@@ -69,7 +69,13 @@ test.serial('Verify Github auth and assets config', async t => {
   process.env.GH_TOKEN = 'github_token';
   const owner = 'test_user';
   const repo = 'test_repo';
-  const assets = [{path: 'lib/file.js'}, 'file.js'];
+  const assets = [
+    {path: 'lib/file.js'},
+    'file.js',
+    ['dist/**'],
+    ['dist/**', '!dist/*.js'],
+    {path: ['dist/**', '!dist/*.js']},
+  ];
   const options = {
     publish: [{path: '@semantic-release/npm'}, {path: '@semantic-release/github', assets}],
     repositoryUrl: `git+https://othertesturl.com/${owner}/${repo}.git`,
@@ -106,7 +112,8 @@ test.serial('Publish a release with an array of assets', async t => {
   const githubToken = 'github_token';
   const assets = [
     'test/fixtures/upload.txt',
-    {path: 'test/fixtures/upload_other.txt', name: 'other_file.txt', label: 'Other File'},
+    {path: ['test/fixtures/*.txt', '!**/*_other.txt'], name: 'upload_file_name.txt'},
+    {path: ['test/fixtures/*.txt'], name: 'other_file.txt', label: 'Other File'},
   ];
   const nextRelease = {version: '1.0.0', gitHead: '123', gitTag: 'v1.0.0', notes: 'Test release note body'};
   const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
@@ -137,7 +144,7 @@ test.serial('Publish a release with an array of assets', async t => {
     uploadUrl: 'https://github.com',
     contentLength: (await stat('test/fixtures/upload.txt')).size,
   })
-    .post(`${uploadUri}?name=${escape('upload.txt')}`)
+    .post(`${uploadUri}?name=${escape('upload_file_name.txt')}`)
     .reply(200, {browser_download_url: assetUrl});
 
   const githubUpload2 = upload({
@@ -145,7 +152,7 @@ test.serial('Publish a release with an array of assets', async t => {
     uploadUrl: 'https://github.com',
     contentLength: (await stat('test/fixtures/upload_other.txt')).size,
   })
-    .post(`${uploadUri}?name=${escape('other_file.txt')}&label=${escape('Other File')}`)
+    .post(`${uploadUri}?name=${escape('upload_other.txt')}&label=${escape('Other File')}`)
     .reply(200, {browser_download_url: otherAssetUrl});
 
   await t.context.m.publish({githubToken, assets}, {nextRelease, options, logger: t.context.logger});
