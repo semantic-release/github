@@ -36,8 +36,8 @@ test.afterEach.always(() => {
 test.serial('Publish a release', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
-  const githubToken = 'github_token';
-  const pluginConfig = {githubToken};
+  process.env.GITHUB_TOKEN = 'github_token';
+  const pluginConfig = {};
   const nextRelease = {version: '1.0.0', gitHead: '123', gitTag: 'v1.0.0', notes: 'Test release note body'};
   const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
   const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
@@ -45,7 +45,7 @@ test.serial('Publish a release', async t => {
   const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
   const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
 
-  const github = authenticate({githubToken})
+  const github = authenticate()
     .get(`/repos/${owner}/${repo}/git/refs/tags/${nextRelease.gitTag}`)
     .reply(404)
     .post(`/repos/${owner}/${repo}/git/refs`, {ref: `refs/tags/${nextRelease.gitTag}`, sha: nextRelease.gitHead})
@@ -67,8 +67,8 @@ test.serial('Publish a release', async t => {
 test.serial('Publish a release with an existing tag', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
-  const githubToken = 'github_token';
-  const pluginConfig = {githubToken};
+  process.env.GITHUB_TOKEN = 'github_token';
+  const pluginConfig = {};
   const nextRelease = {version: '1.0.0', gitHead: '123', gitTag: 'v1.0.0', notes: 'Test release note body'};
   const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
   const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
@@ -76,7 +76,7 @@ test.serial('Publish a release with an existing tag', async t => {
   const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
   const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
 
-  const github = authenticate({githubToken})
+  const github = authenticate({})
     .get(`/repos/${owner}/${repo}/git/refs/tags/${nextRelease.gitTag}`)
     .reply({ref: `refs/tags/${nextRelease.gitTag}`, object: {sha: 'e23a1bd8d7240c1eb3287374956042ffbcadca84'}})
     .post(`/repos/${owner}/${repo}/releases`, {
@@ -108,7 +108,7 @@ test.serial('Publish a release with one asset', async t => {
   const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
   const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
 
-  const github = authenticate({githubToken: process.env.GH_TOKEN})
+  const github = authenticate()
     .get(`/repos/${owner}/${repo}/git/refs/tags/${nextRelease.gitTag}`)
     .reply(404)
     .post(`/repos/${owner}/${repo}/git/refs`, {ref: `refs/tags/${nextRelease.gitTag}`, sha: nextRelease.gitHead})
@@ -122,7 +122,6 @@ test.serial('Publish a release with one asset', async t => {
     .reply(200, {upload_url: uploadUrl, html_url: releaseUrl});
 
   const githubUpload = upload({
-    githubToken: process.env.GH_TOKEN,
     uploadUrl: 'https://github.com',
     contentLength: (await stat('test/fixtures/.dotfile')).size,
   })
@@ -160,7 +159,6 @@ test.serial('Publish a release with one asset and custom github url', async t =>
 
   const github = authenticate({
     githubUrl: process.env.GH_URL,
-    githubToken: process.env.GH_TOKEN,
     githubApiPathPrefix: process.env.GH_PREFIX,
   })
     .get(`/repos/${owner}/${repo}/git/refs/tags/${nextRelease.gitTag}`)
@@ -177,7 +175,6 @@ test.serial('Publish a release with one asset and custom github url', async t =>
 
   const githubUpload = upload({
     uploadUrl: process.env.GH_URL,
-    githubToken: process.env.GH_TOKEN,
     contentLength: (await stat('test/fixtures/upload.txt')).size,
   })
     .post(`${uploadUri}?name=${escape('upload.txt')}&label=${escape('A text file')}`)
@@ -194,12 +191,9 @@ test.serial('Publish a release with one asset and custom github url', async t =>
 test.serial('Publish a release with an array of missing assets', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
-  const githubToken = 'github_token';
+  process.env.GITHUB_TOKEN = 'github_token';
   const emptyDirectory = tempy.directory();
-  const pluginConfig = {
-    githubToken,
-    assets: [emptyDirectory, {path: 'test/fixtures/missing.txt', name: 'missing.txt'}],
-  };
+  const pluginConfig = {assets: [emptyDirectory, {path: 'test/fixtures/missing.txt', name: 'missing.txt'}]};
   const nextRelease = {version: '1.0.0', gitHead: '123', gitTag: 'v1.0.0', notes: 'Test release note body'};
   const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
   const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
@@ -207,7 +201,7 @@ test.serial('Publish a release with an array of missing assets', async t => {
   const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
   const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
 
-  const github = authenticate({githubToken})
+  const github = authenticate()
     .get(`/repos/${owner}/${repo}/git/refs/tags/${nextRelease.gitTag}`)
     .reply(404)
     .post(`/repos/${owner}/${repo}/git/refs`, {ref: `refs/tags/${nextRelease.gitTag}`, sha: nextRelease.gitHead})
@@ -234,12 +228,12 @@ test.serial('Publish a release with an array of missing assets', async t => {
 test.serial('Throw Error if get tag call return an error other than 404', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
-  const githubToken = 'github_token';
-  const pluginConfig = {githubToken};
+  process.env.GITHUB_TOKEN = 'github_token';
+  const pluginConfig = {};
   const nextRelease = {version: '1.0.0', gitHead: '123', gitTag: 'v1.0.0', notes: 'Test release note body'};
   const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
 
-  const github = authenticate({githubToken})
+  const github = authenticate()
     .get(`/repos/${owner}/${repo}/git/refs/tags/${nextRelease.gitTag}`)
     .reply(500);
 
