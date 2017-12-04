@@ -41,8 +41,7 @@ test.serial('Verify Github auth', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const options = {repositoryUrl: `git+https://othertesturl.com/${owner}/${repo}.git`};
-
-  const github = authenticate({githubToken: process.env.GITHUB_TOKEN})
+  const github = authenticate()
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {permissions: {push: true}});
 
@@ -59,8 +58,7 @@ test.serial('Verify Github auth with publish options', async t => {
     publish: {path: '@semantic-release/github'},
     repositoryUrl: `git+https://othertesturl.com/${owner}/${repo}.git`,
   };
-
-  const github = authenticate({githubToken: process.env.GITHUB_TOKEN})
+  const github = authenticate()
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {permissions: {push: true}});
 
@@ -84,8 +82,7 @@ test.serial('Verify Github auth and assets config', async t => {
     publish: [{path: '@semantic-release/npm'}, {path: '@semantic-release/github', assets}],
     repositoryUrl: `git+https://othertesturl.com/${owner}/${repo}.git`,
   };
-
-  const github = authenticate({githubToken: process.env.GH_TOKEN})
+  const github = authenticate()
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {permissions: {push: true}});
 
@@ -113,7 +110,7 @@ test.serial('Throw SemanticReleaseError if invalid config', async t => {
 test.serial('Publish a release with an array of assets', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
-  const githubToken = 'github_token';
+  process.env.GH_TOKEN = 'github_token';
   const assets = [
     'test/fixtures/upload.txt',
     {path: ['test/fixtures/*.txt', '!**/*_other.txt'], name: 'upload_file_name.txt'},
@@ -127,8 +124,7 @@ test.serial('Publish a release with an array of assets', async t => {
   const releaseId = 1;
   const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
   const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
-
-  const github = authenticate({githubToken})
+  const github = authenticate()
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {permissions: {push: true}})
     .get(`/repos/${owner}/${repo}/git/refs/tags/${nextRelease.gitTag}`)
@@ -142,24 +138,20 @@ test.serial('Publish a release with an array of assets', async t => {
       body: nextRelease.notes,
     })
     .reply(200, {upload_url: uploadUrl, html_url: releaseUrl});
-
   const githubUpload1 = upload({
-    githubToken,
     uploadUrl: 'https://github.com',
     contentLength: (await stat('test/fixtures/upload.txt')).size,
   })
     .post(`${uploadUri}?name=${escape('upload_file_name.txt')}`)
     .reply(200, {browser_download_url: assetUrl});
-
   const githubUpload2 = upload({
-    githubToken,
     uploadUrl: 'https://github.com',
     contentLength: (await stat('test/fixtures/upload_other.txt')).size,
   })
     .post(`${uploadUri}?name=${escape('upload_other.txt')}&label=${escape('Other File')}`)
     .reply(200, {browser_download_url: otherAssetUrl});
 
-  await t.context.m.publish({githubToken, assets}, {nextRelease, options, logger: t.context.logger});
+  await t.context.m.publish({assets}, {nextRelease, options, logger: t.context.logger});
 
   t.deepEqual(t.context.log.args[0], ['Verify Github authentication']);
   t.deepEqual(t.context.log.args[1], ['Published Github release: %s', releaseUrl]);
@@ -190,8 +182,7 @@ test.serial('Verify Github auth and release', async t => {
   const releaseId = 1;
   const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
   const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
-
-  const github = authenticate({githubToken: process.env.GH_TOKEN})
+  const github = authenticate()
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {permissions: {push: true}})
     .get(`/repos/${owner}/${repo}/git/refs/tags/${nextRelease.gitTag}`)
@@ -205,17 +196,13 @@ test.serial('Verify Github auth and release', async t => {
       body: nextRelease.notes,
     })
     .reply(200, {upload_url: uploadUrl, html_url: releaseUrl});
-
   const githubUpload1 = upload({
-    githubToken: process.env.GH_TOKEN,
     uploadUrl: 'https://github.com',
     contentLength: (await stat('test/fixtures/upload.txt')).size,
   })
     .post(`${uploadUri}?name=${escape('upload.txt')}`)
     .reply(200, {browser_download_url: assetUrl});
-
   const githubUpload2 = upload({
-    githubToken: process.env.GH_TOKEN,
     uploadUrl: 'https://github.com',
     contentLength: (await stat('test/fixtures/upload_other.txt')).size,
   })
