@@ -2,15 +2,17 @@ import {escape} from 'querystring';
 import test from 'ava';
 import {stat} from 'fs-extra';
 import nock from 'nock';
-import {stub, match} from 'sinon';
+import {stub} from 'sinon';
+import tempy from 'tempy';
 import publish from '../lib/publish';
 import {authenticate, upload} from './helpers/mock-github';
 
 /* eslint camelcase: ["error", {properties: "never"}] */
 
+// Save the current process.env
+const envBackup = Object.assign({}, process.env);
+
 test.beforeEach(t => {
-  // Save the current process.env
-  t.context.env = Object.assign({}, process.env);
   // Delete env variables in case they are on the machine running the tests
   delete process.env.GH_TOKEN;
   delete process.env.GITHUB_TOKEN;
@@ -24,9 +26,9 @@ test.beforeEach(t => {
   t.context.logger = {log: t.context.log, error: t.context.error};
 });
 
-test.afterEach.always(t => {
+test.afterEach.always(() => {
   // Restore process.env
-  process.env = Object.assign({}, t.context.env);
+  process.env = envBackup;
   // Clear nock
   nock.cleanAll();
 });
@@ -58,7 +60,7 @@ test.serial('Publish a release', async t => {
 
   await publish(pluginConfig, options, nextRelease, t.context.logger);
 
-  t.true(t.context.log.calledWith(match.string, releaseUrl));
+  t.deepEqual(t.context.log.args[0], ['Published Github release: %s', releaseUrl]);
   t.true(github.isDone());
 });
 
@@ -87,7 +89,7 @@ test.serial('Publish a release with an existing tag', async t => {
 
   await publish(pluginConfig, options, nextRelease, t.context.logger);
 
-  t.true(t.context.log.calledWith(match.string, releaseUrl));
+  t.deepEqual(t.context.log.args[0], ['Published Github release: %s', releaseUrl]);
   t.true(github.isDone());
 });
 
@@ -129,8 +131,8 @@ test.serial('Publish a release with one asset', async t => {
 
   await publish(pluginConfig, options, nextRelease, t.context.logger);
 
-  t.true(t.context.log.calledWith(match.string, releaseUrl));
-  t.true(t.context.log.calledWith(match.string, assetUrl));
+  t.deepEqual(t.context.log.args[0], ['Published Github release: %s', releaseUrl]);
+  t.deepEqual(t.context.log.args[1], ['Published file %s', assetUrl]);
   t.true(github.isDone());
   t.true(githubUpload.isDone());
 });
@@ -183,8 +185,8 @@ test.serial('Publish a release with one asset and custom github url', async t =>
 
   await publish(pluginConfig, options, nextRelease, t.context.logger);
 
-  t.true(t.context.log.calledWith(match.string, releaseUrl));
-  t.true(t.context.log.calledWith(match.string, assetUrl));
+  t.deepEqual(t.context.log.args[0], ['Published Github release: %s', releaseUrl]);
+  t.deepEqual(t.context.log.args[1], ['Published file %s', assetUrl]);
   t.true(github.isDone());
   t.true(githubUpload.isDone());
 });
@@ -193,9 +195,10 @@ test.serial('Publish a release with an array of missing assets', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const githubToken = 'github_token';
+  const emptyDirectory = tempy.directory();
   const pluginConfig = {
     githubToken,
-    assets: ['test/fixtures/empty', {path: 'test/fixtures/missing.txt', name: 'missing.txt'}],
+    assets: [emptyDirectory, {path: 'test/fixtures/missing.txt', name: 'missing.txt'}],
   };
   const nextRelease = {version: '1.0.0', gitHead: '123', gitTag: 'v1.0.0', notes: 'Test release note body'};
   const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
@@ -219,9 +222,12 @@ test.serial('Publish a release with an array of missing assets', async t => {
 
   await publish(pluginConfig, options, nextRelease, t.context.logger);
 
-  t.true(t.context.log.calledWith(match.string, releaseUrl));
-  t.true(t.context.error.calledWith(match.string, 'test/fixtures/missing.txt'));
-  t.true(t.context.error.calledWith(match.string, 'test/fixtures/empty'));
+  t.deepEqual(t.context.log.args[0], ['Published Github release: %s', releaseUrl]);
+  t.deepEqual(t.context.error.args[0], [
+    'The asset %s cannot be read, and will be ignored.',
+    'test/fixtures/missing.txt',
+  ]);
+  t.deepEqual(t.context.error.args[1], ['The asset %s is not a file, and will be ignored.', emptyDirectory]);
   t.true(github.isDone());
 });
 

@@ -1,16 +1,17 @@
 import {escape} from 'querystring';
 import test from 'ava';
 import {stat} from 'fs-extra';
-import {stub, match} from 'sinon';
+import {stub} from 'sinon';
 import clearModule from 'clear-module';
 import SemanticReleaseError from '@semantic-release/error';
 import {authenticate, upload} from './helpers/mock-github';
 
 /* eslint camelcase: ["error", {properties: "never"}] */
 
+// Save the current process.env
+const envBackup = Object.assign({}, process.env);
+
 test.beforeEach(t => {
-  // Save the current process.env
-  t.context.env = Object.assign({}, process.env);
   // Delete env variables in case they are on the machine running the tests
   delete process.env.GH_TOKEN;
   delete process.env.GITHUB_TOKEN;
@@ -27,9 +28,9 @@ test.beforeEach(t => {
   t.context.logger = {log: t.context.log, error: t.context.error};
 });
 
-test.afterEach.always(t => {
+test.afterEach.always(() => {
   // Restore process.env
-  process.env = Object.assign({}, t.context.env);
+  process.env = envBackup;
 });
 
 test.serial('Verify Github auth', async t => {
@@ -157,9 +158,9 @@ test.serial('Publish a release with an array of assets', async t => {
 
   await t.context.m.publish({githubToken, assets}, {nextRelease, options, logger: t.context.logger});
 
-  t.true(t.context.log.calledWith(match.string, releaseUrl));
-  t.true(t.context.log.calledWith(match.string, assetUrl));
-  t.true(t.context.log.calledWith(match.string, otherAssetUrl));
+  t.deepEqual(t.context.log.args[0], ['Published Github release: %s', releaseUrl]);
+  t.deepEqual(t.context.log.args[1], ['Published file %s', assetUrl]);
+  t.deepEqual(t.context.log.args[2], ['Published file %s', otherAssetUrl]);
   t.true(github.isDone());
   t.true(githubUpload1.isDone());
   t.true(githubUpload2.isDone());
@@ -220,9 +221,9 @@ test.serial('Verify Github auth and release', async t => {
   await t.notThrows(t.context.m.verifyConditions({}, {options}));
   await t.context.m.publish({assets}, {nextRelease, options, logger: t.context.logger});
 
-  t.true(t.context.log.calledWith(match.string, releaseUrl));
-  t.true(t.context.log.calledWith(match.string, assetUrl));
-  t.true(t.context.log.calledWith(match.string, otherAssetUrl));
+  t.deepEqual(t.context.log.args[0], ['Published Github release: %s', releaseUrl]);
+  t.deepEqual(t.context.log.args[1], ['Published file %s', otherAssetUrl]);
+  t.deepEqual(t.context.log.args[2], ['Published file %s', assetUrl]);
   t.true(github.isDone());
   t.true(githubUpload1.isDone());
   t.true(githubUpload2.isDone());
