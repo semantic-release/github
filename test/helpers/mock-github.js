@@ -8,9 +8,11 @@ import nock from 'nock';
  * @param {String} [githubApiPathPrefix] The GitHub Enterprise API prefix.
  * @return {Object} A `nock` object ready to respond to a github authentication request.
  */
-export function authenticate(
-  {githubToken = 'GH_TOKEN', githubUrl = 'https://api.github.com', githubApiPathPrefix = ''} = {}
-) {
+export function authenticate({
+  githubToken = 'GH_TOKEN',
+  githubUrl = 'https://api.github.com',
+  githubApiPathPrefix = '',
+} = {}) {
   return nock(`${githubUrl}/${githubApiPathPrefix}`, {reqheaders: {Authorization: `token ${githubToken}`}});
 }
 
