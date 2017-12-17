@@ -24,7 +24,8 @@
     "lodash": "^4.17.4",
     "mime": "^2.0.3",
     "p-reduce": "^1.0.0",
-    "parse-github-url": "^1.0.1"
+    "parse-github-url": "^1.0.1",
+    "url-join": "^2.0.2"
   },
   "devDependencies": {
     "ava": "^0.24.0",

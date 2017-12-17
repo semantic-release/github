@@ -76,7 +76,6 @@ test.serial('Verify package, token and repository with environment variables', a
   const repo = 'test_repo';
   process.env.GH_URL = 'https://othertesturl.com:443';
   process.env.GH_TOKEN = 'github_token';
-  process.env.GH_PREFIX = 'prefix';
 
   const github = authenticate({
     githubUrl: process.env.GH_URL,
@@ -94,7 +93,7 @@ test.serial('Verify package, token and repository with environment variables', a
     )
   );
   t.true(github.isDone());
-  t.deepEqual(t.context.log.args[0], ['Verify Github authentication (%s)', 'https://othertesturl.com:443/prefix']);
+  t.deepEqual(t.context.log.args[0], ['Verify Github authentication (%s)', 'https://othertesturl.com:443/']);
 });
 
 test.serial('Verify package, token and repository access with alternative environment varialbes', async t => {
