@@ -63,7 +63,7 @@ test.serial('Verify package, token and repository access and custom URL', async 
   );
 
   t.true(github.isDone());
-  t.deepEqual(t.context.log.args[0], ['Verify Github authentication (%s)', 'https://othertesturl.com:9090/prefix']);
+  t.deepEqual(t.context.log.args[0], ['Verify GitHub authentication (%s)', 'https://othertesturl.com:9090/prefix']);
 });
 
 test.serial('Verify package, token and repository with environment variables', async t => {
@@ -79,7 +79,7 @@ test.serial('Verify package, token and repository with environment variables', a
   await t.notThrows(verify({}, {repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`}, t.context.logger));
 
   t.true(github.isDone());
-  t.deepEqual(t.context.log.args[0], ['Verify Github authentication (%s)', 'https://othertesturl.com:443/prefix']);
+  t.deepEqual(t.context.log.args[0], ['Verify GitHub authentication (%s)', 'https://othertesturl.com:443/prefix']);
 });
 
 test.serial('Verify package, token and repository access with alternative environment varialbes', async t => {

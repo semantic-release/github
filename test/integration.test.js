@@ -36,7 +36,7 @@ test.afterEach.always(() => {
   nock.cleanAll();
 });
 
-test.serial('Verify Github auth', async t => {
+test.serial('Verify GitHub auth', async t => {
   process.env.GITHUB_TOKEN = 'github_token';
   const owner = 'test_user';
   const repo = 'test_repo';
@@ -50,7 +50,7 @@ test.serial('Verify Github auth', async t => {
   t.true(github.isDone());
 });
 
-test.serial('Verify Github auth with publish options', async t => {
+test.serial('Verify GitHub auth with publish options', async t => {
   process.env.GITHUB_TOKEN = 'github_token';
   const owner = 'test_user';
   const repo = 'test_repo';
@@ -67,7 +67,7 @@ test.serial('Verify Github auth with publish options', async t => {
   t.true(github.isDone());
 });
 
-test.serial('Verify Github auth and assets config', async t => {
+test.serial('Verify GitHub auth and assets config', async t => {
   process.env.GH_TOKEN = 'github_token';
   const owner = 'test_user';
   const repo = 'test_repo';
@@ -153,8 +153,8 @@ test.serial('Publish a release with an array of assets', async t => {
 
   await t.context.m.publish({assets}, {nextRelease, options, logger: t.context.logger});
 
-  t.deepEqual(t.context.log.args[0], ['Verify Github authentication']);
-  t.deepEqual(t.context.log.args[1], ['Published Github release: %s', releaseUrl]);
+  t.deepEqual(t.context.log.args[0], ['Verify GitHub authentication']);
+  t.deepEqual(t.context.log.args[1], ['Published GitHub release: %s', releaseUrl]);
   t.deepEqual(t.context.log.args[2], ['Published file %s', assetUrl]);
   t.deepEqual(t.context.log.args[3], ['Published file %s', otherAssetUrl]);
   t.true(github.isDone());
@@ -162,7 +162,7 @@ test.serial('Publish a release with an array of assets', async t => {
   t.true(githubUpload2.isDone());
 });
 
-test.serial('Verify Github auth and release', async t => {
+test.serial('Verify GitHub auth and release', async t => {
   process.env.GH_TOKEN = 'github_token';
   const owner = 'test_user';
   const repo = 'test_repo';
@@ -212,8 +212,8 @@ test.serial('Verify Github auth and release', async t => {
   await t.notThrows(t.context.m.verifyConditions({}, {options, logger: t.context.logger}));
   await t.context.m.publish({assets}, {nextRelease, options, logger: t.context.logger});
 
-  t.deepEqual(t.context.log.args[0], ['Verify Github authentication']);
-  t.deepEqual(t.context.log.args[1], ['Published Github release: %s', releaseUrl]);
+  t.deepEqual(t.context.log.args[0], ['Verify GitHub authentication']);
+  t.deepEqual(t.context.log.args[1], ['Published GitHub release: %s', releaseUrl]);
   t.deepEqual(t.context.log.args[2], ['Published file %s', otherAssetUrl]);
   t.deepEqual(t.context.log.args[3], ['Published file %s', assetUrl]);
   t.true(github.isDone());
