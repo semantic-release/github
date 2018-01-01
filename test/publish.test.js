@@ -60,7 +60,7 @@ test.serial('Publish a release', async t => {
 
   await publish(pluginConfig, options, nextRelease, t.context.logger);
 
-  t.deepEqual(t.context.log.args[0], ['Published Github release: %s', releaseUrl]);
+  t.deepEqual(t.context.log.args[0], ['Published GitHub release: %s', releaseUrl]);
   t.true(github.isDone());
 });
 
@@ -89,7 +89,7 @@ test.serial('Publish a release with an existing tag', async t => {
 
   await publish(pluginConfig, options, nextRelease, t.context.logger);
 
-  t.deepEqual(t.context.log.args[0], ['Published Github release: %s', releaseUrl]);
+  t.deepEqual(t.context.log.args[0], ['Published GitHub release: %s', releaseUrl]);
   t.true(github.isDone());
 });
 
@@ -130,7 +130,7 @@ test.serial('Publish a release with one asset', async t => {
 
   await publish(pluginConfig, options, nextRelease, t.context.logger);
 
-  t.deepEqual(t.context.log.args[0], ['Published Github release: %s', releaseUrl]);
+  t.deepEqual(t.context.log.args[0], ['Published GitHub release: %s', releaseUrl]);
   t.deepEqual(t.context.log.args[1], ['Published file %s', assetUrl]);
   t.true(github.isDone());
   t.true(githubUpload.isDone());
@@ -182,7 +182,7 @@ test.serial('Publish a release with one asset and custom github url', async t =>
 
   await publish(pluginConfig, options, nextRelease, t.context.logger);
 
-  t.deepEqual(t.context.log.args[0], ['Published Github release: %s', releaseUrl]);
+  t.deepEqual(t.context.log.args[0], ['Published GitHub release: %s', releaseUrl]);
   t.deepEqual(t.context.log.args[1], ['Published file %s', assetUrl]);
   t.true(github.isDone());
   t.true(githubUpload.isDone());
@@ -216,7 +216,7 @@ test.serial('Publish a release with an array of missing assets', async t => {
 
   await publish(pluginConfig, options, nextRelease, t.context.logger);
 
-  t.deepEqual(t.context.log.args[0], ['Published Github release: %s', releaseUrl]);
+  t.deepEqual(t.context.log.args[0], ['Published GitHub release: %s', releaseUrl]);
   t.deepEqual(t.context.error.args[0], [
     'The asset %s cannot be read, and will be ignored.',
     'test/fixtures/missing.txt',

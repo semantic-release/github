@@ -1,7 +1,7 @@
 # @semantic-release/github
 
-Set of [semantic-release](https://github.com/semantic-release/semantic-release) plugins for publishing a
-[Github release](https://help.github.com/articles/about-releases).
+Set of [Semantic-release](https://github.com/semantic-release/semantic-release) plugins for publishing a
+[GitHub release](https://help.github.com/articles/about-releases).
 
 [![Travis](https://img.shields.io/travis/semantic-release/github.svg)](https://travis-ci.org/semantic-release/github)
 [![Codecov](https://img.shields.io/codecov/c/github/semantic-release/github.svg)](https://codecov.io/gh/semantic-release/github)
@@ -14,17 +14,16 @@ the [assets](#assets) option configuration.
 
 ## publish
 
-Publish a [Github release](https://help.github.com/articles/about-releases), optionally uploading files.
+Publish a [GitHub release](https://help.github.com/articles/about-releases), optionally uploading files.
 
 ## Configuration
 
-### Github Repository authentication
+### GitHub authentication
 
-The `Github` authentication configuration is **required** and can be set via
+The GitHub authentication configuration is **required** and can be set via
 [environment variables](#environment-variables).
 
-Only the [personal token](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line)
-authentication is supported.
+Follow the [Creating a personal access token for the command line](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line) documentation to obtain an authentication token. The token has to be made available in your CI environment via the `GH_TOKEN` environment variable.
 
 ### Environment variables
 
@@ -50,8 +49,8 @@ Can be a [glob](https://github.com/isaacs/node-glob#glob-primer) or and `Array` 
 | Property | Description                                                                                              | Default                              |
 | -------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------ |
 | `path`   | **Required.** A [glob](https://github.com/isaacs/node-glob#glob-primer) to identify the files to upload. | -                                    |
-| `name`   | The name of the downloadable file on the Github release.                                                 | File name extracted from the `path`. |
-| `label`  | Short description of the file displayed on the Github release.                                           | -                                    |
+| `name`   | The name of the downloadable file on the GitHub release.                                                 | File name extracted from the `path`. |
+| `label`  | Short description of the file displayed on the GitHub release.                                           | -                                    |
 
 Each entry in the `assets` `Array` is globbed individually. A [glob](https://github.com/isaacs/node-glob#glob-primer)
 can be a `String` (`"dist/**/*.js"` or `"dist/mylib.js"`) or an `Array` of `String`s that will be globbed together
@@ -59,7 +58,7 @@ can be a `String` (`"dist/**/*.js"` or `"dist/mylib.js"`) or an `Array` of `Stri
 
 If a directory is configured, all the files under this directory and its children will be included.
 
-Files can be included enven if they have a match in `.gitignore`.
+Files can be included even if they have a match in `.gitignore`.
 
 ##### `assets` examples
 
@@ -70,15 +69,15 @@ files.
 
 `[{path: 'dist/MyLibrary.js', label: 'MyLibrary JS distribution'}, {path: 'dist/MyLibrary.css', label: 'MyLibrary CSS
 distribution'}]`: include the `dist/MyLibrary.js` and `dist/MyLibrary.css` files, and label them `MyLibrary JS
-distribution` and `MyLibrary CSS distribution` in the Github release.
+distribution` and `MyLibrary CSS distribution` in the GitHub release.
 
 `[['dist/**/*.{js,css}', '!**/*.min.*'], {path: 'build/MyLibrary.zip', label: 'MyLibrary'}]`: include all the `js` and
 `css` files in the `dist` directory and its sub-directories excluding the minified version, plus the
-`build/MyLibrary.zip` file and label it `MyLibrary` in the Github release.
+`build/MyLibrary.zip` file and label it `MyLibrary` in the GitHub release.
 
 ### Usage
 
-The plugins are used by default by [semantic-release](https://github.com/semantic-release/semantic-release) so no
+The plugins are used by default by [Semantic-release](https://github.com/semantic-release/semantic-release) so no
 specific configuration is required if `githubUrl` and `githubApiPathPrefix` are set via environment variable.
 
 Each individual plugin can be disabled, replaced or used with other plugins in the `package.json`:
@@ -93,7 +92,7 @@ Each individual plugin can be disabled, replaced or used with other plugins in t
 }
 ```
 
-Options can be set within the plugin definition in the `semantic-release` configuration file:
+Options can be set within the plugin definition in the Semantic-release configuration file:
 
 ```json
 {

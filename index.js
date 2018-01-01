@@ -1,10 +1,10 @@
-const verifyGithub = require('./lib/verify');
-const publishGithub = require('./lib/publish');
+const verifyGitHub = require('./lib/verify');
+const publishGitHub = require('./lib/publish');
 
 let verified;
 
 async function verifyConditions(pluginConfig, {options, logger}) {
-  // If the Github publish plugin is used and has `assets` configured, validate it now in order to prevent any release if the configuration is wrong
+  // If the GitHub publish plugin is used and has `assets` configured, validate it now in order to prevent any release if the configuration is wrong
   if (options.publish) {
     const publishPlugin = (Array.isArray(options.publish) ? options.publish : [options.publish]).find(
       config => config.path && config.path === '@semantic-release/github'
@@ -14,16 +14,16 @@ async function verifyConditions(pluginConfig, {options, logger}) {
     }
   }
 
-  await verifyGithub(pluginConfig, options, logger);
+  await verifyGitHub(pluginConfig, options, logger);
   verified = true;
 }
 
 async function publish(pluginConfig, {nextRelease, options, logger}) {
   if (!verified) {
-    await verifyGithub(pluginConfig, options, logger);
+    await verifyGitHub(pluginConfig, options, logger);
     verified = true;
   }
-  await publishGithub(pluginConfig, options, nextRelease, logger);
+  await publishGitHub(pluginConfig, options, nextRelease, logger);
 }
 
 module.exports = {verifyConditions, publish};

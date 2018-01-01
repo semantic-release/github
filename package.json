@@ -1,6 +1,6 @@
 {
   "name": "@semantic-release/github",
-  "description": "Set of semantic-release plugins for publishing a Github release",
+  "description": "Set of semantic-release plugins for publishing a GitHub release",
   "version": "0.0.0-development",
   "author": "Pierre Vanduynslager (https://twitter.com/@pvdlg_)",
   "bugs": {
