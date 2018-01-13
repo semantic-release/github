@@ -38,7 +38,7 @@
     "nock": "^9.1.0",
     "nyc": "^11.2.1",
     "prettier": "~1.10.0",
-    "semantic-release": "^11.0.2",
+    "semantic-release": "^12.2.2",
     "sinon": "^4.0.0",
     "tempy": "^0.2.1",
     "xo": "^0.18.2"
