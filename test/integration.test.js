@@ -127,10 +127,6 @@ test.serial('Publish a release with an array of assets', async t => {
   const github = authenticate()
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {permissions: {push: true}})
-    .get(`/repos/${owner}/${repo}/git/refs/tags/${nextRelease.gitTag}`)
-    .reply(404)
-    .post(`/repos/${owner}/${repo}/git/refs`, {ref: `refs/tags/${nextRelease.gitTag}`, sha: nextRelease.gitHead})
-    .reply({})
     .post(`/repos/${owner}/${repo}/releases`, {
       tag_name: nextRelease.gitTag,
       target_commitish: options.branch,
@@ -185,10 +181,6 @@ test.serial('Verify GitHub auth and release', async t => {
   const github = authenticate()
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {permissions: {push: true}})
-    .get(`/repos/${owner}/${repo}/git/refs/tags/${nextRelease.gitTag}`)
-    .reply(404)
-    .post(`/repos/${owner}/${repo}/git/refs`, {ref: `refs/tags/${nextRelease.gitTag}`, sha: nextRelease.gitHead})
-    .reply({})
     .post(`/repos/${owner}/${repo}/releases`, {
       tag_name: nextRelease.gitTag,
       target_commitish: options.branch,

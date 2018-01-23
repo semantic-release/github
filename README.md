@@ -86,7 +86,6 @@ Each individual plugin can be disabled, replaced or used with other plugins in t
 {
   "release": {
     "verifyConditions": ["@semantic-release/github", "@semantic-release/npm", "verify-other-condition"],
-    "getLastRelease": "@semantic-release/npm",
     "publish": ["@semantic-release/npm", "@semantic-release/github", "other-publish"]
   }
 }
