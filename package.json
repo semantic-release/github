@@ -25,7 +25,7 @@
     "mime": "^2.0.3",
     "p-reduce": "^1.0.0",
     "parse-github-url": "^1.0.1",
-    "url-join": "^3.0.0"
+    "url-join": "^4.0.0"
   },
   "devDependencies": {
     "ava": "^0.25.0",
