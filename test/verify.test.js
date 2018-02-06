@@ -39,7 +39,10 @@ test.serial('Verify package, token and repository access', async t => {
     .reply(200, {permissions: {push: true}});
 
   await t.notThrows(
-    verify({assets}, {repositoryUrl: `git+https://othertesturl.com/${owner}/${repo}.git`}, t.context.logger)
+    verify(
+      {assets},
+      {options: {repositoryUrl: `git+https://othertesturl.com/${owner}/${repo}.git`}, logger: t.context.logger}
+    )
   );
   t.true(github.isDone());
 });
@@ -57,8 +60,7 @@ test.serial('Verify package, token and repository access and custom URL with pre
   await t.notThrows(
     verify(
       {githubUrl, githubApiPathPrefix},
-      {repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`},
-      t.context.logger
+      {options: {repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`}, logger: t.context.logger}
     )
   );
 
@@ -76,7 +78,10 @@ test.serial('Verify package, token and repository access and custom URL without 
     .reply(200, {permissions: {push: true}});
 
   await t.notThrows(
-    verify({githubUrl}, {repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`}, t.context.logger)
+    verify(
+      {githubUrl},
+      {options: {repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`}, logger: t.context.logger}
+    )
   );
 
   t.true(github.isDone());
@@ -93,7 +98,9 @@ test.serial('Verify package, token and repository with environment variables', a
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {permissions: {push: true}});
 
-  await t.notThrows(verify({}, {repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`}, t.context.logger));
+  await t.notThrows(
+    verify({}, {options: {repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`}, logger: t.context.logger})
+  );
 
   t.true(github.isDone());
   t.deepEqual(t.context.log.args[0], ['Verify GitHub authentication (%s)', 'https://othertesturl.com:443/prefix']);
@@ -110,7 +117,9 @@ test.serial('Verify package, token and repository access with alternative enviro
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {permissions: {push: true}});
 
-  await t.notThrows(verify({}, {repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`}, t.context.logger));
+  await t.notThrows(
+    verify({}, {options: {repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`}, logger: t.context.logger})
+  );
   t.true(github.isDone());
 });
 
@@ -119,7 +128,10 @@ test.serial('Throw SemanticReleaseError if "assets" option is not a String or an
   const assets = 42;
 
   const error = await t.throws(
-    verify({assets}, {repositoryUrl: 'https://github.com/semantic-release/github.git'}, t.context.logger)
+    verify(
+      {assets},
+      {options: {repositoryUrl: 'https://github.com/semantic-release/github.git'}, logger: t.context.logger}
+    )
   );
 
   t.true(error instanceof SemanticReleaseError);
@@ -131,7 +143,10 @@ test.serial('Throw SemanticReleaseError if "assets" option is an Array with inva
   const assets = ['file.js', 42];
 
   const error = await t.throws(
-    verify({assets}, {repositoryUrl: 'https://github.com/semantic-release/github.git'}, t.context.logger)
+    verify(
+      {assets},
+      {options: {repositoryUrl: 'https://github.com/semantic-release/github.git'}, logger: t.context.logger}
+    )
   );
 
   t.true(error instanceof SemanticReleaseError);
@@ -147,7 +162,9 @@ test.serial('Verify "assets" is a String', async t => {
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {permissions: {push: true}});
 
-  await t.notThrows(verify({assets}, {repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`}, t.context.logger));
+  await t.notThrows(
+    verify({assets}, {options: {repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`}, logger: t.context.logger})
+  );
 
   t.true(github.isDone());
 });
@@ -161,7 +178,9 @@ test.serial('Verify "assets" is an Object with a path property', async t => {
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {permissions: {push: true}});
 
-  await t.notThrows(verify({assets}, {repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`}, t.context.logger));
+  await t.notThrows(
+    verify({assets}, {options: {repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`}, logger: t.context.logger})
+  );
 
   t.true(github.isDone());
 });
@@ -175,7 +194,9 @@ test.serial('Verify "assets" is an Array of Object with a path property', async 
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {permissions: {push: true}});
 
-  await t.notThrows(verify({assets}, {repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`}, t.context.logger));
+  await t.notThrows(
+    verify({assets}, {options: {repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`}, logger: t.context.logger})
+  );
 
   t.true(github.isDone());
 });
@@ -189,7 +210,9 @@ test.serial('Verify "assets" is an Array of glob Arrays', async t => {
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {permissions: {push: true}});
 
-  await t.notThrows(verify({assets}, {repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`}, t.context.logger));
+  await t.notThrows(
+    verify({assets}, {options: {repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`}, logger: t.context.logger})
+  );
 
   t.true(github.isDone());
 });
@@ -203,7 +226,9 @@ test.serial('Verify "assets" is an Array of Object with a glob Arrays in path pr
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {permissions: {push: true}});
 
-  await t.notThrows(verify({assets}, {repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`}, t.context.logger));
+  await t.notThrows(
+    verify({assets}, {options: {repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`}, logger: t.context.logger})
+  );
 
   t.true(github.isDone());
 });
@@ -213,7 +238,10 @@ test.serial('Throw SemanticReleaseError if "assets" option is an Object missing 
   const assets = {name: 'file.js'};
 
   const error = await t.throws(
-    verify({assets}, {repositoryUrl: 'https://github.com/semantic-release/github.git'}, t.context.logger)
+    verify(
+      {assets},
+      {options: {repositoryUrl: 'https://github.com/semantic-release/github.git'}, logger: t.context.logger}
+    )
   );
 
   t.true(error instanceof SemanticReleaseError);
@@ -227,7 +255,10 @@ test.serial(
     const assets = [{path: 'lib/file.js'}, {name: 'file.js'}];
 
     const error = await t.throws(
-      verify({assets}, {repositoryUrl: 'https://github.com/semantic-release/github.git'}, t.context.logger)
+      verify(
+        {assets},
+        {options: {repositoryUrl: 'https://github.com/semantic-release/github.git'}, logger: t.context.logger}
+      )
     );
 
     t.true(error instanceof SemanticReleaseError);
@@ -237,7 +268,7 @@ test.serial(
 
 test.serial('Throw SemanticReleaseError for missing github token', async t => {
   const error = await t.throws(
-    verify({}, {repositoryUrl: 'https://github.com/semantic-release/github.git'}, t.context.logger)
+    verify({}, {options: {repositoryUrl: 'https://github.com/semantic-release/github.git'}, logger: t.context.logger})
   );
 
   t.true(error instanceof SemanticReleaseError);
@@ -253,7 +284,7 @@ test.serial('Throw SemanticReleaseError for invalid token', async t => {
     .reply(401);
 
   const error = await t.throws(
-    verify({}, {repositoryUrl: `https://github.com:${owner}/${repo}.git`}, t.context.logger)
+    verify({}, {options: {repositoryUrl: `https://github.com:${owner}/${repo}.git`}, logger: t.context.logger})
   );
 
   t.true(error instanceof SemanticReleaseError);
@@ -264,7 +295,7 @@ test.serial('Throw SemanticReleaseError for invalid token', async t => {
 test.serial('Throw SemanticReleaseError for invalid repositoryUrl', async t => {
   process.env.GITHUB_TOKEN = 'github_token';
 
-  const error = await t.throws(verify({}, {repositoryUrl: 'invalid_url'}, t.context.logger));
+  const error = await t.throws(verify({}, {options: {repositoryUrl: 'invalid_url'}, logger: t.context.logger}));
 
   t.true(error instanceof SemanticReleaseError);
   t.is(error.code, 'EINVALIDGITURL');
@@ -279,7 +310,7 @@ test.serial("Throw SemanticReleaseError if token doesn't have the push permissio
     .reply(200, {permissions: {push: false}});
 
   const error = await t.throws(
-    verify({}, {repositoryUrl: `https://github.com:${owner}/${repo}.git`}, t.context.logger)
+    verify({}, {options: {repositoryUrl: `https://github.com:${owner}/${repo}.git`}, logger: t.context.logger})
   );
 
   t.true(error instanceof SemanticReleaseError);
@@ -296,7 +327,7 @@ test.serial("Throw SemanticReleaseError if the repository doesn't exist", async 
     .reply(404);
 
   const error = await t.throws(
-    verify({}, {repositoryUrl: `https://github.com:${owner}/${repo}.git`}, t.context.logger)
+    verify({}, {options: {repositoryUrl: `https://github.com:${owner}/${repo}.git`}, logger: t.context.logger})
   );
 
   t.true(error instanceof SemanticReleaseError);
@@ -313,7 +344,7 @@ test.serial('Throw error if github return any other errors', async t => {
     .reply(500);
 
   const error = await t.throws(
-    verify({}, {repositoryUrl: `https://github.com:${owner}/${repo}.git`}, t.context.logger)
+    verify({}, {options: {repositoryUrl: `https://github.com:${owner}/${repo}.git`}, logger: t.context.logger})
   );
 
   t.is(error.code, 500);

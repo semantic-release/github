@@ -3,7 +3,8 @@ const publishGitHub = require('./lib/publish');
 
 let verified;
 
-async function verifyConditions(pluginConfig, {options, logger}) {
+async function verifyConditions(pluginConfig, context) {
+  const {options} = context;
   // If the GitHub publish plugin is used and has `assets` configured, validate it now in order to prevent any release if the configuration is wrong
   if (options.publish) {
     const publishPlugin = (Array.isArray(options.publish) ? options.publish : [options.publish]).find(
@@ -14,16 +15,16 @@ async function verifyConditions(pluginConfig, {options, logger}) {
     }
   }
 
-  await verifyGitHub(pluginConfig, options, logger);
+  await verifyGitHub(pluginConfig, context);
   verified = true;
 }
 
-async function publish(pluginConfig, {nextRelease, options, logger}) {
+async function publish(pluginConfig, context) {
   if (!verified) {
-    await verifyGitHub(pluginConfig, options, logger);
+    await verifyGitHub(pluginConfig, context);
     verified = true;
   }
-  await publishGitHub(pluginConfig, options, nextRelease, logger);
+  await publishGitHub(pluginConfig, context);
 }
 
 module.exports = {verifyConditions, publish};
