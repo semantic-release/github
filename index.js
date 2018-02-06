@@ -24,7 +24,7 @@ async function publish(pluginConfig, context) {
     await verifyGitHub(pluginConfig, context);
     verified = true;
   }
-  await publishGitHub(pluginConfig, context);
+  return publishGitHub(pluginConfig, context);
 }
 
 module.exports = {verifyConditions, publish};

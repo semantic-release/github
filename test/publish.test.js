@@ -54,8 +54,9 @@ test.serial('Publish a release', async t => {
     })
     .reply(200, {upload_url: uploadUrl, html_url: releaseUrl});
 
-  await publish(pluginConfig, {options, nextRelease, logger: t.context.logger});
+  const result = await publish(pluginConfig, {options, nextRelease, logger: t.context.logger});
 
+  t.is(result.url, releaseUrl);
   t.deepEqual(t.context.log.args[0], ['Published GitHub release: %s', releaseUrl]);
   t.true(github.isDone());
 });
@@ -91,8 +92,9 @@ test.serial('Publish a release with one asset', async t => {
     .post(`${uploadUri}?name=${escape('.dotfile')}&label=${escape('A dotfile with no ext')}`)
     .reply(200, {browser_download_url: assetUrl});
 
-  await publish(pluginConfig, {options, nextRelease, logger: t.context.logger});
+  const result = await publish(pluginConfig, {options, nextRelease, logger: t.context.logger});
 
+  t.is(result.url, releaseUrl);
   t.deepEqual(t.context.log.args[0], ['Published GitHub release: %s', releaseUrl]);
   t.deepEqual(t.context.log.args[1], ['Published file %s', assetUrl]);
   t.true(github.isDone());
@@ -139,8 +141,9 @@ test.serial('Publish a release with one asset and custom github url', async t =>
     .post(`${uploadUri}?name=${escape('upload.txt')}&label=${escape('A text file')}`)
     .reply(200, {browser_download_url: assetUrl});
 
-  await publish(pluginConfig, {options, nextRelease, logger: t.context.logger});
+  const result = await publish(pluginConfig, {options, nextRelease, logger: t.context.logger});
 
+  t.is(result.url, releaseUrl);
   t.deepEqual(t.context.log.args[0], ['Published GitHub release: %s', releaseUrl]);
   t.deepEqual(t.context.log.args[1], ['Published file %s', assetUrl]);
   t.true(github.isDone());
@@ -169,8 +172,9 @@ test.serial('Publish a release with an array of missing assets', async t => {
     })
     .reply(200, {upload_url: uploadUrl, html_url: releaseUrl});
 
-  await publish(pluginConfig, {options, nextRelease, logger: t.context.logger});
+  const result = await publish(pluginConfig, {options, nextRelease, logger: t.context.logger});
 
+  t.is(result.url, releaseUrl);
   t.deepEqual(t.context.log.args[0], ['Published GitHub release: %s', releaseUrl]);
   t.deepEqual(t.context.error.args[0], [
     'The asset %s cannot be read, and will be ignored.',

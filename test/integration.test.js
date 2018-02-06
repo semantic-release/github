@@ -147,8 +147,9 @@ test.serial('Publish a release with an array of assets', async t => {
     .post(`${uploadUri}?name=${escape('upload_other.txt')}&label=${escape('Other File')}`)
     .reply(200, {browser_download_url: otherAssetUrl});
 
-  await t.context.m.publish({assets}, {nextRelease, options, logger: t.context.logger});
+  const result = await t.context.m.publish({assets}, {nextRelease, options, logger: t.context.logger});
 
+  t.is(result.url, releaseUrl);
   t.deepEqual(t.context.log.args[0], ['Verify GitHub authentication']);
   t.deepEqual(t.context.log.args[1], ['Published GitHub release: %s', releaseUrl]);
   t.deepEqual(t.context.log.args[2], ['Published file %s', assetUrl]);
