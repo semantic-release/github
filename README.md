@@ -19,6 +19,10 @@ the [assets](#assets) option configuration.
 
 Publish a [GitHub release](https://help.github.com/articles/about-releases), optionally uploading files.
 
+## success
+
+Add a comment to each GitHub issue or pull request resolved by the release.
+
 ## Configuration
 
 ### GitHub authentication
@@ -38,13 +42,14 @@ Follow the [Creating a personal access token for the command line](https://help.
 
 ### Options
 
-| Option                | Description                                                        | Default                                              |
-| --------------------- | ------------------------------------------------------------------ | ---------------------------------------------------- |
-| `githubUrl`           | The GitHub Enterprise endpoint.                                    | `GH_URL` or `GITHUB_URL` environment variable.       |
-| `githubApiPathPrefix` | The GitHub Enterprise API prefix.                                  | `GH_PREFIX` or `GITHUB_PREFIX` environment variable. |
-| `assets`              | An array of files to upload to the release. See [assets](#assets). | -                                                    |
+| Option                | Description                                                                                                      | Default                                                                                                                                              |
+|-----------------------|------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `githubUrl`           | The GitHub Enterprise endpoint.                                                                                  | `GH_URL` or `GITHUB_URL` environment variable.                                                                                                       |
+| `githubApiPathPrefix` | The GitHub Enterprise API prefix.                                                                                | `GH_PREFIX` or `GITHUB_PREFIX` environment variable.                                                                                                 |
+| `assets`              | An array of files to upload to the release. See [assets](#assets).                                               | -                                                                                                                                                    |
+| `successComment`      | The comment added to each issue and pull request resolved by the release. See [successComment](#successcomment). | `:tada: This issue has been resolved in version ${nextRelease.version} :tada:\n\nThe release is available on [GitHub release](<github_release_url>)` |
 
-#### `assets`
+#### assets
 
 Can be a [glob](https://github.com/isaacs/node-glob#glob-primer) or and `Array` of
 [globs](https://github.com/isaacs/node-glob#glob-primer) and `Object`s with the following properties
@@ -63,7 +68,7 @@ If a directory is configured, all the files under this directory and its childre
 
 Files can be included even if they have a match in `.gitignore`.
 
-##### `assets` examples
+##### assets examples
 
 `'dist/*.js'`: include all the `js` files in the `dist` directory, but not in its sub-directories.
 
@@ -78,6 +83,25 @@ distribution` and `MyLibrary CSS distribution` in the GitHub release.
 `css` files in the `dist` directory and its sub-directories excluding the minified version, plus the
 `build/MyLibrary.zip` file and label it `MyLibrary` in the GitHub release.
 
+#### successComment
+
+The message for the issue comments is generated with [Lodash template](https://lodash.com/docs#template). The following variables are available:
+
+| Parameter     | Description                                                                                                                                                                                                                                                                   |
+|---------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `branch`      | The branch from which the release is done.                                                                                                                                                                                                                                    |
+| `lastRelease` | `Object` with `version`, `gitTag` and `gitHead` of the last release.                                                                                                                                                                                                          |
+| `nextRelease` | `Object` with `version`, `gitTag`, `gitHead` and `notes` of the release being done.                                                                                                                                                                                           |
+| `commits`     | `Array` of commit `Object`s with `hash`, `subject`, `body` `message` and `author`.                                                                                                                                                                                            |
+| `releases`    | `Array` with a release `Object`s for each release published, with optional release data such has `name` and `url`.                                                                                                                                                            |
+| `issue`       | A [GitHub API pull request object](https://developer.github.com/v3/search/#search-issues) for pull requests related to a commit, or an `Object` with the `number` property for issues resolved via [keywords](https://help.github.com/articles/closing-issues-using-keywords) |
+
+##### successComment examples
+
+The `successComment` `This ${issue.pull_request ? 'pull request' : 'issue'} is included in version ${nextRelease.version}` will generate the comment:
+
+> This pull request is included in version 1.0.0
+
 ### Usage
 
 The plugins are used by default by [Semantic-release](https://github.com/semantic-release/semantic-release) so no
@@ -89,7 +113,8 @@ Each individual plugin can be disabled, replaced or used with other plugins in t
 {
   "release": {
     "verifyConditions": ["@semantic-release/github", "@semantic-release/npm", "verify-other-condition"],
-    "publish": ["@semantic-release/npm", "@semantic-release/github", "other-publish"]
+    "publish": ["@semantic-release/npm", "@semantic-release/github", "other-publish"],
+    "success": ["@semantic-release/github", "other-success"]
   }
 }
 ```

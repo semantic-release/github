@@ -34,13 +34,33 @@ test.serial('Verify package, token and repository access', async t => {
   const repo = 'test_repo';
   process.env.GH_TOKEN = 'github_token';
   const assets = [{path: 'lib/file.js'}, 'file.js'];
+  const successComment = 'Test comment';
   const github = authenticate()
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {permissions: {push: true}});
 
   await t.notThrows(
     verify(
-      {assets},
+      {assets, successComment},
+      {options: {repositoryUrl: `git+https://othertesturl.com/${owner}/${repo}.git`}, logger: t.context.logger}
+    )
+  );
+  t.true(github.isDone());
+});
+
+test.serial('Verify package, token and repository access with "asset" and "successComment" set to "false"', async t => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  process.env.GH_TOKEN = 'github_token';
+  const assets = false;
+  const successComment = false;
+  const github = authenticate()
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {permissions: {push: true}});
+
+  await t.notThrows(
+    verify(
+      {assets, successComment},
       {options: {repositoryUrl: `git+https://othertesturl.com/${owner}/${repo}.git`}, logger: t.context.logger}
     )
   );
@@ -349,4 +369,46 @@ test.serial('Throw error if github return any other errors', async t => {
 
   t.is(error.code, 500);
   t.true(github.isDone());
+});
+
+test('Throw SemanticReleaseError if "successComment" option is not a String', async t => {
+  process.env.GITHUB_TOKEN = 'github_token';
+  const successComment = 42;
+  const error = await t.throws(
+    verify(
+      {successComment},
+      {options: {repositoryUrl: 'https://github.com/semantic-release/github.git'}, logger: t.context.logger}
+    )
+  );
+
+  t.is(error.name, 'SemanticReleaseError');
+  t.is(error.code, 'EINVALIDSUCCESSCOMMENT');
+});
+
+test('Throw SemanticReleaseError if "successComment" option is an empty String', async t => {
+  process.env.GITHUB_TOKEN = 'github_token';
+  const successComment = '';
+  const error = await t.throws(
+    verify(
+      {successComment},
+      {options: {repositoryUrl: 'https://github.com/semantic-release/github.git'}, logger: t.context.logger}
+    )
+  );
+
+  t.is(error.name, 'SemanticReleaseError');
+  t.is(error.code, 'EINVALIDSUCCESSCOMMENT');
+});
+
+test('Throw SemanticReleaseError if "successComment" option is a whitespace String', async t => {
+  process.env.GITHUB_TOKEN = 'github_token';
+  const successComment = '  \n \r ';
+  const error = await t.throws(
+    verify(
+      {successComment},
+      {options: {repositoryUrl: 'https://github.com/semantic-release/github.git'}, logger: t.context.logger}
+    )
+  );
+
+  t.is(error.name, 'SemanticReleaseError');
+  t.is(error.code, 'EINVALIDSUCCESSCOMMENT');
 });
