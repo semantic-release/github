@@ -1,5 +1,6 @@
 const verifyGitHub = require('./lib/verify');
 const publishGitHub = require('./lib/publish');
+const successGitHub = require('./lib/success');
 
 let verified;
 
@@ -12,6 +13,9 @@ async function verifyConditions(pluginConfig, context) {
     );
     if (publishPlugin && publishPlugin.assets) {
       pluginConfig.assets = publishPlugin.assets;
+    }
+    if (publishPlugin && publishPlugin.successComment) {
+      pluginConfig.successComment = publishPlugin.successComment;
     }
   }
 
@@ -27,4 +31,12 @@ async function publish(pluginConfig, context) {
   return publishGitHub(pluginConfig, context);
 }
 
-module.exports = {verifyConditions, publish};
+async function success(pluginConfig, context) {
+  if (!verified) {
+    await verifyGitHub(pluginConfig, context);
+    verified = true;
+  }
+  await successGitHub(pluginConfig, context);
+}
+
+module.exports = {verifyConditions, publish, success};

@@ -159,7 +159,33 @@ test.serial('Publish a release with an array of assets', async t => {
   t.true(githubUpload2.isDone());
 });
 
-test.serial('Verify GitHub auth and release', async t => {
+test.serial('Comment on PR included in the releases', async t => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  process.env.GH_TOKEN = 'github_token';
+  const prs = [{number: 1, pull_request: {}}];
+  const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const commits = [{hash: '123', message: 'Commit 1 message'}];
+  const nextRelease = {version: '1.0.0'};
+  const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
+  const github = authenticate()
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {permissions: {push: true}})
+    .get(
+      `/search/issues?q=${commits.map(commit => commit.hash).join('+')}+${escape(`repo:${owner}/${repo}`)}+${escape(
+        'type:pr'
+      )}`
+    )
+    .reply(200, {items: prs})
+    .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
+    .reply(200, {html_url: 'https://github.com/successcomment-1'});
+
+  await t.context.m.success({}, {options, commits, nextRelease, releases, logger: t.context.logger});
+
+  t.true(github.isDone());
+});
+
+test.serial('Verify GitHub auth, release and notify', async t => {
   process.env.GH_TOKEN = 'github_token';
   const owner = 'test_user';
   const repo = 'test_repo';
@@ -179,6 +205,8 @@ test.serial('Verify GitHub auth and release', async t => {
   const releaseId = 1;
   const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
   const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
+  const prs = [{number: 1, pull_request: {}}];
+  const commits = [{hash: '123', message: 'Commit 1 message'}];
   const github = authenticate()
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {permissions: {push: true}})
@@ -188,7 +216,15 @@ test.serial('Verify GitHub auth and release', async t => {
       name: nextRelease.gitTag,
       body: nextRelease.notes,
     })
-    .reply(200, {upload_url: uploadUrl, html_url: releaseUrl});
+    .reply(200, {upload_url: uploadUrl, html_url: releaseUrl})
+    .get(
+      `/search/issues?q=${commits.map(commit => commit.hash).join('+')}+${escape(`repo:${owner}/${repo}`)}+${escape(
+        'type:pr'
+      )}`
+    )
+    .reply(200, {items: prs})
+    .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
+    .reply(200, {html_url: 'https://github.com/successcomment-1'});
   const githubUpload1 = upload({
     uploadUrl: 'https://github.com',
     contentLength: (await stat('test/fixtures/upload.txt')).size,
@@ -204,6 +240,7 @@ test.serial('Verify GitHub auth and release', async t => {
 
   await t.notThrows(t.context.m.verifyConditions({}, {options, logger: t.context.logger}));
   await t.context.m.publish({assets}, {nextRelease, options, logger: t.context.logger});
+  await t.context.m.success({assets}, {nextRelease, options, commits, releases: [], logger: t.context.logger});
 
   t.deepEqual(t.context.log.args[0], ['Verify GitHub authentication']);
   t.deepEqual(t.context.log.args[1], ['Published GitHub release: %s', releaseUrl]);
