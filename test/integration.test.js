@@ -4,7 +4,6 @@ import {stat} from 'fs-extra';
 import nock from 'nock';
 import {stub} from 'sinon';
 import clearModule from 'clear-module';
-import SemanticReleaseError from '@semantic-release/error';
 import {authenticate, upload} from './helpers/mock-github';
 
 /* eslint camelcase: ["error", {properties: "never"}] */
@@ -92,19 +91,23 @@ test.serial('Verify GitHub auth and assets config', async t => {
 });
 
 test.serial('Throw SemanticReleaseError if invalid config', async t => {
-  process.env.GH_TOKEN = 'github_token';
-  const owner = 'test_user';
-  const repo = 'test_repo';
   const assets = [{wrongProperty: 'lib/file.js'}];
+  const successComment = 42;
   const options = {
-    publish: [{path: '@semantic-release/npm'}, {path: '@semantic-release/github', assets}],
-    repositoryUrl: `git+https://othertesturl.com/${owner}/${repo}.git`,
+    publish: [{path: '@semantic-release/npm'}, {path: '@semantic-release/github', assets, successComment}],
+    repositoryUrl: 'invalid_url',
   };
 
-  const error = await t.throws(t.context.m.verifyConditions({}, {options, logger: t.context.logger}));
+  const errors = [...(await t.throws(t.context.m.verifyConditions({}, {options, logger: t.context.logger})))];
 
-  t.true(error instanceof SemanticReleaseError);
-  t.is(error.code, 'EINVALIDASSETS');
+  t.is(errors[0].name, 'SemanticReleaseError');
+  t.is(errors[0].code, 'EINVALIDASSETS');
+  t.is(errors[1].name, 'SemanticReleaseError');
+  t.is(errors[1].code, 'EINVALIDSUCCESSCOMMENT');
+  t.is(errors[2].name, 'SemanticReleaseError');
+  t.is(errors[2].code, 'EINVALIDGITURL');
+  t.is(errors[3].name, 'SemanticReleaseError');
+  t.is(errors[3].code, 'ENOGHTOKEN');
 });
 
 test.serial('Publish a release with an array of assets', async t => {
