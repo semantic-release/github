@@ -30,7 +30,7 @@ Add a comment to each GitHub issue or pull request resolved by the release.
 The GitHub authentication configuration is **required** and can be set via
 [environment variables](#environment-variables).
 
-Follow the [Creating a personal access token for the command line](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line) documentation to obtain an authentication token. The token has to be made available in your CI environment via the `GH_TOKEN` environment variable.
+Follow the [Creating a personal access token for the command line](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line) documentation to obtain an authentication token. The token has to be made available in your CI environment via the `GH_TOKEN` environment variable. The user associated with the token must have push permission to the repository.
 
 ### Environment variables
 
