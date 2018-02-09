@@ -105,7 +105,7 @@ test.serial('Throw SemanticReleaseError if invalid config', async t => {
   t.is(errors[1].name, 'SemanticReleaseError');
   t.is(errors[1].code, 'EINVALIDSUCCESSCOMMENT');
   t.is(errors[2].name, 'SemanticReleaseError');
-  t.is(errors[2].code, 'EINVALIDGITURL');
+  t.is(errors[2].code, 'EINVALIDGITHUBURL');
   t.is(errors[3].name, 'SemanticReleaseError');
   t.is(errors[3].code, 'ENOGHTOKEN');
 });

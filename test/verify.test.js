@@ -317,7 +317,7 @@ test.serial('Throw SemanticReleaseError for invalid repositoryUrl', async t => {
   const [error] = await t.throws(verify({}, {options: {repositoryUrl: 'invalid_url'}, logger: t.context.logger}));
 
   t.is(error.name, 'SemanticReleaseError');
-  t.is(error.code, 'EINVALIDGITURL');
+  t.is(error.code, 'EINVALIDGITHUBURL');
 });
 
 test.serial("Throw SemanticReleaseError if token doesn't have the push permission on the repository", async t => {
