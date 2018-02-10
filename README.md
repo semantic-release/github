@@ -21,7 +21,11 @@ Publish a [GitHub release](https://help.github.com/articles/about-releases), opt
 
 ## success
 
-Add a comment to each GitHub issue or pull request resolved by the release.
+Add a comment to each GitHub issue or pull request resolved by the release and close issues previously open by the [fail](#fail) step.
+
+## fail
+
+Open or update a GitHub issue with informations about the errors that caused the release to fail.
 
 ## Configuration
 
@@ -42,12 +46,16 @@ Follow the [Creating a personal access token for the command line](https://help.
 
 ### Options
 
-| Option                | Description                                                                                                      | Default                                                                                                                                              |
-|-----------------------|------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `githubUrl`           | The GitHub Enterprise endpoint.                                                                                  | `GH_URL` or `GITHUB_URL` environment variable.                                                                                                       |
-| `githubApiPathPrefix` | The GitHub Enterprise API prefix.                                                                                | `GH_PREFIX` or `GITHUB_PREFIX` environment variable.                                                                                                 |
-| `assets`              | An array of files to upload to the release. See [assets](#assets).                                               | -                                                                                                                                                    |
-| `successComment`      | The comment added to each issue and pull request resolved by the release. See [successComment](#successcomment). | `:tada: This issue has been resolved in version ${nextRelease.version} :tada:\n\nThe release is available on [GitHub release](<github_release_url>)` |
+| Option                | Description                                                                                                                                                  | Default                                                                                                                                              |
+|-----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `githubUrl`           | The GitHub Enterprise endpoint.                                                                                                                              | `GH_URL` or `GITHUB_URL` environment variable.                                                                                                       |
+| `githubApiPathPrefix` | The GitHub Enterprise API prefix.                                                                                                                            | `GH_PREFIX` or `GITHUB_PREFIX` environment variable.                                                                                                 |
+| `assets`              | An array of files to upload to the release. See [assets](#assets).                                                                                           | -                                                                                                                                                    |
+| `successComment`      | The comment added to each issue and pull request resolved by the release. See [successComment](#successcomment).                                             | `:tada: This issue has been resolved in version ${nextRelease.version} :tada:\n\nThe release is available on [GitHub release](<github_release_url>)` |
+| `failComment`         | The content of the issue created when a release fails. See [failComment](#failcomment).                                                                      | Friendly message with links to **semantic-release** documentation and support, with the list of errors that caused the release to fail.              |
+| `failTitle`           | The title of the issue created when a release fails.                                                                                                         | `The automated release is failing :rotating_light:`                                                                                                  |
+| `labels`              | The [labels](https://help.github.com/articles/about-labels) to add to the issue created when a release fails.                                                | `['semantic-release']`                                                                                                                               |
+| `assignees`           | The [assignees](https://help.github.com/articles/assigning-issues-and-pull-requests-to-other-github-users) to add to the issue created when a release fails. | -                                                                                                                                                    |
 
 #### assets
 
@@ -102,6 +110,23 @@ The `successComment` `This ${issue.pull_request ? 'pull request' : 'issue'} is i
 
 > This pull request is included in version 1.0.0
 
+#### failComment
+
+The message for the issue content is generated with [Lodash template](https://lodash.com/docs#template). The following variables are available:
+
+| Parameter | Description                                                                                                                                                                                                                                                                                                             |
+|-----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `branch`  | The branch from which the release had failed.                                                                                                                                                                                                                                                                           |
+| `errors`  | An `Array` of [SemanticReleaseError](https://github.com/semantic-release/error). Each error has the `message`, `code`, `pluginName` and `details` properties.<br>`pluginName` contains the package name of the plugin that threw the error.<br>`details` contains a informations about the error formatted in markdown. |
+
+##### failComment examples
+
+The `failComment` `This release from branch ${branch} had failed due to the following errors:\n- ${errors.map(err => err.message).join('\\n- ')}` will generate the comment:
+
+> This release from branch master had failed due to the following errors:
+> - Error message 1
+> - Error message 2
+
 ### Usage
 
 The plugins are used by default by [Semantic-release](https://github.com/semantic-release/semantic-release) so no
@@ -114,7 +139,8 @@ Each individual plugin can be disabled, replaced or used with other plugins in t
   "release": {
     "verifyConditions": ["@semantic-release/github", "@semantic-release/npm", "verify-other-condition"],
     "publish": ["@semantic-release/npm", "@semantic-release/github", "other-publish"],
-    "success": ["@semantic-release/github", "other-success"]
+    "success": ["@semantic-release/github", "other-success"],
+    "fail": ["@semantic-release/github", "other-fail"]
   }
 }
 ```
