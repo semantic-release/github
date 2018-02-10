@@ -56,7 +56,10 @@
   "keywords": [
     "git",
     "github",
+    "issue",
+    "notifications",
     "publish",
+    "pull-request",
     "release",
     "semantic-release",
     "version"

@@ -34,37 +34,46 @@ test.serial('Verify package, token and repository access', async t => {
   process.env.GH_TOKEN = 'github_token';
   const assets = [{path: 'lib/file.js'}, 'file.js'];
   const successComment = 'Test comment';
+  const failTitle = 'Test title';
+  const failComment = 'Test comment';
+  const labels = ['semantic-release'];
   const github = authenticate()
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {permissions: {push: true}});
 
   await t.notThrows(
     verify(
-      {assets, successComment},
+      {assets, successComment, failTitle, failComment, labels},
       {options: {repositoryUrl: `git+https://othertesturl.com/${owner}/${repo}.git`}, logger: t.context.logger}
     )
   );
   t.true(github.isDone());
 });
 
-test.serial('Verify package, token and repository access with "asset" and "successComment" set to "false"', async t => {
-  const owner = 'test_user';
-  const repo = 'test_repo';
-  process.env.GH_TOKEN = 'github_token';
-  const assets = false;
-  const successComment = false;
-  const github = authenticate()
-    .get(`/repos/${owner}/${repo}`)
-    .reply(200, {permissions: {push: true}});
+test.serial(
+  'Verify package, token and repository access with "asset", "successComment", "failTitle", "failComment" and "label" set to "false"',
+  async t => {
+    const owner = 'test_user';
+    const repo = 'test_repo';
+    process.env.GH_TOKEN = 'github_token';
+    const assets = false;
+    const successComment = false;
+    const failTitle = false;
+    const failComment = false;
+    const labels = false;
+    const github = authenticate()
+      .get(`/repos/${owner}/${repo}`)
+      .reply(200, {permissions: {push: true}});
 
-  await t.notThrows(
-    verify(
-      {assets, successComment},
-      {options: {repositoryUrl: `git+https://othertesturl.com/${owner}/${repo}.git`}, logger: t.context.logger}
-    )
-  );
-  t.true(github.isDone());
-});
+    await t.notThrows(
+      verify(
+        {assets, successComment, failTitle, failComment, labels},
+        {options: {repositoryUrl: `git+https://othertesturl.com/${owner}/${repo}.git`}, logger: t.context.logger}
+      )
+    );
+    t.true(github.isDone());
+  }
+);
 
 test.serial('Verify package, token and repository access and custom URL with prefix', async t => {
   const owner = 'test_user';
@@ -140,36 +149,6 @@ test.serial('Verify package, token and repository access with alternative enviro
     verify({}, {options: {repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`}, logger: t.context.logger})
   );
   t.true(github.isDone());
-});
-
-test.serial('Throw SemanticReleaseError if "assets" option is not a String or an Array of Objects', async t => {
-  process.env.GITHUB_TOKEN = 'github_token';
-  const assets = 42;
-
-  const [error] = await t.throws(
-    verify(
-      {assets},
-      {options: {repositoryUrl: 'https://github.com/semantic-release/github.git'}, logger: t.context.logger}
-    )
-  );
-
-  t.is(error.name, 'SemanticReleaseError');
-  t.is(error.code, 'EINVALIDASSETS');
-});
-
-test.serial('Throw SemanticReleaseError if "assets" option is an Array with invalid elements', async t => {
-  process.env.GITHUB_TOKEN = 'github_token';
-  const assets = ['file.js', 42];
-
-  const [error] = await t.throws(
-    verify(
-      {assets},
-      {options: {repositoryUrl: 'https://github.com/semantic-release/github.git'}, logger: t.context.logger}
-    )
-  );
-
-  t.is(error.name, 'SemanticReleaseError');
-  t.is(error.code, 'EINVALIDASSETS');
 });
 
 test.serial('Verify "assets" is a String', async t => {
@@ -252,38 +231,40 @@ test.serial('Verify "assets" is an Array of Object with a glob Arrays in path pr
   t.true(github.isDone());
 });
 
-test.serial('Throw SemanticReleaseError if "assets" option is an Object missing the "path" property', async t => {
+test.serial('Verify "labels" is a String', async t => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
   process.env.GITHUB_TOKEN = 'github_token';
-  const assets = {name: 'file.js'};
+  const labels = 'semantic-release';
+  const github = authenticate()
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {permissions: {push: true}});
 
-  const [error] = await t.throws(
+  await t.notThrows(
+    verify({labels}, {options: {repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`}, logger: t.context.logger})
+  );
+
+  t.true(github.isDone());
+});
+
+test.serial('Verify "assignees" is a String', async t => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  process.env.GITHUB_TOKEN = 'github_token';
+  const assignees = 'user';
+  const github = authenticate()
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {permissions: {push: true}});
+
+  await t.notThrows(
     verify(
-      {assets},
-      {options: {repositoryUrl: 'https://github.com/semantic-release/github.git'}, logger: t.context.logger}
+      {assignees},
+      {options: {repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`}, logger: t.context.logger}
     )
   );
 
-  t.is(error.name, 'SemanticReleaseError');
-  t.is(error.code, 'EINVALIDASSETS');
+  t.true(github.isDone());
 });
-
-test.serial(
-  'Throw SemanticReleaseError if "assets" option is an Array with objects missing the "path" property',
-  async t => {
-    process.env.GITHUB_TOKEN = 'github_token';
-    const assets = [{path: 'lib/file.js'}, {name: 'file.js'}];
-
-    const [error] = await t.throws(
-      verify(
-        {assets},
-        {options: {repositoryUrl: 'https://github.com/semantic-release/github.git'}, logger: t.context.logger}
-      )
-    );
-
-    t.is(error.name, 'SemanticReleaseError');
-    t.is(error.code, 'EINVALIDASSETS');
-  }
-);
 
 test.serial('Throw SemanticReleaseError for missing github token', async t => {
   const [error] = await t.throws(
@@ -370,6 +351,69 @@ test.serial('Throw error if github return any other errors', async t => {
   t.true(github.isDone());
 });
 
+test.serial('Throw SemanticReleaseError if "assets" option is not a String or an Array of Objects', async t => {
+  process.env.GITHUB_TOKEN = 'github_token';
+  const assets = 42;
+
+  const [error] = await t.throws(
+    verify(
+      {assets},
+      {options: {repositoryUrl: 'https://github.com/semantic-release/github.git'}, logger: t.context.logger}
+    )
+  );
+
+  t.is(error.name, 'SemanticReleaseError');
+  t.is(error.code, 'EINVALIDASSETS');
+});
+
+test.serial('Throw SemanticReleaseError if "assets" option is an Array with invalid elements', async t => {
+  process.env.GITHUB_TOKEN = 'github_token';
+  const assets = ['file.js', 42];
+
+  const [error] = await t.throws(
+    verify(
+      {assets},
+      {options: {repositoryUrl: 'https://github.com/semantic-release/github.git'}, logger: t.context.logger}
+    )
+  );
+
+  t.is(error.name, 'SemanticReleaseError');
+  t.is(error.code, 'EINVALIDASSETS');
+});
+
+test.serial('Throw SemanticReleaseError if "assets" option is an Object missing the "path" property', async t => {
+  process.env.GITHUB_TOKEN = 'github_token';
+  const assets = {name: 'file.js'};
+
+  const [error] = await t.throws(
+    verify(
+      {assets},
+      {options: {repositoryUrl: 'https://github.com/semantic-release/github.git'}, logger: t.context.logger}
+    )
+  );
+
+  t.is(error.name, 'SemanticReleaseError');
+  t.is(error.code, 'EINVALIDASSETS');
+});
+
+test.serial(
+  'Throw SemanticReleaseError if "assets" option is an Array with objects missing the "path" property',
+  async t => {
+    process.env.GITHUB_TOKEN = 'github_token';
+    const assets = [{path: 'lib/file.js'}, {name: 'file.js'}];
+
+    const [error] = await t.throws(
+      verify(
+        {assets},
+        {options: {repositoryUrl: 'https://github.com/semantic-release/github.git'}, logger: t.context.logger}
+      )
+    );
+
+    t.is(error.name, 'SemanticReleaseError');
+    t.is(error.code, 'EINVALIDASSETS');
+  }
+);
+
 test('Throw SemanticReleaseError if "successComment" option is not a String', async t => {
   const successComment = 42;
   const [error] = await t.throws(
@@ -407,4 +451,168 @@ test('Throw SemanticReleaseError if "successComment" option is a whitespace Stri
 
   t.is(error.name, 'SemanticReleaseError');
   t.is(error.code, 'EINVALIDSUCCESSCOMMENT');
+});
+
+test('Throw SemanticReleaseError if "failTitle" option is not a String', async t => {
+  const failTitle = 42;
+  const [error] = await t.throws(
+    verify(
+      {failTitle},
+      {options: {repositoryUrl: 'https://github.com/semantic-release/github.git'}, logger: t.context.logger}
+    )
+  );
+
+  t.is(error.name, 'SemanticReleaseError');
+  t.is(error.code, 'EINVALIDFAILTITLE');
+});
+
+test('Throw SemanticReleaseError if "failTitle" option is an empty String', async t => {
+  const failTitle = '';
+  const [error] = await t.throws(
+    verify(
+      {failTitle},
+      {options: {repositoryUrl: 'https://github.com/semantic-release/github.git'}, logger: t.context.logger}
+    )
+  );
+
+  t.is(error.name, 'SemanticReleaseError');
+  t.is(error.code, 'EINVALIDFAILTITLE');
+});
+
+test('Throw SemanticReleaseError if "failTitle" option is a whitespace String', async t => {
+  const failTitle = '  \n \r ';
+  const [error] = await t.throws(
+    verify(
+      {failTitle},
+      {options: {repositoryUrl: 'https://github.com/semantic-release/github.git'}, logger: t.context.logger}
+    )
+  );
+
+  t.is(error.name, 'SemanticReleaseError');
+  t.is(error.code, 'EINVALIDFAILTITLE');
+});
+
+test('Throw SemanticReleaseError if "failComment" option is not a String', async t => {
+  const failComment = 42;
+  const [error] = await t.throws(
+    verify(
+      {failComment},
+      {options: {repositoryUrl: 'https://github.com/semantic-release/github.git'}, logger: t.context.logger}
+    )
+  );
+
+  t.is(error.name, 'SemanticReleaseError');
+  t.is(error.code, 'EINVALIDFAILCOMMENT');
+});
+
+test('Throw SemanticReleaseError if "failComment" option is an empty String', async t => {
+  const failComment = '';
+  const [error] = await t.throws(
+    verify(
+      {failComment},
+      {options: {repositoryUrl: 'https://github.com/semantic-release/github.git'}, logger: t.context.logger}
+    )
+  );
+
+  t.is(error.name, 'SemanticReleaseError');
+  t.is(error.code, 'EINVALIDFAILCOMMENT');
+});
+
+test('Throw SemanticReleaseError if "failComment" option is a whitespace String', async t => {
+  const failComment = '  \n \r ';
+  const [error] = await t.throws(
+    verify(
+      {failComment},
+      {options: {repositoryUrl: 'https://github.com/semantic-release/github.git'}, logger: t.context.logger}
+    )
+  );
+
+  t.is(error.name, 'SemanticReleaseError');
+  t.is(error.code, 'EINVALIDFAILCOMMENT');
+});
+
+test.serial('Throw SemanticReleaseError if "labels" option is not a String or an Array of String', async t => {
+  process.env.GITHUB_TOKEN = 'github_token';
+  const labels = 42;
+
+  const [error] = await t.throws(
+    verify(
+      {labels},
+      {options: {repositoryUrl: 'https://github.com/semantic-release/github.git'}, logger: t.context.logger}
+    )
+  );
+
+  t.is(error.name, 'SemanticReleaseError');
+  t.is(error.code, 'EINVALIDLABELS');
+});
+
+test.serial('Throw SemanticReleaseError if "labels" option is an Array with invalid elements', async t => {
+  process.env.GITHUB_TOKEN = 'github_token';
+  const labels = ['label1', 42];
+
+  const [error] = await t.throws(
+    verify(
+      {labels},
+      {options: {repositoryUrl: 'https://github.com/semantic-release/github.git'}, logger: t.context.logger}
+    )
+  );
+
+  t.is(error.name, 'SemanticReleaseError');
+  t.is(error.code, 'EINVALIDLABELS');
+});
+
+test('Throw SemanticReleaseError if "labels" option is a whitespace String', async t => {
+  const labels = '  \n \r ';
+  const [error] = await t.throws(
+    verify(
+      {labels},
+      {options: {repositoryUrl: 'https://github.com/semantic-release/github.git'}, logger: t.context.logger}
+    )
+  );
+
+  t.is(error.name, 'SemanticReleaseError');
+  t.is(error.code, 'EINVALIDLABELS');
+});
+
+test.serial('Throw SemanticReleaseError if "assignees" option is not a String or an Array of String', async t => {
+  process.env.GITHUB_TOKEN = 'github_token';
+  const assignees = 42;
+
+  const [error] = await t.throws(
+    verify(
+      {assignees},
+      {options: {repositoryUrl: 'https://github.com/semantic-release/github.git'}, logger: t.context.logger}
+    )
+  );
+
+  t.is(error.name, 'SemanticReleaseError');
+  t.is(error.code, 'EINVALIDASSIGNEES');
+});
+
+test.serial('Throw SemanticReleaseError if "assignees" option is an Array with invalid elements', async t => {
+  process.env.GITHUB_TOKEN = 'github_token';
+  const assignees = ['user', 42];
+
+  const [error] = await t.throws(
+    verify(
+      {assignees},
+      {options: {repositoryUrl: 'https://github.com/semantic-release/github.git'}, logger: t.context.logger}
+    )
+  );
+
+  t.is(error.name, 'SemanticReleaseError');
+  t.is(error.code, 'EINVALIDASSIGNEES');
+});
+
+test('Throw SemanticReleaseError if "assignees" option is a whitespace String', async t => {
+  const assignees = '  \n \r ';
+  const [error] = await t.throws(
+    verify(
+      {assignees},
+      {options: {repositoryUrl: 'https://github.com/semantic-release/github.git'}, logger: t.context.logger}
+    )
+  );
+
+  t.is(error.name, 'SemanticReleaseError');
+  t.is(error.code, 'EINVALIDASSIGNEES');
 });
