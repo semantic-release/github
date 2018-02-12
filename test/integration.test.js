@@ -192,9 +192,9 @@ test.serial('Comment on PR included in the releases', async t => {
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {permissions: {push: true}})
     .get(
-      `/search/issues?q=${commits.map(commit => commit.hash).join('+')}+${escape(`repo:${owner}/${repo}`)}+${escape(
-        'type:pr'
-      )}`
+      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${commits
+        .map(commit => commit.hash)
+        .join('+')}`
     )
     .reply(200, {items: prs})
     .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
@@ -281,9 +281,9 @@ test.serial('Verify, release and notify success', async t => {
     })
     .reply(200, {upload_url: uploadUrl, html_url: releaseUrl})
     .get(
-      `/search/issues?q=${commits.map(commit => commit.hash).join('+')}+${escape(`repo:${owner}/${repo}`)}+${escape(
-        'type:pr'
-      )}`
+      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${commits
+        .map(commit => commit.hash)
+        .join('+')}`
     )
     .reply(200, {items: prs})
     .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
