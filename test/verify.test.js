@@ -1,11 +1,16 @@
 import test from 'ava';
 import nock from 'nock';
 import {stub} from 'sinon';
-import verify from '../lib/verify';
+import proxyquire from 'proxyquire';
+import getClient from '../lib/get-client';
 import {authenticate} from './helpers/mock-github';
 
 // Save the current process.env
 const envBackup = Object.assign({}, process.env);
+
+const verify = proxyquire('../lib/verify', {
+  './get-client': conf => getClient({...conf, ...{retry: {retries: 3, factor: 1, minTimeout: 1, maxTimeout: 1}}}),
+});
 
 test.beforeEach(t => {
   // Delete env variables in case they are on the machine running the tests
@@ -284,7 +289,7 @@ test.serial('Throw SemanticReleaseError for invalid token', async t => {
     .reply(401);
 
   const [error] = await t.throws(
-    verify({}, {options: {repositoryUrl: `https://github.com:${owner}/${repo}.git`}, logger: t.context.logger})
+    verify({}, {options: {repositoryUrl: `https://github.com/${owner}/${repo}.git`}, logger: t.context.logger})
   );
 
   t.is(error.name, 'SemanticReleaseError');
@@ -310,7 +315,7 @@ test.serial("Throw SemanticReleaseError if token doesn't have the push permissio
     .reply(200, {permissions: {push: false}});
 
   const [error] = await t.throws(
-    verify({}, {options: {repositoryUrl: `https://github.com:${owner}/${repo}.git`}, logger: t.context.logger})
+    verify({}, {options: {repositoryUrl: `https://github.com/${owner}/${repo}.git`}, logger: t.context.logger})
   );
 
   t.is(error.name, 'SemanticReleaseError');
@@ -324,10 +329,11 @@ test.serial("Throw SemanticReleaseError if the repository doesn't exist", async 
   process.env.GITHUB_TOKEN = 'github_token';
   const github = authenticate()
     .get(`/repos/${owner}/${repo}`)
+    .times(4)
     .reply(404);
 
   const [error] = await t.throws(
-    verify({}, {options: {repositoryUrl: `https://github.com:${owner}/${repo}.git`}, logger: t.context.logger})
+    verify({}, {options: {repositoryUrl: `https://github.com/${owner}/${repo}.git`}, logger: t.context.logger})
   );
 
   t.is(error.name, 'SemanticReleaseError');
@@ -344,7 +350,7 @@ test.serial('Throw error if github return any other errors', async t => {
     .reply(500);
 
   const error = await t.throws(
-    verify({}, {options: {repositoryUrl: `https://github.com:${owner}/${repo}.git`}, logger: t.context.logger})
+    verify({}, {options: {repositoryUrl: `https://github.com/${owner}/${repo}.git`}, logger: t.context.logger})
   );
 
   t.is(error.code, 500);
