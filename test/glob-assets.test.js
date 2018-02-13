@@ -72,7 +72,7 @@ test('Retrieve file from single glob', async t => {
 test('Retrieve multiple files from single glob', async t => {
   const globbedAssets = await globAssets(['test/fixtures/*.txt']);
 
-  t.deepEqual(globbedAssets, ['test/fixtures/upload.txt', 'test/fixtures/upload_other.txt']);
+  t.deepEqual(globbedAssets, ['test/fixtures/upload_other.txt', 'test/fixtures/upload.txt']);
 });
 
 test('Accept glob array with one value', async t => {
@@ -97,8 +97,8 @@ test('Replace name by filename for Object that match multiple files', async t =>
   const globbedAssets = await globAssets([{path: 'test/fixtures/*.txt', name: 'upload_name', label: 'Upload label'}]);
 
   t.deepEqual(globbedAssets, [
-    {path: 'test/fixtures/upload_other.txt', name: 'upload_other.txt', label: 'Upload label'},
     {path: 'test/fixtures/upload.txt', name: 'upload.txt', label: 'Upload label'},
+    {path: 'test/fixtures/upload_other.txt', name: 'upload_other.txt', label: 'Upload label'},
   ]);
 });
 
@@ -129,7 +129,7 @@ test('Accept negated globs', async t => {
 test('Expand directories', async t => {
   const globbedAssets = await globAssets([['test/fixtures']]);
 
-  t.deepEqual(globbedAssets, ['test/fixtures/upload.txt', 'test/fixtures/upload_other.txt', 'test/fixtures/.dotfile']);
+  t.deepEqual(globbedAssets, ['test/fixtures/upload_other.txt', 'test/fixtures/upload.txt', 'test/fixtures/.dotfile']);
 });
 
 test('Include empty directory as defined', async t => {
