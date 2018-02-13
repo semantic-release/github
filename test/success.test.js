@@ -3,11 +3,17 @@ import test from 'ava';
 import {repeat} from 'lodash';
 import nock from 'nock';
 import {stub} from 'sinon';
+import proxyquire from 'proxyquire';
 import ISSUE_ID from '../lib/definitions/sr-issue-id';
-import success from '../lib/success';
+import getClient from '../lib/get-client';
 import {authenticate} from './helpers/mock-github';
 
 /* eslint camelcase: ["error", {properties: "never"}] */
+
+const success = proxyquire('../lib/success', {
+  './get-client': (githubToken, githubUrl, githubApiPathPrefix) =>
+    getClient(githubToken, githubUrl, githubApiPathPrefix, {retries: 3, factor: 1, minTimeout: 1, maxTimeout: 1}),
+});
 
 // Save the current process.env
 const envBackup = Object.assign({}, process.env);
@@ -234,6 +240,7 @@ test.serial('Ignore errors when adding comments and closing issues', async t => 
     )
     .reply(200, {items: prs})
     .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
+    .times(4)
     .reply(404, {})
     .post(`/repos/${owner}/${repo}/issues/2/comments`, {body: /This PR is included/})
     .reply(200, {html_url: 'https://github.com/successcomment-2'})
@@ -244,6 +251,7 @@ test.serial('Ignore errors when adding comments and closing issues', async t => 
     )
     .reply(200, {items: issues})
     .patch(`/repos/${owner}/${repo}/issues/2`, {state: 'closed'})
+    .times(4)
     .reply(500)
     .patch(`/repos/${owner}/${repo}/issues/3`, {state: 'closed'})
     .reply(200, {html_url: 'https://github.com/issues/3'});

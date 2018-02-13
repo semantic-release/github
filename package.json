@@ -26,6 +26,7 @@
     "lodash": "^4.17.4",
     "mime": "^2.0.3",
     "p-reduce": "^1.0.0",
+    "p-retry": "^1.0.0",
     "parse-github-url": "^1.0.1",
     "url-join": "^4.0.0"
   },
@@ -40,6 +41,7 @@
     "nock": "^9.1.0",
     "nyc": "^11.2.1",
     "prettier": "~1.10.0",
+    "proxyquire": "^1.8.0",
     "semantic-release": "^12.2.2",
     "sinon": "^4.0.0",
     "tempy": "^0.2.1",

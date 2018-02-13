@@ -3,11 +3,17 @@ import test from 'ava';
 import {stat} from 'fs-extra';
 import nock from 'nock';
 import {stub} from 'sinon';
+import proxyquire from 'proxyquire';
 import tempy from 'tempy';
-import publish from '../lib/publish';
+import getClient from '../lib/get-client';
 import {authenticate, upload} from './helpers/mock-github';
 
 /* eslint camelcase: ["error", {properties: "never"}] */
+
+const publish = proxyquire('../lib/publish', {
+  './get-client': (githubToken, githubUrl, githubApiPathPrefix) =>
+    getClient(githubToken, githubUrl, githubApiPathPrefix, {retries: 3, factor: 1, minTimeout: 1, maxTimeout: 1}),
+});
 
 // Save the current process.env
 const envBackup = Object.assign({}, process.env);
@@ -46,6 +52,42 @@ test.serial('Publish a release', async t => {
   const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
 
   const github = authenticate()
+    .post(`/repos/${owner}/${repo}/releases`, {
+      tag_name: nextRelease.gitTag,
+      target_commitish: options.branch,
+      name: nextRelease.gitTag,
+      body: nextRelease.notes,
+    })
+    .reply(200, {upload_url: uploadUrl, html_url: releaseUrl});
+
+  const result = await publish(pluginConfig, {options, nextRelease, logger: t.context.logger});
+
+  t.is(result.url, releaseUrl);
+  t.deepEqual(t.context.log.args[0], ['Published GitHub release: %s', releaseUrl]);
+  t.true(github.isDone());
+});
+
+test.serial('Publish a release, retrying 4 times', async t => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  process.env.GITHUB_TOKEN = 'github_token';
+  const pluginConfig = {};
+  const nextRelease = {version: '1.0.0', gitHead: '123', gitTag: 'v1.0.0', notes: 'Test release note body'};
+  const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
+  const releaseId = 1;
+  const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
+  const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
+
+  const github = authenticate()
+    .post(`/repos/${owner}/${repo}/releases`, {
+      tag_name: nextRelease.gitTag,
+      target_commitish: options.branch,
+      name: nextRelease.gitTag,
+      body: nextRelease.notes,
+    })
+    .times(3)
+    .reply(404)
     .post(`/repos/${owner}/${repo}/releases`, {
       tag_name: nextRelease.gitTag,
       target_commitish: options.branch,
@@ -181,5 +223,35 @@ test.serial('Publish a release with an array of missing assets', async t => {
     'test/fixtures/missing.txt',
   ]);
   t.deepEqual(t.context.error.args[1], ['The asset %s is not a file, and will be ignored.', emptyDirectory]);
+  t.true(github.isDone());
+});
+
+test.serial('Throw error without retries for 400 error', async t => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  process.env.GITHUB_TOKEN = 'github_token';
+  const pluginConfig = {};
+  const nextRelease = {version: '1.0.0', gitHead: '123', gitTag: 'v1.0.0', notes: 'Test release note body'};
+  const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+
+  const github = authenticate()
+    .post(`/repos/${owner}/${repo}/releases`, {
+      tag_name: nextRelease.gitTag,
+      target_commitish: options.branch,
+      name: nextRelease.gitTag,
+      body: nextRelease.notes,
+    })
+    .reply(404)
+    .post(`/repos/${owner}/${repo}/releases`, {
+      tag_name: nextRelease.gitTag,
+      target_commitish: options.branch,
+      name: nextRelease.gitTag,
+      body: nextRelease.notes,
+    })
+    .reply(400);
+
+  const error = await t.throws(publish(pluginConfig, {options, nextRelease, logger: t.context.logger}));
+
+  t.is(error.code, 400);
   t.true(github.isDone());
 });
