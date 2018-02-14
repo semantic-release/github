@@ -1,11 +1,17 @@
 import test from 'ava';
 import nock from 'nock';
 import {stub} from 'sinon';
-import verify from '../lib/verify';
+import proxyquire from 'proxyquire';
+import getClient from '../lib/get-client';
 import {authenticate} from './helpers/mock-github';
 
 // Save the current process.env
 const envBackup = Object.assign({}, process.env);
+
+const verify = proxyquire('../lib/verify', {
+  './get-client': (githubToken, githubUrl, githubApiPathPrefix) =>
+    getClient(githubToken, githubUrl, githubApiPathPrefix, {retries: 3, factor: 1, minTimeout: 1, maxTimeout: 1}),
+});
 
 test.beforeEach(t => {
   // Delete env variables in case they are on the machine running the tests
