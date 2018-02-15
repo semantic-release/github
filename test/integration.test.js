@@ -21,8 +21,8 @@ test.beforeEach(t => {
   delete process.env.GH_PREFIX;
   delete process.env.GITHUB_PREFIX;
   // Clear npm cache to refresh the module state
-  clearModule('../index');
-  t.context.m = require('../index');
+  clearModule('..');
+  t.context.m = require('..');
   // Stub the logger
   t.context.log = stub();
   t.context.error = stub();
