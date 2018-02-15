@@ -47,9 +47,9 @@ test.serial('Open a new issue with the list of errors', async t => {
   ];
   const github = authenticate()
     .get(
-      `/search/issues?q=${escape(`title:${failTitle}`)}+${escape(`repo:${owner}/${repo}`)}+${escape(
-        'type:issue'
-      )}+${escape('state:open')}`
+      `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
+        'state:open'
+      )}+${escape(failTitle)}`
     )
     .reply(200, {items: []})
     .post(`/repos/${owner}/${repo}/issues`, {
@@ -80,9 +80,9 @@ test.serial('Open a new issue with the list of errors and custom title and comme
   ];
   const github = authenticate()
     .get(
-      `/search/issues?q=${escape(`title:${failTitle}`)}+${escape(`repo:${owner}/${repo}`)}+${escape(
-        'type:issue'
-      )}+${escape('state:open')}`
+      `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
+        'state:open'
+      )}+${escape(failTitle)}`
     )
     .reply(200, {items: []})
     .post(`/repos/${owner}/${repo}/issues`, {
@@ -112,9 +112,9 @@ test.serial('Open a new issue with assignees and the list of errors', async t =>
   ];
   const github = authenticate()
     .get(
-      `/search/issues?q=${escape(`title:${failTitle}`)}+${escape(`repo:${owner}/${repo}`)}+${escape(
-        'type:issue'
-      )}+${escape('state:open')}`
+      `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
+        'state:open'
+      )}+${escape(failTitle)}`
     )
     .reply(200, {items: []})
     .post(`/repos/${owner}/${repo}/issues`, {
@@ -145,9 +145,9 @@ test.serial('Open a new issue without labels and the list of errors', async t =>
   ];
   const github = authenticate()
     .get(
-      `/search/issues?q=${escape(`title:${failTitle}`)}+${escape(`repo:${owner}/${repo}`)}+${escape(
-        'type:issue'
-      )}+${escape('state:open')}`
+      `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
+        'state:open'
+      )}+${escape(failTitle)}`
     )
     .reply(200, {items: []})
     .post(`/repos/${owner}/${repo}/issues`, {
@@ -182,9 +182,9 @@ test.serial('Update the first existing issue with the list of errors', async t =
   ];
   const github = authenticate()
     .get(
-      `/search/issues?q=${escape(`title:${failTitle}`)}+${escape(`repo:${owner}/${repo}`)}+${escape(
-        'type:issue'
-      )}+${escape('state:open')}`
+      `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
+        'state:open'
+      )}+${escape(failTitle)}`
     )
     .reply(200, {items: issues})
     .post(`/repos/${owner}/${repo}/issues/2/comments`, {

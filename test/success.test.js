@@ -64,9 +64,9 @@ test.serial('Add comment to PRs associated with release commits and issues close
     .post(`/repos/${owner}/${repo}/issues/4/comments`, {body: /This issue has been resolved/})
     .reply(200, {html_url: 'https://github.com/successcomment-4'})
     .get(
-      `/search/issues?q=${escape(`title:${failTitle}`)}+${escape(`repo:${owner}/${repo}`)}+${escape(
-        'type:issue'
-      )}+${escape('state:open')}`
+      `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
+        'state:open'
+      )}+${escape(failTitle)}`
     )
     .reply(200, {items: []});
 
@@ -126,9 +126,9 @@ test.serial('Make multiple search queries if necessary', async t => {
     .post(`/repos/${owner}/${repo}/issues/6/comments`, {body: /This PR is included/})
     .reply(200, {html_url: 'https://github.com/successcomment-6'})
     .get(
-      `/search/issues?q=${escape(`title:${failTitle}`)}+${escape(`repo:${owner}/${repo}`)}+${escape(
-        'type:issue'
-      )}+${escape('state:open')}`
+      `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
+        'state:open'
+      )}+${escape(failTitle)}`
     )
     .reply(200, {items: []});
 
@@ -161,9 +161,9 @@ test.serial('Do not add comment if no PR is associated with release commits', as
     )
     .reply(200, {items: []})
     .get(
-      `/search/issues?q=${escape(`title:${failTitle}`)}+${escape(`repo:${owner}/${repo}`)}+${escape(
-        'type:issue'
-      )}+${escape('state:open')}`
+      `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
+        'state:open'
+      )}+${escape(failTitle)}`
     )
     .reply(200, {items: []});
 
@@ -199,9 +199,9 @@ test.serial('Add custom comment', async t => {
     })
     .reply(200, {html_url: 'https://github.com/successcomment-1'})
     .get(
-      `/search/issues?q=${escape(`title:${failTitle}`)}+${escape(`repo:${owner}/${repo}`)}+${escape(
-        'type:issue'
-      )}+${escape('state:open')}`
+      `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
+        'state:open'
+      )}+${escape(failTitle)}`
     )
     .reply(200, {items: []});
 
@@ -238,9 +238,9 @@ test.serial('Ignore errors when adding comments and closing issues', async t => 
     .post(`/repos/${owner}/${repo}/issues/2/comments`, {body: /This PR is included/})
     .reply(200, {html_url: 'https://github.com/successcomment-2'})
     .get(
-      `/search/issues?q=${escape(`title:${failTitle}`)}+${escape(`repo:${owner}/${repo}`)}+${escape(
-        'type:issue'
-      )}+${escape('state:open')}`
+      `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
+        'state:open'
+      )}+${escape(failTitle)}`
     )
     .reply(200, {items: issues})
     .patch(`/repos/${owner}/${repo}/issues/2`, {state: 'closed'})
@@ -284,9 +284,9 @@ test.serial('Close open issues when a release is successful', async t => {
     )
     .reply(200, {items: []})
     .get(
-      `/search/issues?q=${escape(`title:${failTitle}`)}+${escape(`repo:${owner}/${repo}`)}+${escape(
-        'type:issue'
-      )}+${escape('state:open')}`
+      `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
+        'state:open'
+      )}+${escape(failTitle)}`
     )
     .reply(200, {items: issues})
     .patch(`/repos/${owner}/${repo}/issues/2`, {state: 'closed'})
