@@ -37,7 +37,7 @@ test.serial('Add comment to PRs associated with release commits and issues close
   const owner = 'test_user';
   const repo = 'test_repo';
   process.env.GITHUB_TOKEN = 'github_token';
-  const failTitle = 'The automated release is failing :rotating_light:';
+  const failTitle = 'The automated release is failing 🚨';
   const pluginConfig = {failTitle};
   const prs = [{number: 1, pull_request: {}}, {number: 2, pull_request: {}, body: 'Fixes #3'}];
   const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
@@ -83,7 +83,7 @@ test.serial('Make multiple search queries if necessary', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
   process.env.GITHUB_TOKEN = 'github_token';
-  const failTitle = 'The automated release is failing :rotating_light:';
+  const failTitle = 'The automated release is failing 🚨';
   const pluginConfig = {failTitle};
   const prs = [
     {number: 1, pull_request: {}},
@@ -147,7 +147,7 @@ test.serial('Do not add comment if no PR is associated with release commits', as
   const owner = 'test_user';
   const repo = 'test_repo';
   process.env.GITHUB_TOKEN = 'github_token';
-  const failTitle = 'The automated release is failing :rotating_light:';
+  const failTitle = 'The automated release is failing 🚨';
   const pluginConfig = {failTitle};
   const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
   const commits = [{hash: '123', message: 'Commit 1 message'}];
@@ -176,7 +176,7 @@ test.serial('Add custom comment', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
   process.env.GITHUB_TOKEN = 'github_token';
-  const failTitle = 'The automated release is failing :rotating_light:';
+  const failTitle = 'The automated release is failing 🚨';
   const pluginConfig = {
     successComment: `last release: \${lastRelease.version} nextRelease: \${nextRelease.version} branch: \${branch} commits: \${commits.length} releases: \${releases.length} PR attribute: \${issue.prop}`,
     failTitle,
@@ -214,7 +214,7 @@ test.serial('Ignore errors when adding comments and closing issues', async t => 
   const owner = 'test_user';
   const repo = 'test_repo';
   process.env.GITHUB_TOKEN = 'github_token';
-  const failTitle = 'The automated release is failing :rotating_light:';
+  const failTitle = 'The automated release is failing 🚨';
   const pluginConfig = {failTitle};
   const issues = [
     {number: 1, body: 'Issue 1 body', title: failTitle},
@@ -265,7 +265,7 @@ test.serial('Close open issues when a release is successful', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
   process.env.GITHUB_TOKEN = 'github_token';
-  const failTitle = 'The automated release is failing :rotating_light:';
+  const failTitle = 'The automated release is failing 🚨';
   const pluginConfig = {failTitle};
   const issues = [
     {number: 1, body: 'Issue 1 body', title: failTitle},
