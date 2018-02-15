@@ -37,7 +37,7 @@ test.serial('Filter out issues without ID', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const githubToken = 'github_token';
-  const title = 'The automated release is failing :rotating_light:';
+  const title = 'The automated release is failing 🚨';
   const issues = [
     {number: 1, body: 'Issue 1 body', title},
     {number: 2, body: `Issue 2 body\n\n${ISSUE_ID}`, title},
@@ -65,7 +65,7 @@ test.serial('Return empty array if not issues found', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const githubToken = 'github_token';
-  const title = 'The automated release is failing :rotating_light:';
+  const title = 'The automated release is failing 🚨';
   const issues = [];
   const github = authenticate({githubToken})
     .get(
@@ -86,7 +86,7 @@ test.serial('Return empty array if not issues has matching ID', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const githubToken = 'github_token';
-  const title = 'The automated release is failing :rotating_light:';
+  const title = 'The automated release is failing 🚨';
   const issues = [{number: 1, body: 'Issue 1 body', title}, {number: 2, body: 'Issue 2 body', title}];
   const github = authenticate({githubToken})
     .get(
