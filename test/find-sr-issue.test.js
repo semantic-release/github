@@ -45,9 +45,9 @@ test.serial('Filter out issues without ID', async t => {
   ];
   const github = authenticate({githubToken})
     .get(
-      `/search/issues?q=${escape(`title:${title}`)}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
+      `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
         'state:open'
-      )}`
+      )}+${escape(title)}`
     )
     .reply(200, {items: issues});
 
@@ -69,9 +69,9 @@ test.serial('Return empty array if not issues found', async t => {
   const issues = [];
   const github = authenticate({githubToken})
     .get(
-      `/search/issues?q=${escape(`title:${title}`)}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
+      `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
         'state:open'
-      )}`
+      )}+${escape(title)}`
     )
     .reply(200, {items: issues});
 
@@ -90,9 +90,9 @@ test.serial('Return empty array if not issues has matching ID', async t => {
   const issues = [{number: 1, body: 'Issue 1 body', title}, {number: 2, body: 'Issue 2 body', title}];
   const github = authenticate({githubToken})
     .get(
-      `/search/issues?q=${escape(`title:${title}`)}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
+      `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
         'state:open'
-      )}`
+      )}+${escape(title)}`
     )
     .reply(200, {items: issues});
 
