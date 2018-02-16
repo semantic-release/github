@@ -182,7 +182,7 @@ test.serial('Comment on PR included in the releases', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
   process.env.GH_TOKEN = 'github_token';
-  const failTitle = 'The automated release is failing :rotating_light:';
+  const failTitle = 'The automated release is failing 🚨';
   const prs = [{number: 1, pull_request: {}}];
   const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
   const commits = [{hash: '123', message: 'Commit 1 message'}];
@@ -200,9 +200,9 @@ test.serial('Comment on PR included in the releases', async t => {
     .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
     .reply(200, {html_url: 'https://github.com/successcomment-1'})
     .get(
-      `/search/issues?q=${escape(`title:${failTitle}`)}+${escape(`repo:${owner}/${repo}`)}+${escape(
-        'type:issue'
-      )}+${escape('state:open')}`
+      `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
+        'state:open'
+      )}+${escape(failTitle)}`
     )
     .reply(200, {items: []});
 
@@ -217,7 +217,7 @@ test.serial('Open a new issue with the list of errors', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
   process.env.GITHUB_TOKEN = 'github_token';
-  const failTitle = 'The automated release is failing :rotating_light:';
+  const failTitle = 'The automated release is failing 🚨';
   const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
   const errors = [
     new SemanticReleaseError('Error message 1', 'ERR1', 'Error 1 details'),
@@ -228,9 +228,9 @@ test.serial('Open a new issue with the list of errors', async t => {
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {permissions: {push: true}})
     .get(
-      `/search/issues?q=${escape(`title:${failTitle}`)}+${escape(`repo:${owner}/${repo}`)}+${escape(
-        'type:issue'
-      )}+${escape('state:open')}`
+      `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
+        'state:open'
+      )}+${escape(failTitle)}`
     )
     .reply(200, {items: []})
     .post(`/repos/${owner}/${repo}/issues`, {
@@ -255,7 +255,7 @@ test.serial('Verify, release and notify success', async t => {
     'test/fixtures/upload.txt',
     {path: 'test/fixtures/upload_other.txt', name: 'other_file.txt', label: 'Other File'},
   ];
-  const failTitle = 'The automated release is failing :rotating_light:';
+  const failTitle = 'The automated release is failing 🚨';
   const options = {
     publish: [{path: '@semantic-release/npm'}, {path: '@semantic-release/github', assets}],
     branch: 'master',
@@ -289,9 +289,9 @@ test.serial('Verify, release and notify success', async t => {
     .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
     .reply(200, {html_url: 'https://github.com/successcomment-1'})
     .get(
-      `/search/issues?q=${escape(`title:${failTitle}`)}+${escape(`repo:${owner}/${repo}`)}+${escape(
-        'type:issue'
-      )}+${escape('state:open')}`
+      `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
+        'state:open'
+      )}+${escape(failTitle)}`
     )
     .reply(200, {items: []});
   const githubUpload1 = upload({
@@ -327,7 +327,7 @@ test.serial('Verify and notify failure', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
   process.env.GITHUB_TOKEN = 'github_token';
-  const failTitle = 'The automated release is failing :rotating_light:';
+  const failTitle = 'The automated release is failing 🚨';
   const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
   const errors = [
     new SemanticReleaseError('Error message 1', 'ERR1', 'Error 1 details'),
@@ -338,9 +338,9 @@ test.serial('Verify and notify failure', async t => {
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {permissions: {push: true}})
     .get(
-      `/search/issues?q=${escape(`title:${failTitle}`)}+${escape(`repo:${owner}/${repo}`)}+${escape(
-        'type:issue'
-      )}+${escape('state:open')}`
+      `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
+        'state:open'
+      )}+${escape(failTitle)}`
     )
     .reply(200, {items: []})
     .post(`/repos/${owner}/${repo}/issues`, {
