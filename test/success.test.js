@@ -11,7 +11,8 @@ import {authenticate} from './helpers/mock-github';
 /* eslint camelcase: ["error", {properties: "never"}] */
 
 const success = proxyquire('../lib/success', {
-  './get-client': conf => getClient({...conf, ...{retry: {retries: 3, factor: 1, minTimeout: 1, maxTimeout: 1}}}),
+  './get-client': conf =>
+    getClient({...conf, ...{retry: {retries: 3, factor: 1, minTimeout: 1, maxTimeout: 1}, globalLimit: [99, 1]}}),
 });
 
 // Save the current process.env
@@ -77,10 +78,10 @@ test.serial('Add comment to PRs associated with release commits and issues close
 
   await success(pluginConfig, {options, commits, nextRelease, releases, logger: t.context.logger});
 
-  t.deepEqual(t.context.log.args[0], ['Added comment to issue #%d: %s', 1, 'https://github.com/successcomment-1']);
-  t.deepEqual(t.context.log.args[1], ['Added comment to issue #%d: %s', 2, 'https://github.com/successcomment-2']);
-  t.deepEqual(t.context.log.args[2], ['Added comment to issue #%d: %s', 3, 'https://github.com/successcomment-3']);
-  t.deepEqual(t.context.log.args[3], ['Added comment to issue #%d: %s', 4, 'https://github.com/successcomment-4']);
+  t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 1, 'https://github.com/successcomment-1'));
+  t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 2, 'https://github.com/successcomment-2'));
+  t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 3, 'https://github.com/successcomment-3'));
+  t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 4, 'https://github.com/successcomment-4'));
   t.true(github.isDone());
 });
 
@@ -139,12 +140,12 @@ test.serial('Make multiple search queries if necessary', async t => {
 
   await success(pluginConfig, {options, commits, nextRelease, releases, logger: t.context.logger});
 
-  t.deepEqual(t.context.log.args[0], ['Added comment to issue #%d: %s', 1, 'https://github.com/successcomment-1']);
-  t.deepEqual(t.context.log.args[1], ['Added comment to issue #%d: %s', 2, 'https://github.com/successcomment-2']);
-  t.deepEqual(t.context.log.args[2], ['Added comment to issue #%d: %s', 3, 'https://github.com/successcomment-3']);
-  t.deepEqual(t.context.log.args[3], ['Added comment to issue #%d: %s', 4, 'https://github.com/successcomment-4']);
-  t.deepEqual(t.context.log.args[4], ['Added comment to issue #%d: %s', 5, 'https://github.com/successcomment-5']);
-  t.deepEqual(t.context.log.args[5], ['Added comment to issue #%d: %s', 6, 'https://github.com/successcomment-6']);
+  t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 1, 'https://github.com/successcomment-1'));
+  t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 2, 'https://github.com/successcomment-2'));
+  t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 3, 'https://github.com/successcomment-3'));
+  t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 4, 'https://github.com/successcomment-4'));
+  t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 5, 'https://github.com/successcomment-5'));
+  t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 6, 'https://github.com/successcomment-6'));
   t.true(github.isDone());
 });
 
@@ -261,10 +262,10 @@ test.serial('Ignore errors when adding comments and closing issues', async t => 
 
   t.is(error1.code, 404);
   t.is(error2.code, 500);
-  t.deepEqual(t.context.error.args[0], ['Failed to add a comment to the issue #%d.', 1]);
-  t.deepEqual(t.context.error.args[1], ['Failed to close the issue #%d.', 2]);
-  t.deepEqual(t.context.log.args[0], ['Added comment to issue #%d: %s', 2, 'https://github.com/successcomment-2']);
-  t.deepEqual(t.context.log.args[1], ['Closed issue #%d: %s.', 3, 'https://github.com/issues/3']);
+  t.true(t.context.error.calledWith('Failed to add a comment to the issue #%d.', 1));
+  t.true(t.context.error.calledWith('Failed to close the issue #%d.', 2));
+  t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 2, 'https://github.com/successcomment-2'));
+  t.true(t.context.log.calledWith('Closed issue #%d: %s.', 3, 'https://github.com/issues/3'));
   t.true(github.isDone());
 });
 
@@ -302,8 +303,7 @@ test.serial('Close open issues when a release is successful', async t => {
     .reply(200, {html_url: 'https://github.com/issues/3'});
 
   await success(pluginConfig, {options, commits, nextRelease, releases, logger: t.context.logger});
-
-  t.deepEqual(t.context.log.args[0], ['Closed issue #%d: %s.', 2, 'https://github.com/issues/2']);
-  t.deepEqual(t.context.log.args[1], ['Closed issue #%d: %s.', 3, 'https://github.com/issues/3']);
+  t.true(t.context.log.calledWith('Closed issue #%d: %s.', 2, 'https://github.com/issues/2'));
+  t.true(t.context.log.calledWith('Closed issue #%d: %s.', 3, 'https://github.com/issues/3'));
   t.true(github.isDone());
 });

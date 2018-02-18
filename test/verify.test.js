@@ -9,7 +9,8 @@ import {authenticate} from './helpers/mock-github';
 const envBackup = Object.assign({}, process.env);
 
 const verify = proxyquire('../lib/verify', {
-  './get-client': conf => getClient({...conf, ...{retry: {retries: 3, factor: 1, minTimeout: 1, maxTimeout: 1}}}),
+  './get-client': conf =>
+    getClient({...conf, ...{retry: {retries: 3, factor: 1, minTimeout: 1, maxTimeout: 1}, globalLimit: [99, 1]}}),
 });
 
 test.beforeEach(t => {
