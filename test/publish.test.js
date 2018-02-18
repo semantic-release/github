@@ -11,7 +11,8 @@ import {authenticate, upload} from './helpers/mock-github';
 /* eslint camelcase: ["error", {properties: "never"}] */
 
 const publish = proxyquire('../lib/publish', {
-  './get-client': conf => getClient({...conf, ...{retry: {retries: 3, factor: 1, minTimeout: 1, maxTimeout: 1}}}),
+  './get-client': conf =>
+    getClient({...conf, ...{retry: {retries: 3, factor: 1, minTimeout: 1, maxTimeout: 1}, globalLimit: [99, 1]}}),
 });
 
 // Save the current process.env
@@ -137,7 +138,7 @@ test.serial('Publish a release with one asset', async t => {
 
   t.is(result.url, releaseUrl);
   t.deepEqual(t.context.log.args[0], ['Published GitHub release: %s', releaseUrl]);
-  t.deepEqual(t.context.log.args[1], ['Published file %s', assetUrl]);
+  t.true(t.context.log.calledWith('Published file %s', assetUrl));
   t.true(github.isDone());
   t.true(githubUpload.isDone());
 });
@@ -186,7 +187,7 @@ test.serial('Publish a release with one asset and custom github url', async t =>
 
   t.is(result.url, releaseUrl);
   t.deepEqual(t.context.log.args[0], ['Published GitHub release: %s', releaseUrl]);
-  t.deepEqual(t.context.log.args[1], ['Published file %s', assetUrl]);
+  t.true(t.context.log.calledWith('Published file %s', assetUrl));
   t.true(github.isDone());
   t.true(githubUpload.isDone());
 });
@@ -217,11 +218,8 @@ test.serial('Publish a release with an array of missing assets', async t => {
 
   t.is(result.url, releaseUrl);
   t.deepEqual(t.context.log.args[0], ['Published GitHub release: %s', releaseUrl]);
-  t.deepEqual(t.context.error.args[0], [
-    'The asset %s cannot be read, and will be ignored.',
-    'test/fixtures/missing.txt',
-  ]);
-  t.deepEqual(t.context.error.args[1], ['The asset %s is not a file, and will be ignored.', emptyDirectory]);
+  t.true(t.context.error.calledWith('The asset %s cannot be read, and will be ignored.', 'test/fixtures/missing.txt'));
+  t.true(t.context.error.calledWith('The asset %s is not a file, and will be ignored.', emptyDirectory));
   t.true(github.isDone());
 });
 

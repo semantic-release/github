@@ -171,8 +171,8 @@ test.serial('Publish a release with an array of assets', async t => {
   t.is(result.url, releaseUrl);
   t.deepEqual(t.context.log.args[0], ['Verify GitHub authentication']);
   t.deepEqual(t.context.log.args[1], ['Published GitHub release: %s', releaseUrl]);
-  t.deepEqual(t.context.log.args[2], ['Published file %s', assetUrl]);
-  t.deepEqual(t.context.log.args[3], ['Published file %s', otherAssetUrl]);
+  t.true(t.context.log.calledWith('Published file %s', otherAssetUrl));
+  t.true(t.context.log.calledWith('Published file %s', assetUrl));
   t.true(github.isDone());
   t.true(githubUpload1.isDone());
   t.true(githubUpload2.isDone());
@@ -209,7 +209,7 @@ test.serial('Comment on PR included in the releases', async t => {
   await t.context.m.success({failTitle}, {options, commits, nextRelease, releases, logger: t.context.logger});
 
   t.deepEqual(t.context.log.args[0], ['Verify GitHub authentication']);
-  t.deepEqual(t.context.log.args[1], ['Added comment to issue #%d: %s', 1, 'https://github.com/successcomment-1']);
+  t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 1, 'https://github.com/successcomment-1'));
   t.true(github.isDone());
 });
 
@@ -243,7 +243,7 @@ test.serial('Open a new issue with the list of errors', async t => {
   await t.context.m.fail({failTitle}, {options, errors, logger: t.context.logger});
 
   t.deepEqual(t.context.log.args[0], ['Verify GitHub authentication']);
-  t.deepEqual(t.context.log.args[1], ['Created issue #%d: %s.', 1, 'https://github.com/issues/1']);
+  t.true(t.context.log.calledWith('Created issue #%d: %s.', 1, 'https://github.com/issues/1'));
   t.true(github.isDone());
 });
 
@@ -316,8 +316,8 @@ test.serial('Verify, release and notify success', async t => {
 
   t.deepEqual(t.context.log.args[0], ['Verify GitHub authentication']);
   t.deepEqual(t.context.log.args[1], ['Published GitHub release: %s', releaseUrl]);
-  t.deepEqual(t.context.log.args[2], ['Published file %s', otherAssetUrl]);
-  t.deepEqual(t.context.log.args[3], ['Published file %s', assetUrl]);
+  t.true(t.context.log.calledWith('Published file %s', otherAssetUrl));
+  t.true(t.context.log.calledWith('Published file %s', assetUrl));
   t.true(github.isDone());
   t.true(githubUpload1.isDone());
   t.true(githubUpload2.isDone());
@@ -354,6 +354,6 @@ test.serial('Verify and notify failure', async t => {
   await t.context.m.fail({failTitle}, {options, errors, logger: t.context.logger});
 
   t.deepEqual(t.context.log.args[0], ['Verify GitHub authentication']);
-  t.deepEqual(t.context.log.args[1], ['Created issue #%d: %s.', 1, 'https://github.com/issues/1']);
+  t.true(t.context.log.calledWith('Created issue #%d: %s.', 1, 'https://github.com/issues/1'));
   t.true(github.isDone());
 });

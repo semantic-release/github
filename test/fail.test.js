@@ -11,7 +11,8 @@ import {authenticate} from './helpers/mock-github';
 /* eslint camelcase: ["error", {properties: "never"}] */
 
 const fail = proxyquire('../lib/fail', {
-  './get-client': conf => getClient({...conf, ...{retry: {retries: 3, factor: 1, minTimeout: 1, maxTimeout: 1}}}),
+  './get-client': conf =>
+    getClient({...conf, ...{retry: {retries: 3, factor: 1, minTimeout: 1, maxTimeout: 1}, globalLimit: [99, 1]}}),
 });
 
 // Save the current process.env
@@ -66,7 +67,7 @@ test.serial('Open a new issue with the list of errors', async t => {
 
   await fail(pluginConfig, {options, errors, logger: t.context.logger});
 
-  t.deepEqual(t.context.log.args[0], ['Created issue #%d: %s.', 1, 'https://github.com/issues/1']);
+  t.true(t.context.log.calledWith('Created issue #%d: %s.', 1, 'https://github.com/issues/1'));
   t.true(github.isDone());
 });
 
@@ -112,7 +113,7 @@ test.serial('Open a new issue with the list of errors, retrying 4 times', async 
 
   await fail(pluginConfig, {options, errors, logger: t.context.logger});
 
-  t.deepEqual(t.context.log.args[0], ['Created issue #%d: %s.', 1, 'https://github.com/issues/1']);
+  t.true(t.context.log.calledWith('Created issue #%d: %s.', 1, 'https://github.com/issues/1'));
   t.true(github.isDone());
 });
 
@@ -145,7 +146,7 @@ test.serial('Open a new issue with the list of errors and custom title and comme
 
   await fail(pluginConfig, {options, errors, logger: t.context.logger});
 
-  t.deepEqual(t.context.log.args[0], ['Created issue #%d: %s.', 1, 'https://github.com/issues/1']);
+  t.true(t.context.log.calledWith('Created issue #%d: %s.', 1, 'https://github.com/issues/1'));
   t.true(github.isDone());
 });
 
@@ -178,7 +179,7 @@ test.serial('Open a new issue with assignees and the list of errors', async t =>
 
   await fail(pluginConfig, {options, errors, logger: t.context.logger});
 
-  t.deepEqual(t.context.log.args[0], ['Created issue #%d: %s.', 1, 'https://github.com/issues/1']);
+  t.true(t.context.log.calledWith('Created issue #%d: %s.', 1, 'https://github.com/issues/1'));
   t.true(github.isDone());
 });
 
@@ -210,7 +211,7 @@ test.serial('Open a new issue without labels and the list of errors', async t =>
 
   await fail(pluginConfig, {options, errors, logger: t.context.logger});
 
-  t.deepEqual(t.context.log.args[0], ['Created issue #%d: %s.', 1, 'https://github.com/issues/1']);
+  t.true(t.context.log.calledWith('Created issue #%d: %s.', 1, 'https://github.com/issues/1'));
   t.true(github.isDone());
 });
 
@@ -245,7 +246,7 @@ test.serial('Update the first existing issue with the list of errors', async t =
 
   await fail(pluginConfig, {options, errors, logger: t.context.logger});
 
-  t.deepEqual(t.context.log.args[0], ['Found existing semantic-release issue #%d.', 2]);
-  t.deepEqual(t.context.log.args[1], ['Added comment to issue #%d: %s.', 2, 'https://github.com/issues/2']);
+  t.true(t.context.log.calledWith('Found existing semantic-release issue #%d.', 2));
+  t.true(t.context.log.calledWith('Added comment to issue #%d: %s.', 2, 'https://github.com/issues/2'));
   t.true(github.isDone());
 });

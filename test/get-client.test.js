@@ -20,6 +20,36 @@ test('Wrap Octokit in a proxy', t => {
   t.falsy(github.unknown);
 });
 
+test('Use the global throttler for all endpoints', async t => {
+  const createRelease = stub().callsFake(async () => Date.now());
+  const createComment = stub().callsFake(async () => Date.now());
+  const issues = stub().callsFake(async () => Date.now());
+  const octokit = {repos: {createRelease}, issues: {createComment}, search: {issues}, authenticate: stub()};
+  const rate = 150;
+  const github = proxyquire('../lib/get-client', {'@octokit/rest': stub().returns(octokit)})({
+    limit: {search: [99, 1], core: [99, 1]},
+    globalLimit: [1, rate],
+  });
+
+  const a = await github.repos.createRelease();
+  const b = await github.issues.createComment();
+  const c = await github.repos.createRelease();
+  const d = await github.issues.createComment();
+  const e = await github.search.issues();
+  const f = await github.search.issues();
+
+  // `issues.createComment` should be called `rate` ms after `repos.createRelease`
+  t.true(inRange(b - a, rate - 50, rate + 50));
+  // `repos.createRelease` should be called `rate` ms after `issues.createComment`
+  t.true(inRange(c - b, rate - 50, rate + 50));
+  // `issues.createComment` should be called `rate` ms after `repos.createRelease`
+  t.true(inRange(d - c, rate - 50, rate + 50));
+  // `search.issues` should be called `rate` ms after `issues.createComment`
+  t.true(inRange(e - d, rate - 50, rate + 50));
+  // `search.issues` should be called `rate` ms after `search.issues`
+  t.true(inRange(f - e, rate - 50, rate + 50));
+});
+
 test('Use the same throttler for endpoints in the same rate limit group', async t => {
   const createRelease = stub().callsFake(async () => Date.now());
   const createComment = stub().callsFake(async () => Date.now());
@@ -29,6 +59,7 @@ test('Use the same throttler for endpoints in the same rate limit group', async 
   const coreRate = 150;
   const github = proxyquire('../lib/get-client', {'@octokit/rest': stub().returns(octokit)})({
     limit: {search: [1, searchRate], core: [1, coreRate]},
+    globalLimit: [99, 1],
   });
 
   const a = await github.repos.createRelease();
@@ -64,6 +95,7 @@ test('Use the same throttler when retrying', async t => {
   const github = proxyquire('../lib/get-client', {'@octokit/rest': stub().returns(octokit)})({
     limit: {core: [1, coreRate]},
     retry: {retries: 3, factor: 1, minTimeout: 1},
+    globalLimit: [6, 1],
   });
 
   await t.throws(github.repos.createRelease());
