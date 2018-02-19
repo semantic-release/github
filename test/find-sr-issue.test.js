@@ -15,7 +15,8 @@ const githubToken = 'github_token';
 const client = getClient({
   githubToken,
   retry: {retries: 3, factor: 2, minTimeout: 1, maxTimeout: 1},
-  globalLimit: [99, 1],
+  globalLimit: 1,
+  limit: {search: 1, core: 1},
 });
 
 test.beforeEach(t => {
