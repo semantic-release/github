@@ -12,7 +12,10 @@ import {authenticate, upload} from './helpers/mock-github';
 
 const publish = proxyquire('../lib/publish', {
   './get-client': conf =>
-    getClient({...conf, ...{retry: {retries: 3, factor: 1, minTimeout: 1, maxTimeout: 1}, globalLimit: [99, 1]}}),
+    getClient({
+      ...conf,
+      ...{retry: {retries: 3, factor: 1, minTimeout: 1, maxTimeout: 1}, limit: {search: 1, core: 1}, globalLimit: 1},
+    }),
 });
 
 // Save the current process.env

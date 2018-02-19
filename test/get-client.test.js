@@ -27,8 +27,8 @@ test('Use the global throttler for all endpoints', async t => {
   const octokit = {repos: {createRelease}, issues: {createComment}, search: {issues}, authenticate: stub()};
   const rate = 150;
   const github = proxyquire('../lib/get-client', {'@octokit/rest': stub().returns(octokit)})({
-    limit: {search: [99, 1], core: [99, 1]},
-    globalLimit: [1, rate],
+    limit: {search: 1, core: 1},
+    globalLimit: rate,
   });
 
   const a = await github.repos.createRelease();
@@ -58,8 +58,8 @@ test('Use the same throttler for endpoints in the same rate limit group', async 
   const searchRate = 300;
   const coreRate = 150;
   const github = proxyquire('../lib/get-client', {'@octokit/rest': stub().returns(octokit)})({
-    limit: {search: [1, searchRate], core: [1, coreRate]},
-    globalLimit: [99, 1],
+    limit: {search: searchRate, core: coreRate},
+    globalLimit: 1,
   });
 
   const a = await github.repos.createRelease();
@@ -93,9 +93,9 @@ test('Use the same throttler when retrying', async t => {
   const octokit = {repos: {createRelease}, authenticate: stub()};
   const coreRate = 200;
   const github = proxyquire('../lib/get-client', {'@octokit/rest': stub().returns(octokit)})({
-    limit: {core: [1, coreRate]},
+    limit: {core: coreRate},
     retry: {retries: 3, factor: 1, minTimeout: 1},
-    globalLimit: [6, 1],
+    globalLimit: 1,
   });
 
   await t.throws(github.repos.createRelease());
