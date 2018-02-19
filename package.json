@@ -39,7 +39,7 @@
     "nock": "^9.1.0",
     "nyc": "^11.2.1",
     "proxyquire": "^1.8.0",
-    "semantic-release": "^12.2.2",
+    "semantic-release": "^14.0.0",
     "sinon": "^4.0.0",
     "tempy": "^0.2.1",
     "xo": "^0.20.0"
