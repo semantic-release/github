@@ -110,6 +110,7 @@ test.serial('Make multiple search queries if necessary', async t => {
     {hash: repeat('d', 40), message: 'Commit 4 message'},
     {hash: repeat('e', 40), message: 'Commit 5 message'},
     {hash: repeat('f', 40), message: 'Commit 6 message'},
+    {hash: repeat('g', 40), message: 'Commit 6 message'},
   ];
   const nextRelease = {version: '1.0.0'};
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
@@ -120,8 +121,10 @@ test.serial('Make multiple search queries if necessary', async t => {
       }+${commits[3].hash}+${commits[4].hash}`
     )
     .reply(200, {items: [prs[0], prs[1], prs[2], prs[3], prs[4]]})
-    .get(`/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${commits[5].hash}`)
-    .reply(200, {items: [prs[5]]})
+    .get(
+      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${commits[5].hash}+${commits[6].hash}`
+    )
+    .reply(200, {items: [prs[5], prs[1]]})
     .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
     .reply(200, {html_url: 'https://github.com/successcomment-1'})
     .post(`/repos/${owner}/${repo}/issues/2/comments`, {body: /This PR is included/})
