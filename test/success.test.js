@@ -184,6 +184,41 @@ test.serial('Do not add comment if no PR is associated with release commits', as
   t.true(github.isDone());
 });
 
+test.serial('Do not add comment to PR/issues from other repo', async t => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  process.env.GITHUB_TOKEN = 'github_token';
+  const failTitle = 'The automated release is failing 🚨';
+  const pluginConfig = {failTitle};
+  const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const commits = [
+    {hash: '123', message: 'Commit 1 message\n\n Fix other/other#1'},
+    {hash: '456', message: `Commit 2 message Fix ${owner}/${repo}#2`},
+    {hash: '789', message: 'Commit 3 message Closes other/other#3'},
+  ];
+  const nextRelease = {version: '1.0.0'};
+  const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
+  const github = authenticate()
+    .get(
+      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${commits
+        .map(commit => commit.hash)
+        .join('+')}`
+    )
+    .reply(200, {items: []})
+    .post(`/repos/${owner}/${repo}/issues/2/comments`, {body: /This issue has been resolved/})
+    .reply(200, {html_url: 'https://github.com/successcomment-2'})
+    .get(
+      `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
+        'state:open'
+      )}+${escape(failTitle)}`
+    )
+    .reply(200, {items: []});
+
+  await success(pluginConfig, {options, commits, nextRelease, releases, logger: t.context.logger});
+
+  t.true(github.isDone());
+});
+
 test.serial('Add custom comment', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
