@@ -1,3 +1,4 @@
+const {defaultTo, castArray} = require('lodash');
 const verifyGitHub = require('./lib/verify');
 const publishGitHub = require('./lib/publish');
 const successGitHub = require('./lib/success');
@@ -10,16 +11,14 @@ async function verifyConditions(pluginConfig, context) {
   // If the GitHub publish plugin is used and has `assets`, `successComment`, `failComment`, `failTitle`, `labels` or `assignees` configured, validate it now in order to prevent any release if the configuration is wrong
   if (options.publish) {
     const publishPlugin =
-      (Array.isArray(options.publish) ? options.publish : [options.publish]).find(
-        config => config.path && config.path === '@semantic-release/github'
-      ) || {};
+      castArray(options.publish).find(config => config.path && config.path === '@semantic-release/github') || {};
 
-    pluginConfig.assets = pluginConfig.assets || publishPlugin.assets;
-    pluginConfig.successComment = pluginConfig.successComment || publishPlugin.successComment;
-    pluginConfig.failComment = pluginConfig.failComment || publishPlugin.failComment;
-    pluginConfig.failTitle = pluginConfig.failTitle || publishPlugin.failTitle;
-    pluginConfig.labels = pluginConfig.labels || publishPlugin.labels;
-    pluginConfig.assignees = pluginConfig.assignees || publishPlugin.assignees;
+    pluginConfig.assets = defaultTo(pluginConfig.assets, publishPlugin.assets);
+    pluginConfig.successComment = defaultTo(pluginConfig.successComment, publishPlugin.successComment);
+    pluginConfig.failComment = defaultTo(pluginConfig.failComment, publishPlugin.failComment);
+    pluginConfig.failTitle = defaultTo(pluginConfig.failTitle, publishPlugin.failTitle);
+    pluginConfig.labels = defaultTo(pluginConfig.labels, publishPlugin.labels);
+    pluginConfig.assignees = defaultTo(pluginConfig.assignees, publishPlugin.assignees);
   }
 
   await verifyGitHub(pluginConfig, context);
