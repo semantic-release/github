@@ -219,6 +219,46 @@ test.serial('Do not add comment to PR/issues from other repo', async t => {
   t.true(github.isDone());
 });
 
+test.serial('Ignore missing issues/PRs', async t => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  process.env.GITHUB_TOKEN = 'github_token';
+  const failTitle = 'The automated release is failing 🚨';
+  const pluginConfig = {failTitle};
+  const prs = [{number: 1, pull_request: {}}, {number: 2, pull_request: {}, body: 'Fixes #3'}];
+  const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const commits = [{hash: '123', message: 'Commit 1 message\n\n Fix #1'}, {hash: '456', message: 'Commit 2 message'}];
+  const nextRelease = {version: '1.0.0'};
+  const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
+  const github = authenticate()
+    .get(
+      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${commits
+        .map(commit => commit.hash)
+        .join('+')}`
+    )
+    .reply(200, {items: prs})
+    .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
+    .reply(200, {html_url: 'https://github.com/successcomment-1'})
+    .post(`/repos/${owner}/${repo}/issues/2/comments`, {body: /This PR is included/})
+    .times(3)
+    .reply(404)
+    .post(`/repos/${owner}/${repo}/issues/3/comments`, {body: /This issue has been resolved/})
+    .reply(200, {html_url: 'https://github.com/successcomment-3'})
+    .get(
+      `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
+        'state:open'
+      )}+${escape(failTitle)}`
+    )
+    .reply(200, {items: []});
+
+  await success(pluginConfig, {options, commits, nextRelease, releases, logger: t.context.logger});
+
+  t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 1, 'https://github.com/successcomment-1'));
+  t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 3, 'https://github.com/successcomment-3'));
+  t.true(t.context.error.calledWith("Failed to add a comment to the issue #%d as it doesn't exists.", 2));
+  t.true(github.isDone());
+});
+
 test.serial('Add custom comment', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
@@ -281,8 +321,7 @@ test.serial('Ignore errors when adding comments and closing issues', async t => 
     )
     .reply(200, {items: prs})
     .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
-    .times(4)
-    .reply(404, {})
+    .reply(400, {})
     .post(`/repos/${owner}/${repo}/issues/2/comments`, {body: /This PR is included/})
     .reply(200, {html_url: 'https://github.com/successcomment-2'})
     .get(
@@ -301,7 +340,7 @@ test.serial('Ignore errors when adding comments and closing issues', async t => 
     success(pluginConfig, {options, commits, nextRelease, releases, logger: t.context.logger})
   );
 
-  t.is(error1.code, 404);
+  t.is(error1.code, 400);
   t.is(error2.code, 500);
   t.true(t.context.error.calledWith('Failed to add a comment to the issue #%d.', 1));
   t.true(t.context.error.calledWith('Failed to close the issue #%d.', 2));
