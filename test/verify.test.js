@@ -109,7 +109,7 @@ test.serial('Verify package, token and repository access and custom URL without 
   const owner = 'test_user';
   const repo = 'test_repo';
   process.env.GH_TOKEN = 'github_token';
-  const githubUrl = 'https://othertesturl.com:9090/';
+  const githubUrl = 'https://othertesturl.com:9090';
   const github = authenticate({githubUrl})
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {permissions: {push: true}});
