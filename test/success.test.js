@@ -64,12 +64,20 @@ test.serial('Add comment to PRs associated with release commits and issues close
         .join('+')}`
     )
     .reply(200, {items: prs})
+    .get(`/repos/${owner}/${repo}/issues/1`)
+    .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
     .reply(200, {html_url: 'https://github.com/successcomment-1'})
+    .get(`/repos/${owner}/${repo}/issues/2`)
+    .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/2/comments`, {body: /This PR is included/})
     .reply(200, {html_url: 'https://github.com/successcomment-2'})
+    .get(`/repos/${owner}/${repo}/issues/3`)
+    .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/3/comments`, {body: /This issue has been resolved/})
     .reply(200, {html_url: 'https://github.com/successcomment-3'})
+    .get(`/repos/${owner}/${repo}/issues/4`)
+    .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/4/comments`, {body: /This issue has been resolved/})
     .reply(200, {html_url: 'https://github.com/successcomment-4'})
     .get(
@@ -127,16 +135,28 @@ test.serial('Make multiple search queries if necessary', async t => {
       }+${commits[6].hash}`
     )
     .reply(200, {items: [prs[5], prs[1]]})
+    .get(`/repos/${owner}/${repo}/issues/1`)
+    .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
     .reply(200, {html_url: 'https://github.com/successcomment-1'})
+    .get(`/repos/${owner}/${repo}/issues/2`)
+    .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/2/comments`, {body: /This PR is included/})
     .reply(200, {html_url: 'https://github.com/successcomment-2'})
+    .get(`/repos/${owner}/${repo}/issues/3`)
+    .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/3/comments`, {body: /This PR is included/})
     .reply(200, {html_url: 'https://github.com/successcomment-3'})
+    .get(`/repos/${owner}/${repo}/issues/4`)
+    .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/4/comments`, {body: /This PR is included/})
     .reply(200, {html_url: 'https://github.com/successcomment-4'})
+    .get(`/repos/${owner}/${repo}/issues/5`)
+    .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/5/comments`, {body: /This PR is included/})
     .reply(200, {html_url: 'https://github.com/successcomment-5'})
+    .get(`/repos/${owner}/${repo}/issues/6`)
+    .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/6/comments`, {body: /This PR is included/})
     .reply(200, {html_url: 'https://github.com/successcomment-6'})
     .get(
@@ -154,6 +174,44 @@ test.serial('Make multiple search queries if necessary', async t => {
   t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 4, 'https://github.com/successcomment-4'));
   t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 5, 'https://github.com/successcomment-5'));
   t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 6, 'https://github.com/successcomment-6'));
+  t.true(github.isDone());
+});
+
+test.serial('Do not add comment to open issues/PRs', async t => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  process.env.GITHUB_TOKEN = 'github_token';
+  const failTitle = 'The automated release is failing 🚨';
+  const pluginConfig = {failTitle};
+  const prs = [{number: 1, pull_request: {}, body: 'Fixes #2'}];
+  const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const commits = [{hash: '123', message: 'Commit 1 message'}];
+  const nextRelease = {version: '1.0.0'};
+  const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
+  const github = authenticate()
+    .get(
+      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
+        .map(commit => commit.hash)
+        .join('+')}`
+    )
+    .reply(200, {items: prs})
+    .get(`/repos/${owner}/${repo}/issues/1`)
+    .reply(200, {state: 'closed'})
+    .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
+    .reply(200, {html_url: 'https://github.com/successcomment-1'})
+    .get(`/repos/${owner}/${repo}/issues/2`)
+    .reply(200, {state: 'open'})
+    .get(
+      `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
+        'state:open'
+      )}+${escape(failTitle)}`
+    )
+    .reply(200, {items: []});
+
+  await success(pluginConfig, {options, commits, nextRelease, releases, logger: t.context.logger});
+
+  t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 1, 'https://github.com/successcomment-1'));
+  t.true(t.context.log.calledWith("Skip comment on issue #%d as it's open: %s", 2));
   t.true(github.isDone());
 });
 
@@ -207,6 +265,8 @@ test.serial('Do not add comment to PR/issues from other repo', async t => {
         .join('+')}`
     )
     .reply(200, {items: []})
+    .get(`/repos/${owner}/${repo}/issues/2`)
+    .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/2/comments`, {body: /This issue has been resolved/})
     .reply(200, {html_url: 'https://github.com/successcomment-2'})
     .get(
@@ -239,11 +299,17 @@ test.serial('Ignore missing issues/PRs', async t => {
         .join('+')}`
     )
     .reply(200, {items: prs})
+    .get(`/repos/${owner}/${repo}/issues/1`)
+    .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
     .reply(200, {html_url: 'https://github.com/successcomment-1'})
+    .get(`/repos/${owner}/${repo}/issues/2`)
+    .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/2/comments`, {body: /This PR is included/})
     .times(3)
     .reply(404)
+    .get(`/repos/${owner}/${repo}/issues/3`)
+    .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/3/comments`, {body: /This issue has been resolved/})
     .reply(200, {html_url: 'https://github.com/successcomment-3'})
     .get(
@@ -283,6 +349,8 @@ test.serial('Add custom comment', async t => {
         .join('+')}`
     )
     .reply(200, {items: prs})
+    .get(`/repos/${owner}/${repo}/issues/1`)
+    .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/1/comments`, {
       body: /last release: 1\.0\.0 nextRelease: 2\.0\.0 branch: master commits: 1 releases: 1 PR attribute: PR prop/,
     })
@@ -322,8 +390,12 @@ test.serial('Ignore errors when adding comments and closing issues', async t => 
         .join('+')}`
     )
     .reply(200, {items: prs})
+    .get(`/repos/${owner}/${repo}/issues/1`)
+    .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
     .reply(400, {})
+    .get(`/repos/${owner}/${repo}/issues/2`)
+    .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/2/comments`, {body: /This PR is included/})
     .reply(200, {html_url: 'https://github.com/successcomment-2'})
     .get(
