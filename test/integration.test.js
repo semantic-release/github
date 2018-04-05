@@ -197,6 +197,8 @@ test.serial('Comment on PR included in the releases', async t => {
         .join('+')}`
     )
     .reply(200, {items: prs})
+    .get(`/repos/${owner}/${repo}/pulls/1/commits`)
+    .reply(200, [{sha: commits[0].hash}])
     .get(`/repos/${owner}/${repo}/issues/1`)
     .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
@@ -288,6 +290,8 @@ test.serial('Verify, release and notify success', async t => {
         .join('+')}`
     )
     .reply(200, {items: prs})
+    .get(`/repos/${owner}/${repo}/pulls/1/commits`)
+    .reply(200, [{sha: commits[0].hash}])
     .get(`/repos/${owner}/${repo}/issues/1`)
     .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
