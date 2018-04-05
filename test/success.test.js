@@ -64,6 +64,10 @@ test.serial('Add comment to PRs associated with release commits and issues close
         .join('+')}`
     )
     .reply(200, {items: prs})
+    .get(`/repos/${owner}/${repo}/pulls/1/commits`)
+    .reply(200, [{sha: commits[0].hash}])
+    .get(`/repos/${owner}/${repo}/pulls/2/commits`)
+    .reply(200, [{sha: commits[1].hash}])
     .get(`/repos/${owner}/${repo}/issues/1`)
     .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
@@ -135,6 +139,18 @@ test.serial('Make multiple search queries if necessary', async t => {
       }+${commits[6].hash}`
     )
     .reply(200, {items: [prs[5], prs[1]]})
+    .get(`/repos/${owner}/${repo}/pulls/1/commits`)
+    .reply(200, [{sha: commits[0].hash}])
+    .get(`/repos/${owner}/${repo}/pulls/2/commits`)
+    .reply(200, [{sha: commits[1].hash}])
+    .get(`/repos/${owner}/${repo}/pulls/3/commits`)
+    .reply(200, [{sha: commits[2].hash}])
+    .get(`/repos/${owner}/${repo}/pulls/4/commits`)
+    .reply(200, [{sha: commits[3].hash}])
+    .get(`/repos/${owner}/${repo}/pulls/5/commits`)
+    .reply(200, [{sha: commits[4].hash}])
+    .get(`/repos/${owner}/${repo}/pulls/6/commits`)
+    .reply(200, [{sha: commits[5].hash}])
     .get(`/repos/${owner}/${repo}/issues/1`)
     .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
@@ -177,6 +193,45 @@ test.serial('Make multiple search queries if necessary', async t => {
   t.true(github.isDone());
 });
 
+test.serial('Do not add comment for unrelated PR returned by search', async t => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  process.env.GITHUB_TOKEN = 'github_token';
+  const failTitle = 'The automated release is failing 🚨';
+  const pluginConfig = {failTitle};
+  const prs = [{number: 1, pull_request: {}}, {number: 2, pull_request: {}}];
+  const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const commits = [{hash: '123', message: 'Commit 1 message'}, {hash: '456', message: 'Commit 2 message'}];
+  const nextRelease = {version: '1.0.0'};
+  const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
+  const github = authenticate()
+    .get(
+      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
+        .map(commit => commit.hash)
+        .join('+')}`
+    )
+    .reply(200, {items: prs})
+    .get(`/repos/${owner}/${repo}/pulls/1/commits`)
+    .reply(200, [{sha: commits[0].hash}])
+    .get(`/repos/${owner}/${repo}/pulls/2/commits`)
+    .reply(200, [{sha: 'unrelated_commit'}])
+    .get(`/repos/${owner}/${repo}/issues/1`)
+    .reply(200, {state: 'closed'})
+    .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
+    .reply(200, {html_url: 'https://github.com/successcomment-1'})
+    .get(
+      `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
+        'state:open'
+      )}+${escape(failTitle)}`
+    )
+    .reply(200, {items: []});
+
+  await success(pluginConfig, {options, commits, nextRelease, releases, logger: t.context.logger});
+
+  t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 1, 'https://github.com/successcomment-1'));
+  t.true(github.isDone());
+});
+
 test.serial('Do not add comment to open issues/PRs', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
@@ -195,6 +250,8 @@ test.serial('Do not add comment to open issues/PRs', async t => {
         .join('+')}`
     )
     .reply(200, {items: prs})
+    .get(`/repos/${owner}/${repo}/pulls/1/commits`)
+    .reply(200, [{sha: commits[0].hash}])
     .get(`/repos/${owner}/${repo}/issues/1`)
     .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
@@ -299,6 +356,10 @@ test.serial('Ignore missing issues/PRs', async t => {
         .join('+')}`
     )
     .reply(200, {items: prs})
+    .get(`/repos/${owner}/${repo}/pulls/1/commits`)
+    .reply(200, [{sha: commits[0].hash}])
+    .get(`/repos/${owner}/${repo}/pulls/2/commits`)
+    .reply(200, [{sha: commits[1].hash}])
     .get(`/repos/${owner}/${repo}/issues/1`)
     .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
@@ -349,6 +410,8 @@ test.serial('Add custom comment', async t => {
         .join('+')}`
     )
     .reply(200, {items: prs})
+    .get(`/repos/${owner}/${repo}/pulls/1/commits`)
+    .reply(200, [{sha: commits[0].hash}])
     .get(`/repos/${owner}/${repo}/issues/1`)
     .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/1/comments`, {
@@ -380,7 +443,7 @@ test.serial('Ignore errors when adding comments and closing issues', async t => 
   ];
   const prs = [{number: 1, pull_request: {}}, {number: 2, pull_request: {}}];
   const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
-  const commits = [{hash: '123', message: 'Commit 1 message'}];
+  const commits = [{hash: '123', message: 'Commit 1 message'}, {hash: '456', message: 'Commit 2 message'}];
   const nextRelease = {version: '1.0.0'};
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
   const github = authenticate()
@@ -390,6 +453,10 @@ test.serial('Ignore errors when adding comments and closing issues', async t => 
         .join('+')}`
     )
     .reply(200, {items: prs})
+    .get(`/repos/${owner}/${repo}/pulls/1/commits`)
+    .reply(200, [{sha: commits[0].hash}])
+    .get(`/repos/${owner}/${repo}/pulls/2/commits`)
+    .reply(200, [{sha: commits[1].hash}])
     .get(`/repos/${owner}/${repo}/issues/1`)
     .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
