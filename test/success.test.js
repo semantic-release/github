@@ -59,7 +59,7 @@ test.serial('Add comment to PRs associated with release commits and issues close
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
   const github = authenticate()
     .get(
-      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${commits
+      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
         .map(commit => commit.hash)
         .join('+')}`
     )
@@ -116,13 +116,15 @@ test.serial('Make multiple search queries if necessary', async t => {
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
   const github = authenticate()
     .get(
-      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${commits[0].hash}+${commits[1].hash}+${
-        commits[2].hash
-      }+${commits[3].hash}+${commits[4].hash}`
+      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${
+        commits[0].hash
+      }+${commits[1].hash}+${commits[2].hash}+${commits[3].hash}+${commits[4].hash}`
     )
     .reply(200, {items: [prs[0], prs[1], prs[2], prs[3], prs[4]]})
     .get(
-      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${commits[5].hash}+${commits[6].hash}`
+      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${
+        commits[5].hash
+      }+${commits[6].hash}`
     )
     .reply(200, {items: [prs[5], prs[1]]})
     .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
@@ -167,7 +169,7 @@ test.serial('Do not add comment if no PR is associated with release commits', as
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
   const github = authenticate()
     .get(
-      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${commits
+      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
         .map(commit => commit.hash)
         .join('+')}`
     )
@@ -200,7 +202,7 @@ test.serial('Do not add comment to PR/issues from other repo', async t => {
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
   const github = authenticate()
     .get(
-      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${commits
+      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
         .map(commit => commit.hash)
         .join('+')}`
     )
@@ -232,7 +234,7 @@ test.serial('Ignore missing issues/PRs', async t => {
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
   const github = authenticate()
     .get(
-      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${commits
+      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
         .map(commit => commit.hash)
         .join('+')}`
     )
@@ -276,7 +278,7 @@ test.serial('Add custom comment', async t => {
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
   const github = authenticate()
     .get(
-      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${commits
+      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
         .map(commit => commit.hash)
         .join('+')}`
     )
@@ -315,7 +317,7 @@ test.serial('Ignore errors when adding comments and closing issues', async t => 
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
   const github = authenticate()
     .get(
-      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${commits
+      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
         .map(commit => commit.hash)
         .join('+')}`
     )
@@ -366,7 +368,7 @@ test.serial('Close open issues when a release is successful', async t => {
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
   const github = authenticate()
     .get(
-      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${commits
+      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
         .map(commit => commit.hash)
         .join('+')}`
     )

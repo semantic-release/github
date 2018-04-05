@@ -192,7 +192,7 @@ test.serial('Comment on PR included in the releases', async t => {
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {permissions: {push: true}})
     .get(
-      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${commits
+      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
         .map(commit => commit.hash)
         .join('+')}`
     )
@@ -281,7 +281,7 @@ test.serial('Verify, release and notify success', async t => {
     })
     .reply(200, {upload_url: uploadUrl, html_url: releaseUrl})
     .get(
-      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${commits
+      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
         .map(commit => commit.hash)
         .join('+')}`
     )
