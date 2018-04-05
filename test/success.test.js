@@ -110,7 +110,7 @@ test.serial('Make multiple search queries if necessary', async t => {
     {hash: repeat('d', 40), message: 'Commit 4 message'},
     {hash: repeat('e', 40), message: 'Commit 5 message'},
     {hash: repeat('f', 40), message: 'Commit 6 message'},
-    {hash: repeat('g', 40), message: 'Commit 6 message'},
+    {hash: repeat('g', 40), message: 'Commit 7 message'},
   ];
   const nextRelease = {version: '1.0.0'};
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
