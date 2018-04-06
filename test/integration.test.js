@@ -183,7 +183,7 @@ test.serial('Comment on PR included in the releases', async t => {
   const repo = 'test_repo';
   process.env.GH_TOKEN = 'github_token';
   const failTitle = 'The automated release is failing 🚨';
-  const prs = [{number: 1, pull_request: {}}];
+  const prs = [{number: 1, pull_request: {}, state: 'closed'}];
   const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
   const commits = [{hash: '123', message: 'Commit 1 message', tree: {long: 'aaa'}}];
   const nextRelease = {version: '1.0.0'};
@@ -199,8 +199,6 @@ test.serial('Comment on PR included in the releases', async t => {
     .reply(200, {items: prs})
     .get(`/repos/${owner}/${repo}/pulls/1/commits`)
     .reply(200, [{sha: commits[0].hash}])
-    .get(`/repos/${owner}/${repo}/issues/1`)
-    .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
     .reply(200, {html_url: 'https://github.com/successcomment-1'})
     .get(
@@ -272,7 +270,7 @@ test.serial('Verify, release and notify success', async t => {
   const releaseId = 1;
   const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
   const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
-  const prs = [{number: 1, pull_request: {}}];
+  const prs = [{number: 1, pull_request: {}, state: 'closed'}];
   const commits = [{hash: '123', message: 'Commit 1 message', tree: {long: 'aaa'}}];
   const github = authenticate()
     .get(`/repos/${owner}/${repo}`)
@@ -292,8 +290,6 @@ test.serial('Verify, release and notify success', async t => {
     .reply(200, {items: prs})
     .get(`/repos/${owner}/${repo}/pulls/1/commits`)
     .reply(200, [{sha: commits[0].hash}])
-    .get(`/repos/${owner}/${repo}/issues/1`)
-    .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
     .reply(200, {html_url: 'https://github.com/successcomment-1'})
     .get(
