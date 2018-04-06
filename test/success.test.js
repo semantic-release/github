@@ -48,7 +48,10 @@ test.serial('Add comment to PRs associated with release commits and issues close
   process.env.GITHUB_TOKEN = 'github_token';
   const failTitle = 'The automated release is failing 🚨';
   const pluginConfig = {failTitle};
-  const prs = [{number: 1, pull_request: {}}, {number: 2, pull_request: {}, body: 'Fixes #3'}];
+  const prs = [
+    {number: 1, pull_request: {}, state: 'closed'},
+    {number: 2, pull_request: {}, body: 'Fixes #3', state: 'closed'},
+  ];
   const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
   const commits = [
     {hash: '123', message: 'Commit 1 message\n\n Fix #1', tree: {long: 'aaa'}},
@@ -68,12 +71,8 @@ test.serial('Add comment to PRs associated with release commits and issues close
     .reply(200, [{sha: commits[0].hash}])
     .get(`/repos/${owner}/${repo}/pulls/2/commits`)
     .reply(200, [{sha: commits[1].hash}])
-    .get(`/repos/${owner}/${repo}/issues/1`)
-    .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
     .reply(200, {html_url: 'https://github.com/successcomment-1'})
-    .get(`/repos/${owner}/${repo}/issues/2`)
-    .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/2/comments`, {body: /This PR is included/})
     .reply(200, {html_url: 'https://github.com/successcomment-2'})
     .get(`/repos/${owner}/${repo}/issues/3`)
@@ -107,12 +106,12 @@ test.serial('Make multiple search queries if necessary', async t => {
   const failTitle = 'The automated release is failing 🚨';
   const pluginConfig = {failTitle};
   const prs = [
-    {number: 1, pull_request: {}},
-    {number: 2, pull_request: {}},
-    {number: 3, pull_request: {}},
-    {number: 4, pull_request: {}},
-    {number: 5, pull_request: {}},
-    {number: 6, pull_request: {}},
+    {number: 1, pull_request: {}, state: 'closed'},
+    {number: 2, pull_request: {}, state: 'closed'},
+    {number: 3, pull_request: {}, state: 'closed'},
+    {number: 4, pull_request: {}, state: 'closed'},
+    {number: 5, pull_request: {}, state: 'closed'},
+    {number: 6, pull_request: {}, state: 'closed'},
   ];
   const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
   const commits = [
@@ -151,28 +150,16 @@ test.serial('Make multiple search queries if necessary', async t => {
     .reply(200, [{sha: commits[4].hash}])
     .get(`/repos/${owner}/${repo}/pulls/6/commits`)
     .reply(200, [{sha: commits[5].hash}])
-    .get(`/repos/${owner}/${repo}/issues/1`)
-    .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
     .reply(200, {html_url: 'https://github.com/successcomment-1'})
-    .get(`/repos/${owner}/${repo}/issues/2`)
-    .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/2/comments`, {body: /This PR is included/})
     .reply(200, {html_url: 'https://github.com/successcomment-2'})
-    .get(`/repos/${owner}/${repo}/issues/3`)
-    .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/3/comments`, {body: /This PR is included/})
     .reply(200, {html_url: 'https://github.com/successcomment-3'})
-    .get(`/repos/${owner}/${repo}/issues/4`)
-    .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/4/comments`, {body: /This PR is included/})
     .reply(200, {html_url: 'https://github.com/successcomment-4'})
-    .get(`/repos/${owner}/${repo}/issues/5`)
-    .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/5/comments`, {body: /This PR is included/})
     .reply(200, {html_url: 'https://github.com/successcomment-5'})
-    .get(`/repos/${owner}/${repo}/issues/6`)
-    .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/6/comments`, {body: /This PR is included/})
     .reply(200, {html_url: 'https://github.com/successcomment-6'})
     .get(
@@ -199,7 +186,7 @@ test.serial('Do not add comment for unrelated PR returned by search (compare sha
   process.env.GITHUB_TOKEN = 'github_token';
   const failTitle = 'The automated release is failing 🚨';
   const pluginConfig = {failTitle};
-  const prs = [{number: 1, pull_request: {}}, {number: 2, pull_request: {}}];
+  const prs = [{number: 1, pull_request: {}, state: 'closed'}, {number: 2, pull_request: {}, state: 'closed'}];
   const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
   const commits = [
     {hash: '123', message: 'Commit 1 message', tree: {long: 'aaa'}},
@@ -218,8 +205,6 @@ test.serial('Do not add comment for unrelated PR returned by search (compare sha
     .reply(200, [{sha: commits[0].hash}])
     .get(`/repos/${owner}/${repo}/pulls/2/commits`)
     .reply(200, [{sha: 'unrelated_commit', commit: {tree: {sha: 'unrelated_commit'}}}])
-    .get(`/repos/${owner}/${repo}/issues/1`)
-    .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
     .reply(200, {html_url: 'https://github.com/successcomment-1'})
     .get(
@@ -241,7 +226,7 @@ test.serial('Do not add comment for unrelated PR returned by search (compare tre
   process.env.GITHUB_TOKEN = 'github_token';
   const failTitle = 'The automated release is failing 🚨';
   const pluginConfig = {failTitle};
-  const prs = [{number: 1, pull_request: {}}, {number: 2, pull_request: {}}];
+  const prs = [{number: 1, pull_request: {}, state: 'closed'}, {number: 2, pull_request: {}, state: 'closed'}];
   const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
   const commits = [
     {hash: '123', message: 'Commit 1 message', tree: {long: 'aaa'}},
@@ -260,8 +245,6 @@ test.serial('Do not add comment for unrelated PR returned by search (compare tre
     .reply(200, [{sha: 'rebased_sha', commit: {tree: {sha: commits[0].tree.long}}}])
     .get(`/repos/${owner}/${repo}/pulls/2/commits`)
     .reply(200, [{sha: 'unrelated_commit', commit: {tree: {sha: 'unrelated_commit'}}}])
-    .get(`/repos/${owner}/${repo}/issues/1`)
-    .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
     .reply(200, {html_url: 'https://github.com/successcomment-1'})
     .get(
@@ -283,7 +266,7 @@ test.serial('Do not add comment to open issues/PRs', async t => {
   process.env.GITHUB_TOKEN = 'github_token';
   const failTitle = 'The automated release is failing 🚨';
   const pluginConfig = {failTitle};
-  const prs = [{number: 1, pull_request: {}, body: 'Fixes #2'}];
+  const prs = [{number: 1, pull_request: {}, body: 'Fixes #2', state: 'closed'}];
   const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
   const commits = [{hash: '123', message: 'Commit 1 message', tree: {long: 'aaa'}}];
   const nextRelease = {version: '1.0.0'};
@@ -297,8 +280,6 @@ test.serial('Do not add comment to open issues/PRs', async t => {
     .reply(200, {items: prs})
     .get(`/repos/${owner}/${repo}/pulls/1/commits`)
     .reply(200, [{sha: commits[0].hash}])
-    .get(`/repos/${owner}/${repo}/issues/1`)
-    .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
     .reply(200, {html_url: 'https://github.com/successcomment-1'})
     .get(`/repos/${owner}/${repo}/issues/2`)
@@ -389,7 +370,10 @@ test.serial('Ignore missing issues/PRs', async t => {
   process.env.GITHUB_TOKEN = 'github_token';
   const failTitle = 'The automated release is failing 🚨';
   const pluginConfig = {failTitle};
-  const prs = [{number: 1, pull_request: {}}, {number: 2, pull_request: {}, body: 'Fixes #3'}];
+  const prs = [
+    {number: 1, pull_request: {}, state: 'closed'},
+    {number: 2, pull_request: {}, body: 'Fixes #3', state: 'closed'},
+  ];
   const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
   const commits = [
     {hash: '123', message: 'Commit 1 message\n\n Fix #1', tree: {long: 'aaa'}},
@@ -408,12 +392,8 @@ test.serial('Ignore missing issues/PRs', async t => {
     .reply(200, [{sha: commits[0].hash}])
     .get(`/repos/${owner}/${repo}/pulls/2/commits`)
     .reply(200, [{sha: commits[1].hash}])
-    .get(`/repos/${owner}/${repo}/issues/1`)
-    .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
     .reply(200, {html_url: 'https://github.com/successcomment-1'})
-    .get(`/repos/${owner}/${repo}/issues/2`)
-    .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/2/comments`, {body: /This PR is included/})
     .times(3)
     .reply(404)
@@ -445,7 +425,7 @@ test.serial('Add custom comment', async t => {
     successComment: `last release: \${lastRelease.version} nextRelease: \${nextRelease.version} branch: \${branch} commits: \${commits.length} releases: \${releases.length} PR attribute: \${issue.prop}`,
     failTitle,
   };
-  const prs = [{number: 1, prop: 'PR prop', pull_request: {}}];
+  const prs = [{number: 1, prop: 'PR prop', pull_request: {}, state: 'closed'}];
   const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
   const lastRelease = {version: '1.0.0'};
   const commits = [{hash: '123', message: 'Commit 1 message', tree: {long: 'aaa'}}];
@@ -460,8 +440,6 @@ test.serial('Add custom comment', async t => {
     .reply(200, {items: prs})
     .get(`/repos/${owner}/${repo}/pulls/1/commits`)
     .reply(200, [{sha: commits[0].hash}])
-    .get(`/repos/${owner}/${repo}/issues/1`)
-    .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/1/comments`, {
       body: /last release: 1\.0\.0 nextRelease: 2\.0\.0 branch: master commits: 1 releases: 1 PR attribute: PR prop/,
     })
@@ -489,7 +467,7 @@ test.serial('Ignore errors when adding comments and closing issues', async t => 
     {number: 2, body: `Issue 2 body\n\n${ISSUE_ID}`, title: failTitle},
     {number: 3, body: `Issue 3 body\n\n${ISSUE_ID}`, title: failTitle},
   ];
-  const prs = [{number: 1, pull_request: {}}, {number: 2, pull_request: {}}];
+  const prs = [{number: 1, pull_request: {}, state: 'closed'}, {number: 2, pull_request: {}, state: 'closed'}];
   const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
   const commits = [
     {hash: '123', message: 'Commit 1 message', tree: {long: 'aaa'}},
@@ -508,12 +486,8 @@ test.serial('Ignore errors when adding comments and closing issues', async t => 
     .reply(200, [{sha: commits[0].hash}])
     .get(`/repos/${owner}/${repo}/pulls/2/commits`)
     .reply(200, [{sha: commits[1].hash}])
-    .get(`/repos/${owner}/${repo}/issues/1`)
-    .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
     .reply(400, {})
-    .get(`/repos/${owner}/${repo}/issues/2`)
-    .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/2/comments`, {body: /This PR is included/})
     .reply(200, {html_url: 'https://github.com/successcomment-2'})
     .get(
