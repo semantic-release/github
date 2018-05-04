@@ -7,14 +7,14 @@ import getClient from '../lib/get-client';
 test('Wrap Octokit in a proxy', t => {
   const github = getClient({githubToken: 'github_token'});
 
-  t.true(Object.prototype.hasOwnProperty.call(github, 'repos'));
+  t.true(Reflect.apply(Object.prototype.hasOwnProperty, github, ['repos']));
   t.true(isPlainObject(github.repos));
-  t.true(Object.prototype.hasOwnProperty.call(github.repos, 'createRelease'));
+  t.true(Reflect.apply(Object.prototype.hasOwnProperty, github.repos, ['createRelease']));
   t.true(isFunction(github.repos.createRelease));
 
-  t.true(Object.prototype.hasOwnProperty.call(github, 'search'));
+  t.true(Reflect.apply(Object.prototype.hasOwnProperty, github, ['search']));
   t.true(isPlainObject(github.search));
-  t.true(Object.prototype.hasOwnProperty.call(github.search, 'issues'));
+  t.true(Reflect.apply(Object.prototype.hasOwnProperty, github.search, ['issues']));
   t.true(isFunction(github.search.issues));
 
   t.falsy(github.unknown);
