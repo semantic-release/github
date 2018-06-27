@@ -57,6 +57,8 @@ Follow the [Creating a personal access token for the command line](https://help.
 | `labels`              | The [labels](https://help.github.com/articles/about-labels) to add to the issue created when a release fails.                                                | `['semantic-release']`                                                                                                                               |
 | `assignees`           | The [assignees](https://help.github.com/articles/assigning-issues-and-pull-requests-to-other-github-users) to add to the issue created when a release fails. | -                                                                                                                                                    |
 
+**Note**: If you use a [shareable configuration](https://github.com/semantic-release/semantic-release/blob/caribou/docs/usage/shareable-configurations.md#shareable-configurations) that defines one of these options you can set it to `false` in your [**semantic-release** configuration](https://github.com/semantic-release/semantic-release/blob/caribou/docs/usage/configuration.md#configuration) in order to use the default value.
+
 #### assets
 
 Can be a [glob](https://github.com/isaacs/node-glob#glob-primer) or and `Array` of
@@ -145,7 +147,7 @@ Each individual plugin can be disabled, replaced or used with other plugins in t
 }
 ```
 
-Options can be set within the plugin definition in the Semantic-release configuration file:
+Options can be set within the plugin definition in the [**semantic-release** configuration](https://github.com/semantic-release/semantic-release/blob/caribou/docs/usage/configuration.md#configuration):
 
 ```json
 {
