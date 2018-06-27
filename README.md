@@ -76,7 +76,7 @@ can be a `String` (`"dist/**/*.js"` or `"dist/mylib.js"`) or an `Array` of `Stri
 
 If a directory is configured, all the files under this directory and its children will be included.
 
-Files can be included even if they have a match in `.gitignore`.
+**Note**: If a file has a match in `assets` it will be included even if it also has a match in `.gitignore`.
 
 ##### assets examples
 
