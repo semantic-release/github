@@ -4,7 +4,7 @@ import {repeat} from 'lodash';
 import nock from 'nock';
 import {stub} from 'sinon';
 import proxyquire from 'proxyquire';
-import ISSUE_ID from '../lib/definitions/sr-issue-id';
+import {ISSUE_ID} from '../lib/definitions/constants';
 import {authenticate} from './helpers/mock-github';
 import rateLimit from './helpers/rate-limit';
 
@@ -124,7 +124,7 @@ test.serial(
       {hash: '456', message: 'Commit 2 message'},
       {hash: '789', message: `Commit 3 message Closes https://custom-url.com/${owner}/${repo}/issues/4`},
     ];
-    const nextRelease = {version: '1.0.0'};
+    const nextRelease = {version: '1.0.0', channel: 'next'};
     const releases = [{name: 'GitHub release', url: 'https://custom-url.com/release'}];
     const github = authenticate(env)
       .get(`/repos/${owner}/${repo}`)
@@ -141,23 +141,23 @@ test.serial(
       .reply(200, [{sha: commits[1].hash}])
       .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
       .reply(200, {html_url: 'https://custom-url.com/successcomment-1'})
-      .post(`/repos/${owner}/${repo}/issues/1/labels`, '{"labels":["released"]}')
+      .post(`/repos/${owner}/${repo}/issues/1/labels`, '{"labels":["released on @next"]}')
       .reply(200, {})
       .post(`/repos/${owner}/${repo}/issues/2/comments`, {body: /This PR is included/})
       .reply(200, {html_url: 'https://custom-url.com/successcomment-2'})
-      .post(`/repos/${owner}/${repo}/issues/2/labels`, '{"labels":["released"]}')
+      .post(`/repos/${owner}/${repo}/issues/2/labels`, '{"labels":["released on @next"]}')
       .reply(200, {})
       .get(`/repos/${owner}/${repo}/issues/3`)
       .reply(200, {state: 'closed'})
       .post(`/repos/${owner}/${repo}/issues/3/comments`, {body: /This issue has been resolved/})
       .reply(200, {html_url: 'https://custom-url.com/successcomment-3'})
-      .post(`/repos/${owner}/${repo}/issues/3/labels`, '{"labels":["released"]}')
+      .post(`/repos/${owner}/${repo}/issues/3/labels`, '{"labels":["released on @next"]}')
       .reply(200, {})
       .get(`/repos/${owner}/${repo}/issues/4`)
       .reply(200, {state: 'closed'})
       .post(`/repos/${owner}/${repo}/issues/4/comments`, {body: /This issue has been resolved/})
       .reply(200, {html_url: 'https://custom-url.com/successcomment-4'})
-      .post(`/repos/${owner}/${repo}/issues/4/labels`, '{"labels":["released"]}')
+      .post(`/repos/${owner}/${repo}/issues/4/labels`, '{"labels":["released on @next"]}')
       .reply(200, {})
       .get(
         `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
@@ -169,13 +169,13 @@ test.serial(
     await success(pluginConfig, {env, options, commits, nextRelease, releases, logger: t.context.logger});
 
     t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 1, 'https://custom-url.com/successcomment-1'));
-    t.true(t.context.log.calledWith('Added labels %O to issue #%d', ['released'], 1));
+    t.true(t.context.log.calledWith('Added labels %O to issue #%d', ['released on @next'], 1));
     t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 2, 'https://custom-url.com/successcomment-2'));
-    t.true(t.context.log.calledWith('Added labels %O to issue #%d', ['released'], 2));
+    t.true(t.context.log.calledWith('Added labels %O to issue #%d', ['released on @next'], 2));
     t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 3, 'https://custom-url.com/successcomment-3'));
-    t.true(t.context.log.calledWith('Added labels %O to issue #%d', ['released'], 3));
+    t.true(t.context.log.calledWith('Added labels %O to issue #%d', ['released on @next'], 3));
     t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 4, 'https://custom-url.com/successcomment-4'));
-    t.true(t.context.log.calledWith('Added labels %O to issue #%d', ['released'], 4));
+    t.true(t.context.log.calledWith('Added labels %O to issue #%d', ['released on @next'], 4));
     t.true(github.isDone());
   }
 );
@@ -504,20 +504,21 @@ test.serial('Ignore missing issues/PRs', async t => {
   t.true(github.isDone());
 });
 
-test.serial('Add custom comment', async t => {
+test.serial('Add custom comment and labels', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
   const failTitle = 'The automated release is failing 🚨';
   const pluginConfig = {
-    successComment: `last release: \${lastRelease.version} nextRelease: \${nextRelease.version} branch: \${branch} commits: \${commits.length} releases: \${releases.length} PR attribute: \${issue.prop}`,
+    successComment: `last release: \${lastRelease.version} nextRelease: \${nextRelease.version} branch: \${branch.name} commits: \${commits.length} releases: \${releases.length} PR attribute: \${issue.prop}`,
     failTitle,
+    releasedLabels: ['released on @<%= nextRelease.channel %>', 'released from <%= branch.name %>'],
   };
   const prs = [{number: 1, prop: 'PR prop', pull_request: {}, state: 'closed'}];
-  const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const options = {repositoryUrl: `https://github.com/${owner}/${repo}.git`};
   const lastRelease = {version: '1.0.0'};
   const commits = [{hash: '123', message: 'Commit 1 message'}];
-  const nextRelease = {version: '2.0.0'};
+  const nextRelease = {version: '2.0.0', channel: 'next'};
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
   const github = authenticate(env)
     .get(`/repos/${owner}/${repo}`)
@@ -534,7 +535,7 @@ test.serial('Add custom comment', async t => {
       body: /last release: 1\.0\.0 nextRelease: 2\.0\.0 branch: master commits: 1 releases: 1 PR attribute: PR prop/,
     })
     .reply(200, {html_url: 'https://github.com/successcomment-1'})
-    .post(`/repos/${owner}/${repo}/issues/1/labels`, '{"labels":["released"]}')
+    .post(`/repos/${owner}/${repo}/issues/1/labels`, '{"labels":["released on @next","released from master"]}')
     .reply(200, {})
     .get(
       `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
@@ -543,10 +544,19 @@ test.serial('Add custom comment', async t => {
     )
     .reply(200, {items: []});
 
-  await success(pluginConfig, {env, options, lastRelease, commits, nextRelease, releases, logger: t.context.logger});
+  await success(pluginConfig, {
+    env,
+    branch: {name: 'master'},
+    options,
+    lastRelease,
+    commits,
+    nextRelease,
+    releases,
+    logger: t.context.logger,
+  });
 
   t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 1, 'https://github.com/successcomment-1'));
-  t.true(t.context.log.calledWith('Added labels %O to issue #%d', ['released'], 1));
+  t.true(t.context.log.calledWith('Added labels %O to issue #%d', ['released on @next', 'released from master'], 1));
   t.true(github.isDone());
 });
 
@@ -557,7 +567,7 @@ test.serial('Add custom label', async t => {
   const failTitle = 'The automated release is failing 🚨';
   const pluginConfig = {releasedLabels: ['custom label'], failTitle};
   const prs = [{number: 1, pull_request: {}, state: 'closed'}];
-  const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const options = {repositoryUrl: `https://github.com/${owner}/${repo}.git`};
   const lastRelease = {version: '1.0.0'};
   const commits = [{hash: '123', message: 'Commit 1 message'}];
   const nextRelease = {version: '2.0.0'};
@@ -584,7 +594,16 @@ test.serial('Add custom label', async t => {
     )
     .reply(200, {items: []});
 
-  await success(pluginConfig, {env, options, lastRelease, commits, nextRelease, releases, logger: t.context.logger});
+  await success(pluginConfig, {
+    env,
+    options,
+    branch: {name: 'master'},
+    lastRelease,
+    commits,
+    nextRelease,
+    releases,
+    logger: t.context.logger,
+  });
 
   t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 1, 'https://github.com/successcomment-1'));
   t.true(t.context.log.calledWith('Added labels %O to issue #%d', ['custom label'], 1));
@@ -598,7 +617,7 @@ test.serial('Comment on issue/PR without ading a label', async t => {
   const failTitle = 'The automated release is failing 🚨';
   const pluginConfig = {releasedLabels: false, failTitle};
   const prs = [{number: 1, pull_request: {}, state: 'closed'}];
-  const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const options = {repositoryUrl: `https://github.com/${owner}/${repo}.git`};
   const lastRelease = {version: '1.0.0'};
   const commits = [{hash: '123', message: 'Commit 1 message'}];
   const nextRelease = {version: '2.0.0'};
@@ -623,7 +642,16 @@ test.serial('Comment on issue/PR without ading a label', async t => {
     )
     .reply(200, {items: []});
 
-  await success(pluginConfig, {env, options, lastRelease, commits, nextRelease, releases, logger: t.context.logger});
+  await success(pluginConfig, {
+    env,
+    options,
+    branch: {name: 'master'},
+    lastRelease,
+    commits,
+    nextRelease,
+    releases,
+    logger: t.context.logger,
+  });
 
   t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 1, 'https://github.com/successcomment-1'));
   t.true(github.isDone());
@@ -641,7 +669,7 @@ test.serial('Ignore errors when adding comments and closing issues', async t => 
     {number: 3, body: `Issue 3 body\n\n${ISSUE_ID}`, title: failTitle},
   ];
   const prs = [{number: 1, pull_request: {}, state: 'closed'}, {number: 2, pull_request: {}, state: 'closed'}];
-  const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const options = {repositoryUrl: `https://github.com/${owner}/${repo}.git`};
   const commits = [{hash: '123', message: 'Commit 1 message'}, {hash: '456', message: 'Commit 2 message'}];
   const nextRelease = {version: '1.0.0'};
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
@@ -675,7 +703,15 @@ test.serial('Ignore errors when adding comments and closing issues', async t => 
     .reply(200, {html_url: 'https://github.com/issues/3'});
 
   const [error1, error2] = await t.throws(
-    success(pluginConfig, {env, options, commits, nextRelease, releases, logger: t.context.logger})
+    success(pluginConfig, {
+      env,
+      options,
+      branch: {name: 'master'},
+      commits,
+      nextRelease,
+      releases,
+      logger: t.context.logger,
+    })
   );
 
   t.is(error1.status, 400);
@@ -698,7 +734,7 @@ test.serial('Close open issues when a release is successful', async t => {
     {number: 2, body: `Issue 2 body\n\n${ISSUE_ID}`, title: failTitle},
     {number: 3, body: `Issue 3 body\n\n${ISSUE_ID}`, title: failTitle},
   ];
-  const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const options = {repositoryUrl: `https://github.com/${owner}/${repo}.git`};
   const commits = [{hash: '123', message: 'Commit 1 message'}];
   const nextRelease = {version: '1.0.0'};
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
@@ -722,7 +758,15 @@ test.serial('Close open issues when a release is successful', async t => {
     .patch(`/repos/${owner}/${repo}/issues/3`, {state: 'closed'})
     .reply(200, {html_url: 'https://github.com/issues/3'});
 
-  await success(pluginConfig, {env, options, commits, nextRelease, releases, logger: t.context.logger});
+  await success(pluginConfig, {
+    env,
+    options,
+    branch: {name: 'master'},
+    commits,
+    nextRelease,
+    releases,
+    logger: t.context.logger,
+  });
 
   t.true(t.context.log.calledWith('Closed issue #%d: %s.', 2, 'https://github.com/issues/2'));
   t.true(t.context.log.calledWith('Closed issue #%d: %s.', 3, 'https://github.com/issues/3'));
@@ -735,7 +779,7 @@ test.serial('Skip commention on issues/PR if "successComment" is "false"', async
   const env = {GITHUB_TOKEN: 'github_token'};
   const failTitle = 'The automated release is failing 🚨';
   const pluginConfig = {failTitle, successComment: false};
-  const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const options = {repositoryUrl: `https://github.com/${owner}/${repo}.git`};
   const commits = [{hash: '123', message: 'Commit 1 message\n\n Fix #1', tree: {long: 'aaa'}}];
   const nextRelease = {version: '1.0.0'};
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
@@ -749,7 +793,15 @@ test.serial('Skip commention on issues/PR if "successComment" is "false"', async
     )
     .reply(200, {items: []});
 
-  await success(pluginConfig, {env, options, commits, nextRelease, releases, logger: t.context.logger});
+  await success(pluginConfig, {
+    env,
+    options,
+    branch: {name: 'master'},
+    commits,
+    nextRelease,
+    releases,
+    logger: t.context.logger,
+  });
 
   t.true(t.context.log.calledWith('Skip commenting on issues and pull requests.'));
   t.true(github.isDone());
@@ -760,7 +812,7 @@ test.serial('Skip closing issues if "failComment" is "false"', async t => {
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
   const pluginConfig = {failComment: false};
-  const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const options = {repositoryUrl: `https://github.com/${owner}/${repo}.git`};
   const commits = [{hash: '123', message: 'Commit 1 message'}];
   const nextRelease = {version: '1.0.0'};
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
@@ -774,7 +826,15 @@ test.serial('Skip closing issues if "failComment" is "false"', async t => {
     )
     .reply(200, {items: []});
 
-  await success(pluginConfig, {env, options, commits, nextRelease, releases, logger: t.context.logger});
+  await success(pluginConfig, {
+    env,
+    options,
+    branch: {name: 'master'},
+    commits,
+    nextRelease,
+    releases,
+    logger: t.context.logger,
+  });
   t.true(t.context.log.calledWith('Skip closing issue.'));
   t.true(github.isDone());
 });
@@ -784,7 +844,7 @@ test.serial('Skip closing issues if "failTitle" is "false"', async t => {
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
   const pluginConfig = {failTitle: false};
-  const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const options = {repositoryUrl: `https://github.com/${owner}/${repo}.git`};
   const commits = [{hash: '123', message: 'Commit 1 message'}];
   const nextRelease = {version: '1.0.0'};
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
@@ -798,7 +858,15 @@ test.serial('Skip closing issues if "failTitle" is "false"', async t => {
     )
     .reply(200, {items: []});
 
-  await success(pluginConfig, {env, options, commits, nextRelease, releases, logger: t.context.logger});
+  await success(pluginConfig, {
+    env,
+    options,
+    branch: {name: 'master'},
+    commits,
+    nextRelease,
+    releases,
+    logger: t.context.logger,
+  });
   t.true(t.context.log.calledWith('Skip closing issue.'));
   t.true(github.isDone());
 });
