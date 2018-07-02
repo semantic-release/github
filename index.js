@@ -1,5 +1,6 @@
 const {defaultTo, castArray} = require('lodash');
 const verifyGitHub = require('./lib/verify');
+const addChannelGitHub = require('./lib/add-channel');
 const publishGitHub = require('./lib/publish');
 const successGitHub = require('./lib/success');
 const failGitHub = require('./lib/fail');
@@ -33,6 +34,14 @@ async function publish(pluginConfig, context) {
   return publishGitHub(pluginConfig, context);
 }
 
+async function addChannel(pluginConfig, context) {
+  if (!verified) {
+    await verifyGitHub(pluginConfig, context);
+    verified = true;
+  }
+  return addChannelGitHub(pluginConfig, context);
+}
+
 async function success(pluginConfig, context) {
   if (!verified) {
     await verifyGitHub(pluginConfig, context);
@@ -49,4 +58,4 @@ async function fail(pluginConfig, context) {
   await failGitHub(pluginConfig, context);
 }
 
-module.exports = {verifyConditions, publish, success, fail};
+module.exports = {verifyConditions, addChannel, publish, success, fail};

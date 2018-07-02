@@ -4,7 +4,7 @@ import nock from 'nock';
 import {stub} from 'sinon';
 import proxyquire from 'proxyquire';
 import SemanticReleaseError from '@semantic-release/error';
-import ISSUE_ID from '../lib/definitions/sr-issue-id';
+import {ISSUE_ID} from '../lib/definitions/constants';
 import {authenticate} from './helpers/mock-github';
 import rateLimit from './helpers/rate-limit';
 
