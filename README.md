@@ -62,7 +62,7 @@ Follow the [Creating a personal access token for the command line](https://help.
 #### assets
 
 Can be a [glob](https://github.com/isaacs/node-glob#glob-primer) or and `Array` of
-[globs](https://github.com/isaacs/node-glob#glob-primer) and `Object`s with the following properties
+[globs](https://github.com/isaacs/node-glob#glob-primer) and `Object`s with the following properties:
 
 | Property | Description                                                                                              | Default                              |
 | -------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------ |
