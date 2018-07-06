@@ -1,8 +1,89 @@
+import path from 'path';
+import http from 'http';
+import https from 'https';
+import {promisify} from 'util';
+import {readFile} from 'fs-extra';
 import test from 'ava';
 import {isFunction, isPlainObject, inRange} from 'lodash';
-import {stub} from 'sinon';
+import {stub, spy} from 'sinon';
 import proxyquire from 'proxyquire';
+import Proxy from 'proxy';
+import serverDestroy from 'server-destroy';
 import getClient from '../lib/get-client';
+
+test.serial('Use a http proxy', async t => {
+  const server = http.createServer();
+  await promisify(server.listen).bind(server)();
+  const serverPort = server.address().port;
+  serverDestroy(server);
+  const proxy = new Proxy();
+  await promisify(proxy.listen).bind(proxy)();
+  const proxyPort = proxy.address().port;
+  serverDestroy(proxy);
+
+  const proxyHandler = spy();
+  const serverHandler = spy((req, res) => {
+    res.end();
+  });
+  proxy.on('request', proxyHandler);
+  server.on('request', serverHandler);
+
+  const github = getClient({
+    githubToken: 'github_token',
+    githubUrl: `http://localhost:${serverPort}`,
+    githubApiPathPrefix: '',
+    proxy: `http://localhost:${proxyPort}`,
+    retry: {retries: 1, factor: 1, minTimeout: 1, maxTimeout: 1},
+  });
+
+  await github.repos.get({repo: 'repo', owner: 'owner'});
+
+  t.is(proxyHandler.args[0][0].headers.accept, 'application/vnd.github.drax-preview+json');
+  t.is(serverHandler.args[0][0].headers.accept, 'application/vnd.github.drax-preview+json');
+  t.regex(serverHandler.args[0][0].headers.via, /proxy/);
+  t.truthy(serverHandler.args[0][0].headers['x-forwarded-for'], /proxy/);
+
+  await promisify(proxy.destroy).bind(proxy)();
+  await promisify(server.destroy).bind(server)();
+});
+
+test.serial('Use a https proxy', async t => {
+  const server = https.createServer({
+    key: await readFile(path.join(__dirname, '/fixtures/ssl/ssl-cert-snakeoil.key')),
+    cert: await readFile(path.join(__dirname, '/fixtures/ssl/ssl-cert-snakeoil.pem')),
+  });
+  await promisify(server.listen).bind(server)();
+  const serverPort = server.address().port;
+  serverDestroy(server);
+  const proxy = new Proxy();
+  await promisify(proxy.listen).bind(proxy)();
+  const proxyPort = proxy.address().port;
+  serverDestroy(proxy);
+
+  const proxyHandler = spy();
+  const serverHandler = spy((req, res) => {
+    res.end();
+  });
+  proxy.on('connect', proxyHandler);
+  server.on('request', serverHandler);
+
+  const github = getClient({
+    githubToken: 'github_token',
+    githubUrl: `https://localhost:${serverPort}`,
+    githubApiPathPrefix: '',
+    proxy: {host: 'localhost', port: proxyPort, rejectUnauthorized: false, headers: {foo: 'bar'}},
+    retry: {retries: 1, factor: 1, minTimeout: 1, maxTimeout: 1},
+  });
+
+  await github.repos.get({repo: 'repo', owner: 'owner'});
+
+  t.is(proxyHandler.args[0][0].url, `localhost:${serverPort}`);
+  t.is(proxyHandler.args[0][0].headers.foo, 'bar');
+  t.is(serverHandler.args[0][0].headers.accept, 'application/vnd.github.drax-preview+json');
+
+  await promisify(proxy.destroy).bind(proxy)();
+  await promisify(server.destroy).bind(server)();
+});
 
 test('Wrap Octokit in a proxy', t => {
   const github = getClient({githubToken: 'github_token'});
