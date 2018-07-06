@@ -24,6 +24,7 @@ test.beforeEach(t => {
   delete process.env.GITHUB_URL;
   delete process.env.GH_PREFIX;
   delete process.env.GITHUB_PREFIX;
+  delete process.env.HTTP_PROXY;
   // Mock logger
   t.context.log = stub();
   t.context.error = stub();
@@ -41,6 +42,7 @@ test.serial('Verify package, token and repository access', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
   process.env.GH_TOKEN = 'github_token';
+  const proxy = 'https://localhost';
   const assets = [{path: 'lib/file.js'}, 'file.js'];
   const successComment = 'Test comment';
   const failTitle = 'Test title';
@@ -52,7 +54,7 @@ test.serial('Verify package, token and repository access', async t => {
 
   await t.notThrows(
     verify(
-      {assets, successComment, failTitle, failComment, labels},
+      {proxy, assets, successComment, failTitle, failComment, labels},
       {options: {repositoryUrl: `git+https://othertesturl.com/${owner}/${repo}.git`}, logger: t.context.logger}
     )
   );
@@ -60,11 +62,12 @@ test.serial('Verify package, token and repository access', async t => {
 });
 
 test.serial(
-  'Verify package, token and repository access with "asset", "successComment", "failTitle", "failComment" and "label" set to "false"',
+  'Verify package, token and repository access with "proxy", "asset", "successComment", "failTitle", "failComment" and "label" set to "false"',
   async t => {
     const owner = 'test_user';
     const repo = 'test_repo';
     process.env.GH_TOKEN = 'github_token';
+    const proxy = false;
     const assets = false;
     const successComment = false;
     const failTitle = false;
@@ -76,7 +79,7 @@ test.serial(
 
     await t.notThrows(
       verify(
-        {assets, successComment, failTitle, failComment, labels},
+        {proxy, assets, successComment, failTitle, failComment, labels},
         {options: {repositoryUrl: `git+https://othertesturl.com/${owner}/${repo}.git`}, logger: t.context.logger}
       )
     );
@@ -131,6 +134,7 @@ test.serial('Verify package, token and repository with environment variables', a
   process.env.GH_URL = 'https://othertesturl.com:443';
   process.env.GH_TOKEN = 'github_token';
   process.env.GH_PREFIX = 'prefix';
+  process.env.HTTP_PROXY = 'https://localhost';
   const github = authenticate()
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {permissions: {push: true}});
@@ -157,6 +161,38 @@ test.serial('Verify package, token and repository access with alternative enviro
   await t.notThrows(
     verify({}, {options: {repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`}, logger: t.context.logger})
   );
+  t.true(github.isDone());
+});
+
+test.serial('Verify "proxy" is a String', async t => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  process.env.GITHUB_TOKEN = 'github_token';
+  const proxy = 'https://locahost';
+  const github = authenticate()
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {permissions: {push: true}});
+
+  await t.notThrows(
+    verify({proxy}, {options: {repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`}, logger: t.context.logger})
+  );
+
+  t.true(github.isDone());
+});
+
+test.serial('Verify "proxy" is an object with "host" and "port" properties', async t => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  process.env.GITHUB_TOKEN = 'github_token';
+  const proxy = {host: 'locahost', port: 80};
+  const github = authenticate()
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {permissions: {push: true}});
+
+  await t.notThrows(
+    verify({proxy}, {options: {repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`}, logger: t.context.logger})
+  );
+
   t.true(github.isDone());
 });
 
@@ -359,6 +395,36 @@ test.serial('Throw error if github return any other errors', async t => {
 
   t.is(error.code, 500);
   t.true(github.isDone());
+});
+
+test.serial('Throw SemanticReleaseError if "proxy" option is not a String or an Object', async t => {
+  process.env.GITHUB_TOKEN = 'github_token';
+  const proxy = 42;
+
+  const [error] = await t.throws(
+    verify(
+      {proxy},
+      {options: {repositoryUrl: 'https://github.com/semantic-release/github.git'}, logger: t.context.logger}
+    )
+  );
+
+  t.is(error.name, 'SemanticReleaseError');
+  t.is(error.code, 'EINVALIDPROXY');
+});
+
+test.serial('Throw SemanticReleaseError if "proxy" option is an Object with invalid properties', async t => {
+  process.env.GITHUB_TOKEN = 'github_token';
+  const proxy = {host: 42};
+
+  const [error] = await t.throws(
+    verify(
+      {proxy},
+      {options: {repositoryUrl: 'https://github.com/semantic-release/github.git'}, logger: t.context.logger}
+    )
+  );
+
+  t.is(error.name, 'SemanticReleaseError');
+  t.is(error.code, 'EINVALIDPROXY');
 });
 
 test.serial('Throw SemanticReleaseError if "assets" option is not a String or an Array of Objects', async t => {

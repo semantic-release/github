@@ -131,9 +131,9 @@ test.serial('Publish a release with an array of assets', async t => {
   const repo = 'test_repo';
   process.env.GH_TOKEN = 'github_token';
   const assets = [
-    'test/fixtures/upload.txt',
-    {path: ['test/fixtures/*.txt', '!**/*_other.txt'], name: 'upload_file_name.txt'},
-    {path: ['test/fixtures/*.txt'], name: 'other_file.txt', label: 'Other File'},
+    'test/fixtures/files/upload.txt',
+    {path: ['test/fixtures/files/*.txt', '!**/*_other.txt'], name: 'upload_file_name.txt'},
+    {path: ['test/fixtures/files/*.txt'], name: 'other_file.txt', label: 'Other File'},
   ];
   const nextRelease = {version: '1.0.0', gitHead: '123', gitTag: 'v1.0.0', notes: 'Test release note body'};
   const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
@@ -155,13 +155,13 @@ test.serial('Publish a release with an array of assets', async t => {
     .reply(200, {upload_url: uploadUrl, html_url: releaseUrl});
   const githubUpload1 = upload({
     uploadUrl: 'https://github.com',
-    contentLength: (await stat('test/fixtures/upload.txt')).size,
+    contentLength: (await stat('test/fixtures/files/upload.txt')).size,
   })
     .post(`${uploadUri}?name=${escape('upload_file_name.txt')}`)
     .reply(200, {browser_download_url: assetUrl});
   const githubUpload2 = upload({
     uploadUrl: 'https://github.com',
-    contentLength: (await stat('test/fixtures/upload_other.txt')).size,
+    contentLength: (await stat('test/fixtures/files/upload_other.txt')).size,
   })
     .post(`${uploadUri}?name=${escape('upload_other.txt')}&label=${escape('Other File')}`)
     .reply(200, {browser_download_url: otherAssetUrl});
@@ -254,8 +254,8 @@ test.serial('Verify, release and notify success', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const assets = [
-    'test/fixtures/upload.txt',
-    {path: 'test/fixtures/upload_other.txt', name: 'other_file.txt', label: 'Other File'},
+    'test/fixtures/files/upload.txt',
+    {path: 'test/fixtures/files/upload_other.txt', name: 'other_file.txt', label: 'Other File'},
   ];
   const failTitle = 'The automated release is failing 🚨';
   const options = {
@@ -300,13 +300,13 @@ test.serial('Verify, release and notify success', async t => {
     .reply(200, {items: []});
   const githubUpload1 = upload({
     uploadUrl: 'https://github.com',
-    contentLength: (await stat('test/fixtures/upload.txt')).size,
+    contentLength: (await stat('test/fixtures/files/upload.txt')).size,
   })
     .post(`${uploadUri}?name=${escape('upload.txt')}`)
     .reply(200, {browser_download_url: assetUrl});
   const githubUpload2 = upload({
     uploadUrl: 'https://github.com',
-    contentLength: (await stat('test/fixtures/upload_other.txt')).size,
+    contentLength: (await stat('test/fixtures/files/upload_other.txt')).size,
   })
     .post(`${uploadUri}?name=${escape('other_file.txt')}&label=${escape('Other File')}`)
     .reply(200, {browser_download_url: otherAssetUrl});

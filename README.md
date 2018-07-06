@@ -50,6 +50,7 @@ Follow the [Creating a personal access token for the command line](https://help.
 |-----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `githubUrl`           | The GitHub Enterprise endpoint.                                                                                                                              | `GH_URL` or `GITHUB_URL` environment variable.                                                                                                       |
 | `githubApiPathPrefix` | The GitHub Enterprise API prefix.                                                                                                                            | `GH_PREFIX` or `GITHUB_PREFIX` environment variable.                                                                                                 |
+| `proxy`               | The proxy to use to access the GitHub API. See [proxy](#proxy).                                                                                              | `HTTP_PROXY` environment variable.                                                                                                                   |
 | `assets`              | An array of files to upload to the release. See [assets](#assets).                                                                                           | -                                                                                                                                                    |
 | `successComment`      | The comment added to each issue and pull request resolved by the release. See [successComment](#successcomment).                                             | `:tada: This issue has been resolved in version ${nextRelease.version} :tada:\n\nThe release is available on [GitHub release](<github_release_url>)` |
 | `failComment`         | The content of the issue created when a release fails. See [failComment](#failcomment).                                                                      | Friendly message with links to **semantic-release** documentation and support, with the list of errors that caused the release to fail.              |
@@ -58,6 +59,24 @@ Follow the [Creating a personal access token for the command line](https://help.
 | `assignees`           | The [assignees](https://help.github.com/articles/assigning-issues-and-pull-requests-to-other-github-users) to add to the issue created when a release fails. | -                                                                                                                                                    |
 
 **Note**: If you use a [shareable configuration](https://github.com/semantic-release/semantic-release/blob/caribou/docs/usage/shareable-configurations.md#shareable-configurations) that defines one of these options you can set it to `false` in your [**semantic-release** configuration](https://github.com/semantic-release/semantic-release/blob/caribou/docs/usage/configuration.md#configuration) in order to use the default value.
+
+#### proxy
+
+Can be a the proxy URL or and `Object` with the following properties:
+
+| Property      | Description                                                    | Default                              |
+|---------------|----------------------------------------------------------------|--------------------------------------|
+| `host`        | **Required.** Proxy host to connect to.                        | -                                    |
+| `port`        | **Required.** Proxy port to connect to.                        | File name extracted from the `path`. |
+| `secureProxy` | If `true`, then use TLS to connect to the proxy.               | `false`                              |
+| `headers`     | Additional HTTP headers to be sent on the HTTP CONNECT method. | -                                    |
+
+See [node-https-proxy-agent](https://github.com/TooTallNate/node-https-proxy-agent#new-httpsproxyagentobject-options) and [node-http-proxy-agent](https://github.com/TooTallNate/node-http-proxy-agent) for additional details.
+
+##### proxy examples
+
+`'http://168.63.76.32:3128'`: use the proxy running on host `168.63.76.32` and port `3128` for each GitHub API request.
+`{host: '168.63.76.32', port: 3128, headers: {Foo: 'bar'}}`: use the proxy running on host `168.63.76.32` and port `3128` for each GitHub API request, setting the `Foo` header value to `bar`.
 
 #### assets
 
