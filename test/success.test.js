@@ -56,7 +56,7 @@ test.serial('Add comment to PRs associated with release commits and issues close
   const commits = [
     {hash: '123', message: 'Commit 1 message\n\n Fix #1', tree: {long: 'aaa'}},
     {hash: '456', message: 'Commit 2 message', tree: {long: 'ccc'}},
-    {hash: '789', message: 'Commit 3 message Closes #4', tree: {long: 'ccc'}},
+    {hash: '789', message: `Commit 3 message Closes https://github.com/${owner}/${repo}/issues/4`, tree: {long: 'ccc'}},
   ];
   const nextRelease = {version: '1.0.0'};
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
@@ -98,6 +98,72 @@ test.serial('Add comment to PRs associated with release commits and issues close
   t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 4, 'https://github.com/successcomment-4'));
   t.true(github.isDone());
 });
+
+test.serial(
+  'Add comment to PRs associated with release commits and issues closed by PR/commits comments with custom URL',
+  async t => {
+    const owner = 'test_user';
+    const repo = 'test_repo';
+    process.env.GH_URL = 'https://custom-url.com';
+    process.env.GH_TOKEN = 'github_token';
+    process.env.GH_PREFIX = 'prefix';
+    const failTitle = 'The automated release is failing 🚨';
+    const pluginConfig = {failTitle};
+    const prs = [
+      {number: 1, pull_request: {}, state: 'closed'},
+      {number: 2, pull_request: {}, body: 'Fixes #3', state: 'closed'},
+    ];
+    const options = {branch: 'master', repositoryUrl: `https://custom-url.com/${owner}/${repo}.git`};
+    const commits = [
+      {hash: '123', message: 'Commit 1 message\n\n Fix #1', tree: {long: 'aaa'}},
+      {hash: '456', message: 'Commit 2 message', tree: {long: 'ccc'}},
+      {
+        hash: '789',
+        message: `Commit 3 message Closes https://custom-url.com/${owner}/${repo}/issues/4`,
+        tree: {long: 'ccc'},
+      },
+    ];
+    const nextRelease = {version: '1.0.0'};
+    const releases = [{name: 'GitHub release', url: 'https://custom-url.com/release'}];
+    const github = authenticate()
+      .get(
+        `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
+          .map(commit => commit.hash)
+          .join('+')}`
+      )
+      .reply(200, {items: prs})
+      .get(`/repos/${owner}/${repo}/pulls/1/commits`)
+      .reply(200, [{sha: commits[0].hash}])
+      .get(`/repos/${owner}/${repo}/pulls/2/commits`)
+      .reply(200, [{sha: commits[1].hash}])
+      .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
+      .reply(200, {html_url: 'https://custom-url.com/successcomment-1'})
+      .post(`/repos/${owner}/${repo}/issues/2/comments`, {body: /This PR is included/})
+      .reply(200, {html_url: 'https://custom-url.com/successcomment-2'})
+      .get(`/repos/${owner}/${repo}/issues/3`)
+      .reply(200, {state: 'closed'})
+      .post(`/repos/${owner}/${repo}/issues/3/comments`, {body: /This issue has been resolved/})
+      .reply(200, {html_url: 'https://custom-url.com/successcomment-3'})
+      .get(`/repos/${owner}/${repo}/issues/4`)
+      .reply(200, {state: 'closed'})
+      .post(`/repos/${owner}/${repo}/issues/4/comments`, {body: /This issue has been resolved/})
+      .reply(200, {html_url: 'https://custom-url.com/successcomment-4'})
+      .get(
+        `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
+          'state:open'
+        )}+${escape(failTitle)}`
+      )
+      .reply(200, {items: []});
+
+    await success(pluginConfig, {options, commits, nextRelease, releases, logger: t.context.logger});
+
+    t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 1, 'https://custom-url.com/successcomment-1'));
+    t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 2, 'https://custom-url.com/successcomment-2'));
+    t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 3, 'https://custom-url.com/successcomment-3'));
+    t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 4, 'https://custom-url.com/successcomment-4'));
+    t.true(github.isDone());
+  }
+);
 
 test.serial('Make multiple search queries if necessary', async t => {
   const owner = 'test_user';
