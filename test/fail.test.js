@@ -14,17 +14,7 @@ const fail = proxyquire('../lib/fail', {
   './get-client': proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit}),
 });
 
-// Save the current process.env
-const envBackup = Object.assign({}, process.env);
-
 test.beforeEach(t => {
-  // Delete env variables in case they are on the machine running the tests
-  delete process.env.GH_TOKEN;
-  delete process.env.GITHUB_TOKEN;
-  delete process.env.GH_URL;
-  delete process.env.GITHUB_URL;
-  delete process.env.GH_PREFIX;
-  delete process.env.GITHUB_PREFIX;
   // Mock logger
   t.context.log = stub();
   t.context.error = stub();
@@ -32,8 +22,6 @@ test.beforeEach(t => {
 });
 
 test.afterEach.always(() => {
-  // Restore process.env
-  process.env = envBackup;
   // Clear nock
   nock.cleanAll();
 });
@@ -41,7 +29,7 @@ test.afterEach.always(() => {
 test.serial('Open a new issue with the list of errors', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
-  process.env.GITHUB_TOKEN = 'github_token';
+  const env = {GITHUB_TOKEN: 'github_token'};
   const failTitle = 'The automated release is failing 🚨';
   const pluginConfig = {failTitle};
   const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
@@ -50,7 +38,7 @@ test.serial('Open a new issue with the list of errors', async t => {
     new SemanticReleaseError('Error message 2', 'ERR2', 'Error 2 details'),
     new SemanticReleaseError('Error message 3', 'ERR3', 'Error 3 details'),
   ];
-  const github = authenticate()
+  const github = authenticate(env)
     .get(
       `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
         'state:open'
@@ -64,7 +52,7 @@ test.serial('Open a new issue with the list of errors', async t => {
     })
     .reply(200, {html_url: 'https://github.com/issues/1', number: 1});
 
-  await fail(pluginConfig, {options, errors, logger: t.context.logger});
+  await fail(pluginConfig, {env, options, errors, logger: t.context.logger});
 
   t.true(t.context.log.calledWith('Created issue #%d: %s.', 1, 'https://github.com/issues/1'));
   t.true(github.isDone());
@@ -73,7 +61,7 @@ test.serial('Open a new issue with the list of errors', async t => {
 test.serial('Open a new issue with the list of errors, retrying 4 times', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
-  process.env.GITHUB_TOKEN = 'github_token';
+  const env = {GITHUB_TOKEN: 'github_token'};
   const failTitle = 'The automated release is failing 🚨';
   const pluginConfig = {failTitle};
   const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
@@ -82,7 +70,7 @@ test.serial('Open a new issue with the list of errors, retrying 4 times', async 
     new SemanticReleaseError('Error message 2', 'ERR2', 'Error 2 details'),
     new SemanticReleaseError('Error message 3', 'ERR3', 'Error 3 details'),
   ];
-  const github = authenticate()
+  const github = authenticate(env)
     .get(
       `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
         'state:open'
@@ -110,7 +98,7 @@ test.serial('Open a new issue with the list of errors, retrying 4 times', async 
     })
     .reply(200, {html_url: 'https://github.com/issues/1', number: 1});
 
-  await fail(pluginConfig, {options, errors, logger: t.context.logger});
+  await fail(pluginConfig, {env, options, errors, logger: t.context.logger});
 
   t.true(t.context.log.calledWith('Created issue #%d: %s.', 1, 'https://github.com/issues/1'));
   t.true(github.isDone());
@@ -119,7 +107,7 @@ test.serial('Open a new issue with the list of errors, retrying 4 times', async 
 test.serial('Open a new issue with the list of errors and custom title and comment', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
-  process.env.GITHUB_TOKEN = 'github_token';
+  const env = {GITHUB_TOKEN: 'github_token'};
   const failTitle = 'Custom title';
   const failComment = `branch \${branch} \${errors[0].message} \${errors[1].message} \${errors[2].message}`;
   const pluginConfig = {failTitle, failComment};
@@ -129,7 +117,7 @@ test.serial('Open a new issue with the list of errors and custom title and comme
     new SemanticReleaseError('Error message 2', 'ERR2', 'Error 2 details'),
     new SemanticReleaseError('Error message 3', 'ERR3', 'Error 3 details'),
   ];
-  const github = authenticate()
+  const github = authenticate(env)
     .get(
       `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
         'state:open'
@@ -143,7 +131,7 @@ test.serial('Open a new issue with the list of errors and custom title and comme
     })
     .reply(200, {html_url: 'https://github.com/issues/1', number: 1});
 
-  await fail(pluginConfig, {options, errors, logger: t.context.logger});
+  await fail(pluginConfig, {env, options, errors, logger: t.context.logger});
 
   t.true(t.context.log.calledWith('Created issue #%d: %s.', 1, 'https://github.com/issues/1'));
   t.true(github.isDone());
@@ -152,7 +140,7 @@ test.serial('Open a new issue with the list of errors and custom title and comme
 test.serial('Open a new issue with assignees and the list of errors', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
-  process.env.GITHUB_TOKEN = 'github_token';
+  const env = {GITHUB_TOKEN: 'github_token'};
   const failTitle = 'The automated release is failing 🚨';
   const assignees = ['user1', 'user2'];
   const pluginConfig = {failTitle, assignees};
@@ -161,7 +149,7 @@ test.serial('Open a new issue with assignees and the list of errors', async t =>
     new SemanticReleaseError('Error message 1', 'ERR1', 'Error 1 details'),
     new SemanticReleaseError('Error message 2', 'ERR2', 'Error 2 details'),
   ];
-  const github = authenticate()
+  const github = authenticate(env)
     .get(
       `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
         'state:open'
@@ -176,7 +164,7 @@ test.serial('Open a new issue with assignees and the list of errors', async t =>
     })
     .reply(200, {html_url: 'https://github.com/issues/1', number: 1});
 
-  await fail(pluginConfig, {options, errors, logger: t.context.logger});
+  await fail(pluginConfig, {env, options, errors, logger: t.context.logger});
 
   t.true(t.context.log.calledWith('Created issue #%d: %s.', 1, 'https://github.com/issues/1'));
   t.true(github.isDone());
@@ -185,7 +173,7 @@ test.serial('Open a new issue with assignees and the list of errors', async t =>
 test.serial('Open a new issue without labels and the list of errors', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
-  process.env.GITHUB_TOKEN = 'github_token';
+  const env = {GITHUB_TOKEN: 'github_token'};
   const failTitle = 'The automated release is failing 🚨';
   const labels = false;
   const pluginConfig = {failTitle, labels};
@@ -194,7 +182,7 @@ test.serial('Open a new issue without labels and the list of errors', async t =>
     new SemanticReleaseError('Error message 1', 'ERR1', 'Error 1 details'),
     new SemanticReleaseError('Error message 2', 'ERR2', 'Error 2 details'),
   ];
-  const github = authenticate()
+  const github = authenticate(env)
     .get(
       `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
         'state:open'
@@ -208,7 +196,7 @@ test.serial('Open a new issue without labels and the list of errors', async t =>
     })
     .reply(200, {html_url: 'https://github.com/issues/1', number: 1});
 
-  await fail(pluginConfig, {options, errors, logger: t.context.logger});
+  await fail(pluginConfig, {env, options, errors, logger: t.context.logger});
 
   t.true(t.context.log.calledWith('Created issue #%d: %s.', 1, 'https://github.com/issues/1'));
   t.true(github.isDone());
@@ -217,7 +205,7 @@ test.serial('Open a new issue without labels and the list of errors', async t =>
 test.serial('Update the first existing issue with the list of errors', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
-  process.env.GITHUB_TOKEN = 'github_token';
+  const env = {GITHUB_TOKEN: 'github_token'};
   const failTitle = 'The automated release is failing 🚨';
   const pluginConfig = {failTitle};
   const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
@@ -231,7 +219,7 @@ test.serial('Update the first existing issue with the list of errors', async t =
     {number: 2, body: `Issue 2 body\n\n${ISSUE_ID}`, title: failTitle},
     {number: 3, body: `Issue 3 body\n\n${ISSUE_ID}`, title: failTitle},
   ];
-  const github = authenticate()
+  const github = authenticate(env)
     .get(
       `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
         'state:open'
@@ -243,7 +231,7 @@ test.serial('Update the first existing issue with the list of errors', async t =
     })
     .reply(200, {html_url: 'https://github.com/issues/2', number: 2});
 
-  await fail(pluginConfig, {options, errors, logger: t.context.logger});
+  await fail(pluginConfig, {env, options, errors, logger: t.context.logger});
 
   t.true(t.context.log.calledWith('Found existing semantic-release issue #%d.', 2));
   t.true(t.context.log.calledWith('Added comment to issue #%d: %s.', 2, 'https://github.com/issues/2'));

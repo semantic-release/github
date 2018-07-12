@@ -14,17 +14,7 @@ const success = proxyquire('../lib/success', {
   './get-client': proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit}),
 });
 
-// Save the current process.env
-const envBackup = Object.assign({}, process.env);
-
 test.beforeEach(t => {
-  // Delete env variables in case they are on the machine running the tests
-  delete process.env.GH_TOKEN;
-  delete process.env.GITHUB_TOKEN;
-  delete process.env.GH_URL;
-  delete process.env.GITHUB_URL;
-  delete process.env.GH_PREFIX;
-  delete process.env.GITHUB_PREFIX;
   // Mock logger
   t.context.log = stub();
   t.context.error = stub();
@@ -32,8 +22,6 @@ test.beforeEach(t => {
 });
 
 test.afterEach.always(() => {
-  // Restore process.env
-  process.env = envBackup;
   // Clear nock
   nock.cleanAll();
 });
@@ -41,7 +29,7 @@ test.afterEach.always(() => {
 test.serial('Add comment to PRs associated with release commits and issues closed by PR/commits comments', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
-  process.env.GITHUB_TOKEN = 'github_token';
+  const env = {GITHUB_TOKEN: 'github_token'};
   const failTitle = 'The automated release is failing 🚨';
   const pluginConfig = {failTitle};
   const prs = [
@@ -56,7 +44,7 @@ test.serial('Add comment to PRs associated with release commits and issues close
   ];
   const nextRelease = {version: '1.0.0'};
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
-  const github = authenticate()
+  const github = authenticate(env)
     .get(
       `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
         .map(commit => commit.hash)
@@ -86,7 +74,7 @@ test.serial('Add comment to PRs associated with release commits and issues close
     )
     .reply(200, {items: []});
 
-  await success(pluginConfig, {options, commits, nextRelease, releases, logger: t.context.logger});
+  await success(pluginConfig, {env, options, commits, nextRelease, releases, logger: t.context.logger});
 
   t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 1, 'https://github.com/successcomment-1'));
   t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 2, 'https://github.com/successcomment-2'));
@@ -100,9 +88,7 @@ test.serial(
   async t => {
     const owner = 'test_user';
     const repo = 'test_repo';
-    process.env.GH_URL = 'https://custom-url.com';
-    process.env.GH_TOKEN = 'github_token';
-    process.env.GH_PREFIX = 'prefix';
+    const env = {GH_URL: 'https://custom-url.com', GH_TOKEN: 'github_token', GH_PREFIX: 'prefix'};
     const failTitle = 'The automated release is failing 🚨';
     const pluginConfig = {failTitle};
     const prs = [
@@ -121,7 +107,7 @@ test.serial(
     ];
     const nextRelease = {version: '1.0.0'};
     const releases = [{name: 'GitHub release', url: 'https://custom-url.com/release'}];
-    const github = authenticate()
+    const github = authenticate(env)
       .get(
         `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
           .map(commit => commit.hash)
@@ -151,7 +137,7 @@ test.serial(
       )
       .reply(200, {items: []});
 
-    await success(pluginConfig, {options, commits, nextRelease, releases, logger: t.context.logger});
+    await success(pluginConfig, {env, options, commits, nextRelease, releases, logger: t.context.logger});
 
     t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 1, 'https://custom-url.com/successcomment-1'));
     t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 2, 'https://custom-url.com/successcomment-2'));
@@ -164,7 +150,7 @@ test.serial(
 test.serial('Make multiple search queries if necessary', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
-  process.env.GITHUB_TOKEN = 'github_token';
+  const env = {GITHUB_TOKEN: 'github_token'};
   const failTitle = 'The automated release is failing 🚨';
   const pluginConfig = {failTitle};
   const prs = [
@@ -187,7 +173,7 @@ test.serial('Make multiple search queries if necessary', async t => {
   ];
   const nextRelease = {version: '1.0.0'};
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
-  const github = authenticate()
+  const github = authenticate(env)
     .get(
       `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${
         commits[0].hash
@@ -231,7 +217,7 @@ test.serial('Make multiple search queries if necessary', async t => {
     )
     .reply(200, {items: []});
 
-  await success(pluginConfig, {options, commits, nextRelease, releases, logger: t.context.logger});
+  await success(pluginConfig, {env, options, commits, nextRelease, releases, logger: t.context.logger});
 
   t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 1, 'https://github.com/successcomment-1'));
   t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 2, 'https://github.com/successcomment-2'));
@@ -245,7 +231,7 @@ test.serial('Make multiple search queries if necessary', async t => {
 test.serial('Do not add comment for unrelated PR returned by search (compare sha)', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
-  process.env.GITHUB_TOKEN = 'github_token';
+  const env = {GITHUB_TOKEN: 'github_token'};
   const failTitle = 'The automated release is failing 🚨';
   const pluginConfig = {failTitle};
   const prs = [{number: 1, pull_request: {}, state: 'closed'}, {number: 2, pull_request: {}, state: 'closed'}];
@@ -256,7 +242,7 @@ test.serial('Do not add comment for unrelated PR returned by search (compare sha
   ];
   const nextRelease = {version: '1.0.0'};
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
-  const github = authenticate()
+  const github = authenticate(env)
     .get(
       `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
         .map(commit => commit.hash)
@@ -276,7 +262,7 @@ test.serial('Do not add comment for unrelated PR returned by search (compare sha
     )
     .reply(200, {items: []});
 
-  await success(pluginConfig, {options, commits, nextRelease, releases, logger: t.context.logger});
+  await success(pluginConfig, {env, options, commits, nextRelease, releases, logger: t.context.logger});
 
   t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 1, 'https://github.com/successcomment-1'));
   t.true(github.isDone());
@@ -285,7 +271,7 @@ test.serial('Do not add comment for unrelated PR returned by search (compare sha
 test.serial('Do not add comment for unrelated PR returned by search (compare tree sha)', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
-  process.env.GITHUB_TOKEN = 'github_token';
+  const env = {GITHUB_TOKEN: 'github_token'};
   const failTitle = 'The automated release is failing 🚨';
   const pluginConfig = {failTitle};
   const prs = [{number: 1, pull_request: {}, state: 'closed'}, {number: 2, pull_request: {}, state: 'closed'}];
@@ -296,7 +282,7 @@ test.serial('Do not add comment for unrelated PR returned by search (compare tre
   ];
   const nextRelease = {version: '1.0.0'};
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
-  const github = authenticate()
+  const github = authenticate(env)
     .get(
       `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
         .map(commit => commit.hash)
@@ -316,7 +302,7 @@ test.serial('Do not add comment for unrelated PR returned by search (compare tre
     )
     .reply(200, {items: []});
 
-  await success(pluginConfig, {options, commits, nextRelease, releases, logger: t.context.logger});
+  await success(pluginConfig, {env, options, commits, nextRelease, releases, logger: t.context.logger});
 
   t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 1, 'https://github.com/successcomment-1'));
   t.true(github.isDone());
@@ -325,7 +311,7 @@ test.serial('Do not add comment for unrelated PR returned by search (compare tre
 test.serial('Do not add comment to open issues/PRs', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
-  process.env.GITHUB_TOKEN = 'github_token';
+  const env = {GITHUB_TOKEN: 'github_token'};
   const failTitle = 'The automated release is failing 🚨';
   const pluginConfig = {failTitle};
   const prs = [{number: 1, pull_request: {}, body: 'Fixes #2', state: 'closed'}];
@@ -333,7 +319,7 @@ test.serial('Do not add comment to open issues/PRs', async t => {
   const commits = [{hash: '123', message: 'Commit 1 message', tree: {long: 'aaa'}}];
   const nextRelease = {version: '1.0.0'};
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
-  const github = authenticate()
+  const github = authenticate(env)
     .get(
       `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
         .map(commit => commit.hash)
@@ -353,7 +339,7 @@ test.serial('Do not add comment to open issues/PRs', async t => {
     )
     .reply(200, {items: []});
 
-  await success(pluginConfig, {options, commits, nextRelease, releases, logger: t.context.logger});
+  await success(pluginConfig, {env, options, commits, nextRelease, releases, logger: t.context.logger});
 
   t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 1, 'https://github.com/successcomment-1'));
   t.true(t.context.log.calledWith("Skip comment on issue #%d as it's open: %s", 2));
@@ -363,14 +349,14 @@ test.serial('Do not add comment to open issues/PRs', async t => {
 test.serial('Do not add comment if no PR is associated with release commits', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
-  process.env.GITHUB_TOKEN = 'github_token';
+  const env = {GITHUB_TOKEN: 'github_token'};
   const failTitle = 'The automated release is failing 🚨';
   const pluginConfig = {failTitle};
   const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
   const commits = [{hash: '123', message: 'Commit 1 message', tree: {long: 'aaa'}}];
   const nextRelease = {version: '1.0.0'};
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
-  const github = authenticate()
+  const github = authenticate(env)
     .get(
       `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
         .map(commit => commit.hash)
@@ -384,7 +370,7 @@ test.serial('Do not add comment if no PR is associated with release commits', as
     )
     .reply(200, {items: []});
 
-  await success(pluginConfig, {options, commits, nextRelease, releases, logger: t.context.logger});
+  await success(pluginConfig, {env, options, commits, nextRelease, releases, logger: t.context.logger});
 
   t.true(github.isDone());
 });
@@ -392,7 +378,7 @@ test.serial('Do not add comment if no PR is associated with release commits', as
 test.serial('Do not add comment to PR/issues from other repo', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
-  process.env.GITHUB_TOKEN = 'github_token';
+  const env = {GITHUB_TOKEN: 'github_token'};
   const failTitle = 'The automated release is failing 🚨';
   const pluginConfig = {failTitle};
   const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
@@ -403,7 +389,7 @@ test.serial('Do not add comment to PR/issues from other repo', async t => {
   ];
   const nextRelease = {version: '1.0.0'};
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
-  const github = authenticate()
+  const github = authenticate(env)
     .get(
       `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
         .map(commit => commit.hash)
@@ -421,7 +407,7 @@ test.serial('Do not add comment to PR/issues from other repo', async t => {
     )
     .reply(200, {items: []});
 
-  await success(pluginConfig, {options, commits, nextRelease, releases, logger: t.context.logger});
+  await success(pluginConfig, {env, options, commits, nextRelease, releases, logger: t.context.logger});
 
   t.true(github.isDone());
 });
@@ -429,7 +415,7 @@ test.serial('Do not add comment to PR/issues from other repo', async t => {
 test.serial('Ignore missing issues/PRs', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
-  process.env.GITHUB_TOKEN = 'github_token';
+  const env = {GITHUB_TOKEN: 'github_token'};
   const failTitle = 'The automated release is failing 🚨';
   const pluginConfig = {failTitle};
   const prs = [
@@ -443,7 +429,7 @@ test.serial('Ignore missing issues/PRs', async t => {
   ];
   const nextRelease = {version: '1.0.0'};
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
-  const github = authenticate()
+  const github = authenticate(env)
     .get(
       `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
         .map(commit => commit.hash)
@@ -470,7 +456,7 @@ test.serial('Ignore missing issues/PRs', async t => {
     )
     .reply(200, {items: []});
 
-  await success(pluginConfig, {options, commits, nextRelease, releases, logger: t.context.logger});
+  await success(pluginConfig, {env, options, commits, nextRelease, releases, logger: t.context.logger});
 
   t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 1, 'https://github.com/successcomment-1'));
   t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 3, 'https://github.com/successcomment-3'));
@@ -481,7 +467,7 @@ test.serial('Ignore missing issues/PRs', async t => {
 test.serial('Add custom comment', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
-  process.env.GITHUB_TOKEN = 'github_token';
+  const env = {GITHUB_TOKEN: 'github_token'};
   const failTitle = 'The automated release is failing 🚨';
   const pluginConfig = {
     successComment: `last release: \${lastRelease.version} nextRelease: \${nextRelease.version} branch: \${branch} commits: \${commits.length} releases: \${releases.length} PR attribute: \${issue.prop}`,
@@ -493,7 +479,7 @@ test.serial('Add custom comment', async t => {
   const commits = [{hash: '123', message: 'Commit 1 message', tree: {long: 'aaa'}}];
   const nextRelease = {version: '2.0.0'};
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
-  const github = authenticate()
+  const github = authenticate(env)
     .get(
       `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
         .map(commit => commit.hash)
@@ -513,7 +499,7 @@ test.serial('Add custom comment', async t => {
     )
     .reply(200, {items: []});
 
-  await success(pluginConfig, {options, lastRelease, commits, nextRelease, releases, logger: t.context.logger});
+  await success(pluginConfig, {env, options, lastRelease, commits, nextRelease, releases, logger: t.context.logger});
 
   t.true(github.isDone());
 });
@@ -521,7 +507,7 @@ test.serial('Add custom comment', async t => {
 test.serial('Ignore errors when adding comments and closing issues', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
-  process.env.GITHUB_TOKEN = 'github_token';
+  const env = {GITHUB_TOKEN: 'github_token'};
   const failTitle = 'The automated release is failing 🚨';
   const pluginConfig = {failTitle};
   const issues = [
@@ -537,7 +523,7 @@ test.serial('Ignore errors when adding comments and closing issues', async t => 
   ];
   const nextRelease = {version: '1.0.0'};
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
-  const github = authenticate()
+  const github = authenticate(env)
     .get(
       `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
         .map(commit => commit.hash)
@@ -565,7 +551,7 @@ test.serial('Ignore errors when adding comments and closing issues', async t => 
     .reply(200, {html_url: 'https://github.com/issues/3'});
 
   const [error1, error2] = await t.throws(
-    success(pluginConfig, {options, commits, nextRelease, releases, logger: t.context.logger})
+    success(pluginConfig, {env, options, commits, nextRelease, releases, logger: t.context.logger})
   );
 
   t.is(error1.code, 400);
@@ -580,7 +566,7 @@ test.serial('Ignore errors when adding comments and closing issues', async t => 
 test.serial('Close open issues when a release is successful', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
-  process.env.GITHUB_TOKEN = 'github_token';
+  const env = {GITHUB_TOKEN: 'github_token'};
   const failTitle = 'The automated release is failing 🚨';
   const pluginConfig = {failTitle};
   const issues = [
@@ -592,7 +578,7 @@ test.serial('Close open issues when a release is successful', async t => {
   const commits = [{hash: '123', message: 'Commit 1 message', tree: {long: 'aaa'}}];
   const nextRelease = {version: '1.0.0'};
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
-  const github = authenticate()
+  const github = authenticate(env)
     .get(
       `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
         .map(commit => commit.hash)
@@ -610,7 +596,7 @@ test.serial('Close open issues when a release is successful', async t => {
     .patch(`/repos/${owner}/${repo}/issues/3`, {state: 'closed'})
     .reply(200, {html_url: 'https://github.com/issues/3'});
 
-  await success(pluginConfig, {options, commits, nextRelease, releases, logger: t.context.logger});
+  await success(pluginConfig, {env, options, commits, nextRelease, releases, logger: t.context.logger});
   t.true(t.context.log.calledWith('Closed issue #%d: %s.', 2, 'https://github.com/issues/2'));
   t.true(t.context.log.calledWith('Closed issue #%d: %s.', 3, 'https://github.com/issues/3'));
   t.true(github.isDone());
