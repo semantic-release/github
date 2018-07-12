@@ -8,19 +8,10 @@ import findSRIssues from '../lib/find-sr-issues';
 import {authenticate} from './helpers/mock-github';
 import rateLimit from './helpers/rate-limit';
 
-// Save the current process.env
-const envBackup = Object.assign({}, process.env);
 const githubToken = 'github_token';
 const client = proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit})({githubToken});
 
 test.beforeEach(t => {
-  // Delete env variables in case they are on the machine running the tests
-  delete process.env.GH_TOKEN;
-  delete process.env.GITHUB_TOKEN;
-  delete process.env.GH_URL;
-  delete process.env.GITHUB_URL;
-  delete process.env.GH_PREFIX;
-  delete process.env.GITHUB_PREFIX;
   // Mock logger
   t.context.log = stub();
   t.context.error = stub();
@@ -28,8 +19,6 @@ test.beforeEach(t => {
 });
 
 test.afterEach.always(() => {
-  // Restore process.env
-  process.env = envBackup;
   // Clear nock
   nock.cleanAll();
 });
@@ -44,7 +33,7 @@ test.serial('Filter out issues without ID', async t => {
     {number: 2, body: `Issue 2 body\n\n${ISSUE_ID}`, title},
     {number: 3, body: `Issue 3 body\n\n${ISSUE_ID}`, title},
   ];
-  const github = authenticate({githubToken})
+  const github = authenticate({}, {githubToken})
     .get(
       `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
         'state:open'
@@ -68,7 +57,7 @@ test.serial('Return empty array if not issues found', async t => {
   const githubToken = 'github_token';
   const title = 'The automated release is failing 🚨';
   const issues = [];
-  const github = authenticate({githubToken})
+  const github = authenticate({}, {githubToken})
     .get(
       `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
         'state:open'
@@ -89,7 +78,7 @@ test.serial('Return empty array if not issues has matching ID', async t => {
   const githubToken = 'github_token';
   const title = 'The automated release is failing 🚨';
   const issues = [{number: 1, body: 'Issue 1 body', title}, {number: 2, body: 'Issue 2 body', title}];
-  const github = authenticate({githubToken})
+  const github = authenticate({}, {githubToken})
     .get(
       `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
         'state:open'
@@ -107,7 +96,7 @@ test.serial('Retries 4 times', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const title = 'The automated release is failing :rotating_light:';
-  const github = authenticate({githubToken})
+  const github = authenticate({}, {githubToken})
     .get(
       `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
         'state:open'
@@ -126,7 +115,7 @@ test.serial('Do not retry on 401 error', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const title = 'The automated release is failing :rotating_light:';
-  const github = authenticate({githubToken})
+  const github = authenticate({}, {githubToken})
     .get(
       `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
         'state:open'
