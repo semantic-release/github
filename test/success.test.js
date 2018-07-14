@@ -5,17 +5,13 @@ import nock from 'nock';
 import {stub} from 'sinon';
 import proxyquire from 'proxyquire';
 import ISSUE_ID from '../lib/definitions/sr-issue-id';
-import getClient from '../lib/get-client';
 import {authenticate} from './helpers/mock-github';
+import rateLimit from './helpers/rate-limit';
 
 /* eslint camelcase: ["error", {properties: "never"}] */
 
 const success = proxyquire('../lib/success', {
-  './get-client': conf =>
-    getClient({
-      ...conf,
-      ...{retry: {retries: 3, factor: 1, minTimeout: 1, maxTimeout: 1}, limit: {search: 1, core: 1}, globalLimit: 1},
-    }),
+  './get-client': proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit}),
 });
 
 // Save the current process.env
