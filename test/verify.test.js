@@ -2,18 +2,16 @@ import test from 'ava';
 import nock from 'nock';
 import {stub} from 'sinon';
 import proxyquire from 'proxyquire';
-import getClient from '../lib/get-client';
 import {authenticate} from './helpers/mock-github';
+import rateLimit from './helpers/rate-limit';
+
+/* eslint camelcase: ["error", {properties: "never"}] */
 
 // Save the current process.env
 const envBackup = Object.assign({}, process.env);
 
 const verify = proxyquire('../lib/verify', {
-  './get-client': conf =>
-    getClient({
-      ...conf,
-      ...{retry: {retries: 3, factor: 1, minTimeout: 1, maxTimeout: 1}, limit: {search: 1, core: 1}, globalLimit: 1},
-    }),
+  './get-client': proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit}),
 });
 
 test.beforeEach(t => {

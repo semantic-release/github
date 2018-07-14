@@ -3,14 +3,17 @@ import test from 'ava';
 import {stat} from 'fs-extra';
 import nock from 'nock';
 import {stub} from 'sinon';
+import proxyquire from 'proxyquire';
 import clearModule from 'clear-module';
 import SemanticReleaseError from '@semantic-release/error';
 import {authenticate, upload} from './helpers/mock-github';
+import rateLimit from './helpers/rate-limit';
 
 /* eslint camelcase: ["error", {properties: "never"}] */
 
 // Save the current process.env
 const envBackup = Object.assign({}, process.env);
+const client = proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit});
 
 test.beforeEach(t => {
   // Delete env variables in case they are on the machine running the tests
@@ -22,7 +25,12 @@ test.beforeEach(t => {
   delete process.env.GITHUB_PREFIX;
   // Clear npm cache to refresh the module state
   clearModule('..');
-  t.context.m = require('..');
+  t.context.m = proxyquire('..', {
+    './lib/verify': proxyquire('../lib/verify', {'./get-client': client}),
+    './lib/publish': proxyquire('../lib/publish', {'./get-client': client}),
+    './lib/success': proxyquire('../lib/success', {'./get-client': client}),
+    './lib/fail': proxyquire('../lib/fail', {'./get-client': client}),
+  });
   // Stub the logger
   t.context.log = stub();
   t.context.error = stub();

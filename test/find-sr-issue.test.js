@@ -2,22 +2,16 @@ import {escape} from 'querystring';
 import test from 'ava';
 import nock from 'nock';
 import {stub} from 'sinon';
+import proxyquire from 'proxyquire';
 import ISSUE_ID from '../lib/definitions/sr-issue-id';
 import findSRIssues from '../lib/find-sr-issues';
-import getClient from '../lib/get-client';
 import {authenticate} from './helpers/mock-github';
-
-/* eslint camelcase: ["error", {properties: "never"}] */
+import rateLimit from './helpers/rate-limit';
 
 // Save the current process.env
 const envBackup = Object.assign({}, process.env);
 const githubToken = 'github_token';
-const client = getClient({
-  githubToken,
-  retry: {retries: 3, factor: 2, minTimeout: 1, maxTimeout: 1},
-  globalLimit: 1,
-  limit: {search: 1, core: 1},
-});
+const client = proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit})({githubToken});
 
 test.beforeEach(t => {
   // Delete env variables in case they are on the machine running the tests
