@@ -169,8 +169,8 @@ test('Accept negated globs', async t => {
 
 test('Expand directories', async t => {
   const cwd = tempy.directory();
-  await copy(fixtures, path.resolve(cwd, '.'));
-  const globbedAssets = await globAssets({cwd}, [['.']]);
+  await copy(fixtures, path.resolve(cwd, 'dir'));
+  const globbedAssets = await globAssets({cwd}, [['dir']]);
 
   t.deepEqual(sortAssets(globbedAssets), sortAssets(['dir', 'dir/upload_other.txt', 'dir/upload.txt', 'dir/.dotfile']));
 });
