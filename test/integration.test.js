@@ -185,7 +185,7 @@ test.serial('Comment on PR included in the releases', async t => {
   const failTitle = 'The automated release is failing 🚨';
   const prs = [{number: 1, pull_request: {}, state: 'closed'}];
   const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
-  const commits = [{hash: '123', message: 'Commit 1 message', tree: {long: 'aaa'}}];
+  const commits = [{hash: '123', message: 'Commit 1 message'}];
   const nextRelease = {version: '1.0.0'};
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
   const github = authenticate(env)
@@ -268,7 +268,7 @@ test.serial('Verify, release and notify success', async t => {
   const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
   const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
   const prs = [{number: 1, pull_request: {}, state: 'closed'}];
-  const commits = [{hash: '123', message: 'Commit 1 message', tree: {long: 'aaa'}}];
+  const commits = [{hash: '123', message: 'Commit 1 message'}];
   const github = authenticate(env)
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {permissions: {push: true}})
