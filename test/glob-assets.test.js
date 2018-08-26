@@ -183,3 +183,11 @@ test('Include empty directory as defined', async t => {
 
   t.deepEqual(globbedAssets, ['empty']);
 });
+
+test('Deduplicate resulting files path', async t => {
+  const cwd = tempy.directory();
+  await copy(fixtures, cwd);
+  const globbedAssets = await globAssets({cwd}, ['./upload.txt', path.resolve(cwd, 'upload.txt'), 'upload.txt']);
+
+  t.deepEqual(globbedAssets, ['upload.txt']);
+});
