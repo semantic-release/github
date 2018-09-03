@@ -102,9 +102,9 @@ test('Wrap Octokit in a proxy', t => {
 });
 
 test('Use the global throttler for all endpoints', async t => {
-  const createRelease = stub().callsFake(async () => Date.now());
-  const createComment = stub().callsFake(async () => Date.now());
-  const issues = stub().callsFake(async () => Date.now());
+  const createRelease = stub().callsFake(() => Date.now());
+  const createComment = stub().callsFake(() => Date.now());
+  const issues = stub().callsFake(() => Date.now());
   const octokit = {repos: {createRelease}, issues: {createComment}, search: {issues}, authenticate: stub()};
   const rate = 150;
   const github = proxyquire('../lib/get-client', {
@@ -132,9 +132,9 @@ test('Use the global throttler for all endpoints', async t => {
 });
 
 test('Use the same throttler for endpoints in the same rate limit group', async t => {
-  const createRelease = stub().callsFake(async () => Date.now());
-  const createComment = stub().callsFake(async () => Date.now());
-  const issues = stub().callsFake(async () => Date.now());
+  const createRelease = stub().callsFake(() => Date.now());
+  const createComment = stub().callsFake(() => Date.now());
+  const issues = stub().callsFake(() => Date.now());
   const octokit = {repos: {createRelease}, issues: {createComment}, search: {issues}, authenticate: stub()};
   const searchRate = 300;
   const coreRate = 150;
@@ -164,6 +164,7 @@ test('Use the same throttler for endpoints in the same rate limit group', async 
 });
 
 test('Use the same throttler when retrying', async t => {
+  // eslint-disable-next-line require-await
   const createRelease = stub().callsFake(async () => {
     const err = new Error();
     err.time = Date.now();
