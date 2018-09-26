@@ -1,7 +1,7 @@
 # @semantic-release/github
 
-Set of [Semantic-release](https://github.com/semantic-release/semantic-release) plugins for publishing a
-[GitHub release](https://help.github.com/articles/about-releases).
+[**semantic-release**](https://github.com/semantic-release/semantic-release) plugin to publish a
+[GitHub release](https://help.github.com/articles/about-releases) and comment on released Pull Requests/Issues.
 
 [![Travis](https://img.shields.io/travis/semantic-release/github.svg)](https://travis-ci.org/semantic-release/github)
 [![Codecov](https://img.shields.io/codecov/c/github/semantic-release/github.svg)](https://codecov.io/gh/semantic-release/github)
@@ -10,29 +10,45 @@ Set of [Semantic-release](https://github.com/semantic-release/semantic-release) 
 [![npm latest version](https://img.shields.io/npm/v/@semantic-release/github/latest.svg)](https://www.npmjs.com/package/@semantic-release/github)
 [![npm next version](https://img.shields.io/npm/v/@semantic-release/github/next.svg)](https://www.npmjs.com/package/@semantic-release/github)
 
-## verifyConditions
+| Step               | Description                                                                                                                                                                                                                              |
+|--------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `verifyConditions` | Verify the presence and the validity of the authentication (set via [environment variables](#environment-variables)) and the [assets](#assets) option configuration.                                                                     |
+| `publish`          | Publish a [GitHub release](https://help.github.com/articles/about-releases), optionally uploading file assets.                                                                                                                           |
+| `success`          | Add a comment to each [GitHub Issue](https://help.github.com/articles/about-issues) or [Pull Request](https://help.github.com/articles/about-pull-requests) resolved by the release and close issues previously open by the `fail` step. |
+| `fail`             | Open or update a [GitHub Issue](https://help.github.com/articles/about-issues) with informations about the errors that caused the release to fail.                                                                                       |
 
-Verify the presence and the validity of the authentication (set via [environment variables](#environment-variables)) and
-the [assets](#assets) option configuration.
+## Install
 
-## publish
+```bash
+$ npm install @semantic-release/github -D
+```
 
-Publish a [GitHub release](https://help.github.com/articles/about-releases), optionally uploading files.
+## Usage
 
-## success
+The plugin can be configured in the [**semantic-release** configuration file](https://github.com/semantic-release/semantic-release/blob/caribou/docs/usage/configuration.md#configuration):
 
-Add a comment to each GitHub issue or pull request resolved by the release and close issues previously open by the [fail](#fail) step.
+```json
+{
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    ["@semantic-release/github", {
+      "assets": [
+        {"path": "dist/asset.min.css", "label": "CSS distribution"},
+        {"path": "dist/asset.min.js", "label": "JS distribution"}
+      ]
+    }],
+  ]
+}
+```
 
-## fail
-
-Open or update a GitHub issue with informations about the errors that caused the release to fail.
+With this example [GitHub releases](https://help.github.com/articles/about-releases) will be published with the file `dist/asset.min.css` and `dist/asset.min.js`.
 
 ## Configuration
 
 ### GitHub authentication
 
-The GitHub authentication configuration is **required** and can be set via
-[environment variables](#environment-variables).
+The GitHub authentication configuration is **required** and can be set via [environment variables](#environment-variables).
 
 Follow the [Creating a personal access token for the command line](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line) documentation to obtain an authentication token. The token has to be made available in your CI environment via the `GH_TOKEN` environment variable. The user associated with the token must have push permission to the repository.
 
@@ -57,8 +73,6 @@ Follow the [Creating a personal access token for the command line](https://help.
 | `failTitle`           | The title of the issue created when a release fails.                                                                                                         | `The automated release is failing 🚨`                                                                                                                |
 | `labels`              | The [labels](https://help.github.com/articles/about-labels) to add to the issue created when a release fails.                                                | `['semantic-release']`                                                                                                                               |
 | `assignees`           | The [assignees](https://help.github.com/articles/assigning-issues-and-pull-requests-to-other-github-users) to add to the issue created when a release fails. | -                                                                                                                                                    |
-
-**Note**: If you use a [shareable configuration](https://github.com/semantic-release/semantic-release/blob/caribou/docs/usage/shareable-configurations.md#shareable-configurations) that defines one of these options you can set it to `false` in your [**semantic-release** configuration](https://github.com/semantic-release/semantic-release/blob/caribou/docs/usage/configuration.md#configuration) in order to use the default value.
 
 #### proxy
 
@@ -147,51 +161,3 @@ The `failComment` `This release from branch ${branch} had failed due to the foll
 > This release from branch master had failed due to the following errors:
 > - Error message 1
 > - Error message 2
-
-### Usage
-
-The plugins are used by default by [Semantic-release](https://github.com/semantic-release/semantic-release) so no
-specific configuration is required if `githubUrl` and `githubApiPathPrefix` are set via environment variable.
-
-Each individual plugin can be disabled, replaced or used with other plugins in the `package.json`:
-
-```json
-{
-  "release": {
-    "verifyConditions": ["@semantic-release/github", "@semantic-release/npm", "verify-other-condition"],
-    "publish": ["@semantic-release/npm", "@semantic-release/github", "other-publish"],
-    "success": ["@semantic-release/github", "other-success"],
-    "fail": ["@semantic-release/github", "other-fail"]
-  }
-}
-```
-
-Options can be set within the plugin definition in the [**semantic-release** configuration](https://github.com/semantic-release/semantic-release/blob/caribou/docs/usage/configuration.md#configuration):
-
-```json
-{
-  "release": {
-    "verifyConditions": [
-      "@semantic-release/npm",
-      {
-        "path": "@semantic-release/github",
-        "githubUrl": "https://my-ghe.com",
-        "githubApiPathPrefix": "/api-prefix"
-      },
-      "verify-other-condition"
-    ],
-    "publish": [
-      "@semantic-release/npm",
-      {
-        "path": "@semantic-release/github",
-        "githubUrl": "https://my-ghe.com",
-        "githubApiPathPrefix": "/api-prefix",
-        "assets": [
-          {"path": "dist/asset.min.css", "label": "CSS distribution"},
-          {"path": "dist/asset.min.js", "label": "JS distribution"}
-        ]
-      }
-    ]
-  }
-}
-```
