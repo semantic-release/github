@@ -47,17 +47,17 @@ test.serial('Verify package, token and repository access', async t => {
 });
 
 test.serial(
-  'Verify package, token and repository access with "proxy", "asset", "successComment", "failTitle", "failComment" and "label" set to "false"',
+  'Verify package, token and repository access with "proxy", "asset", "successComment", "failTitle", "failComment" and "label" set to "null"',
   async t => {
     const owner = 'test_user';
     const repo = 'test_repo';
     const env = {GH_TOKEN: 'github_token'};
-    const proxy = false;
-    const assets = false;
-    const successComment = false;
-    const failTitle = false;
-    const failComment = false;
-    const labels = false;
+    const proxy = null;
+    const assets = null;
+    const successComment = null;
+    const failTitle = null;
+    const failComment = null;
+    const labels = null;
     const github = authenticate(env)
       .get(`/repos/${owner}/${repo}`)
       .reply(200, {permissions: {push: true}});

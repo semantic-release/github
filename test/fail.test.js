@@ -237,3 +237,37 @@ test.serial('Update the first existing issue with the list of errors', async t =
   t.true(t.context.log.calledWith('Added comment to issue #%d: %s.', 2, 'https://github.com/issues/2'));
   t.true(github.isDone());
 });
+
+test.serial('Skip if "failComment" is "false"', async t => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  const env = {GITHUB_TOKEN: 'github_token'};
+  const pluginConfig = {failComment: false};
+  const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const errors = [
+    new SemanticReleaseError('Error message 1', 'ERR1', 'Error 1 details'),
+    new SemanticReleaseError('Error message 2', 'ERR2', 'Error 2 details'),
+    new SemanticReleaseError('Error message 3', 'ERR3', 'Error 3 details'),
+  ];
+
+  await fail(pluginConfig, {env, options, errors, logger: t.context.logger});
+
+  t.true(t.context.log.calledWith('Skip issue creation.'));
+});
+
+test.serial('Skip if "failTitle" is "false"', async t => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  const env = {GITHUB_TOKEN: 'github_token'};
+  const pluginConfig = {failTitle: false};
+  const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const errors = [
+    new SemanticReleaseError('Error message 1', 'ERR1', 'Error 1 details'),
+    new SemanticReleaseError('Error message 2', 'ERR2', 'Error 2 details'),
+    new SemanticReleaseError('Error message 3', 'ERR3', 'Error 3 details'),
+  ];
+
+  await fail(pluginConfig, {env, options, errors, logger: t.context.logger});
+
+  t.true(t.context.log.calledWith('Skip issue creation.'));
+});
