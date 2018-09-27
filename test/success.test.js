@@ -548,7 +548,76 @@ test.serial('Close open issues when a release is successful', async t => {
     .reply(200, {html_url: 'https://github.com/issues/3'});
 
   await success(pluginConfig, {env, options, commits, nextRelease, releases, logger: t.context.logger});
+
   t.true(t.context.log.calledWith('Closed issue #%d: %s.', 2, 'https://github.com/issues/2'));
   t.true(t.context.log.calledWith('Closed issue #%d: %s.', 3, 'https://github.com/issues/3'));
+  t.true(github.isDone());
+});
+
+test.serial('Skip commention on issues/PR if "successComment" is "false"', async t => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  const env = {GITHUB_TOKEN: 'github_token'};
+  const failTitle = 'The automated release is failing 🚨';
+  const pluginConfig = {failTitle, successComment: false};
+  const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const commits = [{hash: '123', message: 'Commit 1 message\n\n Fix #1', tree: {long: 'aaa'}}];
+  const nextRelease = {version: '1.0.0'};
+  const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
+  const github = authenticate(env)
+    .get(
+      `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
+        'state:open'
+      )}+${escape(failTitle)}`
+    )
+    .reply(200, {items: []});
+
+  await success(pluginConfig, {env, options, commits, nextRelease, releases, logger: t.context.logger});
+
+  t.true(t.context.log.calledWith('Skip commenting on issues and pull requests.'));
+  t.true(github.isDone());
+});
+
+test.serial('Skip closing issues if "failComment" is "false"', async t => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  const env = {GITHUB_TOKEN: 'github_token'};
+  const pluginConfig = {failComment: false};
+  const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const commits = [{hash: '123', message: 'Commit 1 message'}];
+  const nextRelease = {version: '1.0.0'};
+  const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
+  const github = authenticate(env)
+    .get(
+      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
+        .map(commit => commit.hash)
+        .join('+')}`
+    )
+    .reply(200, {items: []});
+
+  await success(pluginConfig, {env, options, commits, nextRelease, releases, logger: t.context.logger});
+  t.true(t.context.log.calledWith('Skip closing issue.'));
+  t.true(github.isDone());
+});
+
+test.serial('Skip closing issues if "failTitle" is "false"', async t => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  const env = {GITHUB_TOKEN: 'github_token'};
+  const pluginConfig = {failTitle: false};
+  const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const commits = [{hash: '123', message: 'Commit 1 message'}];
+  const nextRelease = {version: '1.0.0'};
+  const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
+  const github = authenticate(env)
+    .get(
+      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
+        .map(commit => commit.hash)
+        .join('+')}`
+    )
+    .reply(200, {items: []});
+
+  await success(pluginConfig, {env, options, commits, nextRelease, releases, logger: t.context.logger});
+  t.true(t.context.log.calledWith('Skip closing issue.'));
   t.true(github.isDone());
 });
