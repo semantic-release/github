@@ -704,3 +704,46 @@ test('Throw SemanticReleaseError if "assignees" option is a whitespace String', 
   t.is(error.name, 'SemanticReleaseError');
   t.is(error.code, 'EINVALIDASSIGNEES');
 });
+
+test('Throw SemanticReleaseError if "releasedLabels" option is not a String or an Array of String', async t => {
+  const env = {GH_TOKEN: 'github_token'};
+  const releasedLabels = 42;
+
+  const [error] = await t.throws(
+    verify(
+      {releasedLabels},
+      {env, options: {repositoryUrl: 'https://github.com/semantic-release/github.git'}, logger: t.context.logger}
+    )
+  );
+
+  t.is(error.name, 'SemanticReleaseError');
+  t.is(error.code, 'EINVALIDRELEASEDLABELS');
+});
+
+test('Throw SemanticReleaseError if "releasedLabels" option is an Array with invalid elements', async t => {
+  const env = {GH_TOKEN: 'github_token'};
+  const releasedLabels = ['label1', 42];
+
+  const [error] = await t.throws(
+    verify(
+      {releasedLabels},
+      {env, options: {repositoryUrl: 'https://github.com/semantic-release/github.git'}, logger: t.context.logger}
+    )
+  );
+
+  t.is(error.name, 'SemanticReleaseError');
+  t.is(error.code, 'EINVALIDRELEASEDLABELS');
+});
+
+test('Throw SemanticReleaseError if "releasedLabels" option is a whitespace String', async t => {
+  const releasedLabels = '  \n \r ';
+  const [error] = await t.throws(
+    verify(
+      {releasedLabels},
+      {env: {}, options: {repositoryUrl: 'https://github.com/semantic-release/github.git'}, logger: t.context.logger}
+    )
+  );
+
+  t.is(error.name, 'SemanticReleaseError');
+  t.is(error.code, 'EINVALIDRELEASEDLABELS');
+});

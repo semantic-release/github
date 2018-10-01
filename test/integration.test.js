@@ -178,7 +178,7 @@ test.serial('Publish a release with an array of assets', async t => {
   t.true(githubUpload2.isDone());
 });
 
-test.serial('Comment on PR included in the releases', async t => {
+test.serial('Comment and add labels on PR included in the releases', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -201,6 +201,8 @@ test.serial('Comment on PR included in the releases', async t => {
     .reply(200, [{sha: commits[0].hash}])
     .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
     .reply(200, {html_url: 'https://github.com/successcomment-1'})
+    .post(`/repos/${owner}/${repo}/issues/1/labels`, '["released"]')
+    .reply(200, {})
     .get(
       `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
         'state:open'
@@ -212,6 +214,7 @@ test.serial('Comment on PR included in the releases', async t => {
 
   t.deepEqual(t.context.log.args[0], ['Verify GitHub authentication']);
   t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 1, 'https://github.com/successcomment-1'));
+  t.true(t.context.log.calledWith('Added labels %O to issue #%d', ['released'], 1));
   t.true(github.isDone());
 });
 
@@ -289,6 +292,8 @@ test.serial('Verify, release and notify success', async t => {
     .reply(200, [{sha: commits[0].hash}])
     .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
     .reply(200, {html_url: 'https://github.com/successcomment-1'})
+    .post(`/repos/${owner}/${repo}/issues/1/labels`, '["released"]')
+    .reply(200, {})
     .get(
       `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
         'state:open'
