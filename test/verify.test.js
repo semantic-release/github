@@ -323,7 +323,7 @@ test.serial('Verify "assignees" is a String', async t => {
   t.true(github.isDone());
 });
 
-test.serial('Throw SemanticReleaseError for missing github token', async t => {
+test('Throw SemanticReleaseError for missing github token', async t => {
   const [error] = await t.throws(
     verify(
       {},
@@ -352,7 +352,7 @@ test.serial('Throw SemanticReleaseError for invalid token', async t => {
   t.true(github.isDone());
 });
 
-test.serial('Throw SemanticReleaseError for invalid repositoryUrl', async t => {
+test('Throw SemanticReleaseError for invalid repositoryUrl', async t => {
   const env = {GH_TOKEN: 'github_token'};
 
   const [error] = await t.throws(verify({}, {env, options: {repositoryUrl: 'invalid_url'}, logger: t.context.logger}));
@@ -412,7 +412,7 @@ test.serial('Throw error if github return any other errors', async t => {
   t.true(github.isDone());
 });
 
-test.serial('Throw SemanticReleaseError if "proxy" option is not a String or an Object', async t => {
+test('Throw SemanticReleaseError if "proxy" option is not a String or an Object', async t => {
   const env = {GH_TOKEN: 'github_token'};
   const proxy = 42;
 
@@ -427,7 +427,7 @@ test.serial('Throw SemanticReleaseError if "proxy" option is not a String or an 
   t.is(error.code, 'EINVALIDPROXY');
 });
 
-test.serial('Throw SemanticReleaseError if "proxy" option is an Object with invalid properties', async t => {
+test('Throw SemanticReleaseError if "proxy" option is an Object with invalid properties', async t => {
   const env = {GH_TOKEN: 'github_token'};
   const proxy = {host: 42};
 
@@ -442,7 +442,7 @@ test.serial('Throw SemanticReleaseError if "proxy" option is an Object with inva
   t.is(error.code, 'EINVALIDPROXY');
 });
 
-test.serial('Throw SemanticReleaseError if "assets" option is not a String or an Array of Objects', async t => {
+test('Throw SemanticReleaseError if "assets" option is not a String or an Array of Objects', async t => {
   const env = {GH_TOKEN: 'github_token'};
   const assets = 42;
 
@@ -457,7 +457,7 @@ test.serial('Throw SemanticReleaseError if "assets" option is not a String or an
   t.is(error.code, 'EINVALIDASSETS');
 });
 
-test.serial('Throw SemanticReleaseError if "assets" option is an Array with invalid elements', async t => {
+test('Throw SemanticReleaseError if "assets" option is an Array with invalid elements', async t => {
   const env = {GH_TOKEN: 'github_token'};
   const assets = ['file.js', 42];
 
@@ -472,7 +472,7 @@ test.serial('Throw SemanticReleaseError if "assets" option is an Array with inva
   t.is(error.code, 'EINVALIDASSETS');
 });
 
-test.serial('Throw SemanticReleaseError if "assets" option is an Object missing the "path" property', async t => {
+test('Throw SemanticReleaseError if "assets" option is an Object missing the "path" property', async t => {
   const env = {GH_TOKEN: 'github_token'};
   const assets = {name: 'file.js'};
 
@@ -487,23 +487,20 @@ test.serial('Throw SemanticReleaseError if "assets" option is an Object missing 
   t.is(error.code, 'EINVALIDASSETS');
 });
 
-test.serial(
-  'Throw SemanticReleaseError if "assets" option is an Array with objects missing the "path" property',
-  async t => {
-    const env = {GH_TOKEN: 'github_token'};
-    const assets = [{path: 'lib/file.js'}, {name: 'file.js'}];
+test('Throw SemanticReleaseError if "assets" option is an Array with objects missing the "path" property', async t => {
+  const env = {GH_TOKEN: 'github_token'};
+  const assets = [{path: 'lib/file.js'}, {name: 'file.js'}];
 
-    const [error] = await t.throws(
-      verify(
-        {assets},
-        {env, options: {repositoryUrl: 'https://github.com/semantic-release/github.git'}, logger: t.context.logger}
-      )
-    );
+  const [error] = await t.throws(
+    verify(
+      {assets},
+      {env, options: {repositoryUrl: 'https://github.com/semantic-release/github.git'}, logger: t.context.logger}
+    )
+  );
 
-    t.is(error.name, 'SemanticReleaseError');
-    t.is(error.code, 'EINVALIDASSETS');
-  }
-);
+  t.is(error.name, 'SemanticReleaseError');
+  t.is(error.code, 'EINVALIDASSETS');
+});
 
 test('Throw SemanticReleaseError if "successComment" option is not a String', async t => {
   const successComment = 42;
@@ -622,7 +619,7 @@ test('Throw SemanticReleaseError if "failComment" option is a whitespace String'
   t.is(error.code, 'EINVALIDFAILCOMMENT');
 });
 
-test.serial('Throw SemanticReleaseError if "labels" option is not a String or an Array of String', async t => {
+test('Throw SemanticReleaseError if "labels" option is not a String or an Array of String', async t => {
   const env = {GH_TOKEN: 'github_token'};
   const labels = 42;
 
@@ -637,7 +634,7 @@ test.serial('Throw SemanticReleaseError if "labels" option is not a String or an
   t.is(error.code, 'EINVALIDLABELS');
 });
 
-test.serial('Throw SemanticReleaseError if "labels" option is an Array with invalid elements', async t => {
+test('Throw SemanticReleaseError if "labels" option is an Array with invalid elements', async t => {
   const env = {GH_TOKEN: 'github_token'};
   const labels = ['label1', 42];
 
@@ -665,7 +662,7 @@ test('Throw SemanticReleaseError if "labels" option is a whitespace String', asy
   t.is(error.code, 'EINVALIDLABELS');
 });
 
-test.serial('Throw SemanticReleaseError if "assignees" option is not a String or an Array of String', async t => {
+test('Throw SemanticReleaseError if "assignees" option is not a String or an Array of String', async t => {
   const env = {GH_TOKEN: 'github_token'};
   const assignees = 42;
 
@@ -680,7 +677,7 @@ test.serial('Throw SemanticReleaseError if "assignees" option is not a String or
   t.is(error.code, 'EINVALIDASSIGNEES');
 });
 
-test.serial('Throw SemanticReleaseError if "assignees" option is an Array with invalid elements', async t => {
+test('Throw SemanticReleaseError if "assignees" option is an Array with invalid elements', async t => {
   const env = {GH_TOKEN: 'github_token'};
   const assignees = ['user', 42];
 
