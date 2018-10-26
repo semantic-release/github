@@ -31,6 +31,8 @@ test.serial(
   async t => {
     const owner = 'test_user';
     const repo = 'test_repo';
+    const redirectedOwner = 'test_user_2';
+    const redirectedRepo = 'test_repo_2';
     const env = {GITHUB_TOKEN: 'github_token'};
     const failTitle = 'The automated release is failing 🚨';
     const pluginConfig = {failTitle};
@@ -44,47 +46,49 @@ test.serial(
       {hash: '456', message: 'Commit 2 message', tree: {long: 'ccc'}},
       {
         hash: '789',
-        message: `Commit 3 message Closes https://github.com/${owner}/${repo}/issues/4`,
+        message: `Commit 3 message Closes https://github.com/${redirectedOwner}/${redirectedRepo}/issues/4`,
         tree: {long: 'ccc'},
       },
     ];
     const nextRelease = {version: '1.0.0'};
     const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
     const github = authenticate(env)
+      .get(`/repos/${owner}/${repo}`)
+      .reply(200, {full_name: `${redirectedOwner}/${redirectedRepo}`})
       .get(
-        `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
-          .map(commit => commit.hash)
-          .join('+')}`
+        `/search/issues?q=${escape(`repo:${redirectedOwner}/${redirectedRepo}`)}+${escape('type:pr')}+${escape(
+          'is:merged'
+        )}+${commits.map(commit => commit.hash).join('+')}`
       )
       .reply(200, {items: prs})
-      .get(`/repos/${owner}/${repo}/pulls/1/commits`)
+      .get(`/repos/${redirectedOwner}/${redirectedRepo}/pulls/1/commits`)
       .reply(200, [{sha: commits[0].hash}])
-      .get(`/repos/${owner}/${repo}/pulls/2/commits`)
+      .get(`/repos/${redirectedOwner}/${redirectedRepo}/pulls/2/commits`)
       .reply(200, [{sha: commits[1].hash}])
-      .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
+      .post(`/repos/${redirectedOwner}/${redirectedRepo}/issues/1/comments`, {body: /This PR is included/})
       .reply(200, {html_url: 'https://github.com/successcomment-1'})
-      .post(`/repos/${owner}/${repo}/issues/1/labels`, '["released"]')
+      .post(`/repos/${redirectedOwner}/${redirectedRepo}/issues/1/labels`, '["released"]')
       .reply(200, {})
-      .post(`/repos/${owner}/${repo}/issues/2/comments`, {body: /This PR is included/})
+      .post(`/repos/${redirectedOwner}/${redirectedRepo}/issues/2/comments`, {body: /This PR is included/})
       .reply(200, {html_url: 'https://github.com/successcomment-2'})
-      .post(`/repos/${owner}/${repo}/issues/2/labels`, '["released"]')
+      .post(`/repos/${redirectedOwner}/${redirectedRepo}/issues/2/labels`, '["released"]')
       .reply(200, {})
-      .get(`/repos/${owner}/${repo}/issues/3`)
+      .get(`/repos/${redirectedOwner}/${redirectedRepo}/issues/3`)
       .reply(200, {state: 'closed'})
-      .post(`/repos/${owner}/${repo}/issues/3/comments`, {body: /This issue has been resolved/})
+      .post(`/repos/${redirectedOwner}/${redirectedRepo}/issues/3/comments`, {body: /This issue has been resolved/})
       .reply(200, {html_url: 'https://github.com/successcomment-3'})
-      .post(`/repos/${owner}/${repo}/issues/3/labels`, '["released"]')
+      .post(`/repos/${redirectedOwner}/${redirectedRepo}/issues/3/labels`, '["released"]')
       .reply(200, {})
-      .get(`/repos/${owner}/${repo}/issues/4`)
+      .get(`/repos/${redirectedOwner}/${redirectedRepo}/issues/4`)
       .reply(200, {state: 'closed'})
-      .post(`/repos/${owner}/${repo}/issues/4/comments`, {body: /This issue has been resolved/})
+      .post(`/repos/${redirectedOwner}/${redirectedRepo}/issues/4/comments`, {body: /This issue has been resolved/})
       .reply(200, {html_url: 'https://github.com/successcomment-4'})
-      .post(`/repos/${owner}/${repo}/issues/4/labels`, '["released"]')
+      .post(`/repos/${redirectedOwner}/${redirectedRepo}/issues/4/labels`, '["released"]')
       .reply(200, {})
       .get(
-        `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
-          'state:open'
-        )}+${escape(failTitle)}`
+        `/search/issues?q=${escape('in:title')}+${escape(`repo:${redirectedOwner}/${redirectedRepo}`)}+${escape(
+          'type:issue'
+        )}+${escape('state:open')}+${escape(failTitle)}`
       )
       .reply(200, {items: []});
 
@@ -123,6 +127,8 @@ test.serial(
     const nextRelease = {version: '1.0.0'};
     const releases = [{name: 'GitHub release', url: 'https://custom-url.com/release'}];
     const github = authenticate(env)
+      .get(`/repos/${owner}/${repo}`)
+      .reply(200, {full_name: `${owner}/${repo}`})
       .get(
         `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
           .map(commit => commit.hash)
@@ -201,6 +207,8 @@ test.serial('Make multiple search queries if necessary', async t => {
   const nextRelease = {version: '1.0.0'};
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
   const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {full_name: `${owner}/${repo}`})
     .get(
       `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${
         commits[0].hash
@@ -287,6 +295,8 @@ test.serial(
     const nextRelease = {version: '1.0.0'};
     const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
     const github = authenticate(env)
+      .get(`/repos/${owner}/${repo}`)
+      .reply(200, {full_name: `${owner}/${repo}`})
       .get(
         `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
           .map(commit => commit.hash)
@@ -332,6 +342,8 @@ test.serial('Do not add comment and labels to open issues/PRs', async t => {
   const nextRelease = {version: '1.0.0'};
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
   const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {full_name: `${owner}/${repo}`})
     .get(
       `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
         .map(commit => commit.hash)
@@ -372,6 +384,8 @@ test.serial('Do not add comment and labels if no PR is associated with release c
   const nextRelease = {version: '1.0.0'};
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
   const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {full_name: `${owner}/${repo}`})
     .get(
       `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
         .map(commit => commit.hash)
@@ -405,6 +419,8 @@ test.serial('Do not add comment and labels to PR/issues from other repo', async 
   const nextRelease = {version: '1.0.0'};
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
   const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {full_name: `${owner}/${repo}`})
     .get(
       `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
         .map(commit => commit.hash)
@@ -446,6 +462,8 @@ test.serial('Ignore missing issues/PRs', async t => {
   const nextRelease = {version: '1.0.0'};
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
   const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {full_name: `${owner}/${repo}`})
     .get(
       `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
         .map(commit => commit.hash)
@@ -502,6 +520,8 @@ test.serial('Add custom comment', async t => {
   const nextRelease = {version: '2.0.0'};
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
   const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {full_name: `${owner}/${repo}`})
     .get(
       `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
         .map(commit => commit.hash)
@@ -543,6 +563,8 @@ test.serial('Add custom label', async t => {
   const nextRelease = {version: '2.0.0'};
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
   const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {full_name: `${owner}/${repo}`})
     .get(
       `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
         .map(commit => commit.hash)
@@ -582,6 +604,8 @@ test.serial('Comment on issue/PR without ading a label', async t => {
   const nextRelease = {version: '2.0.0'};
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
   const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {full_name: `${owner}/${repo}`})
     .get(
       `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
         .map(commit => commit.hash)
@@ -622,6 +646,8 @@ test.serial('Ignore errors when adding comments and closing issues', async t => 
   const nextRelease = {version: '1.0.0'};
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
   const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {full_name: `${owner}/${repo}`})
     .get(
       `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
         .map(commit => commit.hash)
@@ -677,6 +703,8 @@ test.serial('Close open issues when a release is successful', async t => {
   const nextRelease = {version: '1.0.0'};
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
   const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {full_name: `${owner}/${repo}`})
     .get(
       `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
         .map(commit => commit.hash)
@@ -712,6 +740,8 @@ test.serial('Skip commention on issues/PR if "successComment" is "false"', async
   const nextRelease = {version: '1.0.0'};
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
   const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {full_name: `${owner}/${repo}`})
     .get(
       `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
         'state:open'
@@ -735,6 +765,8 @@ test.serial('Skip closing issues if "failComment" is "false"', async t => {
   const nextRelease = {version: '1.0.0'};
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
   const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {full_name: `${owner}/${repo}`})
     .get(
       `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
         .map(commit => commit.hash)
@@ -757,6 +789,8 @@ test.serial('Skip closing issues if "failTitle" is "false"', async t => {
   const nextRelease = {version: '1.0.0'};
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
   const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {full_name: `${owner}/${repo}`})
     .get(
       `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
         .map(commit => commit.hash)

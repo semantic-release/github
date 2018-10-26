@@ -190,6 +190,8 @@ test.serial('Comment and add labels on PR included in the releases', async t => 
   const github = authenticate(env)
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {permissions: {push: true}})
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {full_name: `${owner}/${repo}`})
     .get(
       `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
         .map(commit => commit.hash)
@@ -231,6 +233,8 @@ test.serial('Open a new issue with the list of errors', async t => {
   const github = authenticate(env)
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {permissions: {push: true}})
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {full_name: `${owner}/${repo}`})
     .get(
       `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
         'state:open'
@@ -281,6 +285,8 @@ test.serial('Verify, release and notify success', async t => {
       body: nextRelease.notes,
     })
     .reply(200, {upload_url: uploadUrl, html_url: releaseUrl})
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {full_name: `${owner}/${repo}`})
     .get(
       `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
         .map(commit => commit.hash)
@@ -342,6 +348,8 @@ test.serial('Verify and notify failure', async t => {
   const github = authenticate(env)
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {permissions: {push: true}})
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {full_name: `${owner}/${repo}`})
     .get(
       `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
         'state:open'
