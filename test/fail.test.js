@@ -29,6 +29,8 @@ test.afterEach.always(() => {
 test.serial('Open a new issue with the list of errors', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
+  const redirectedOwner = 'test_user_2';
+  const redirectedRepo = 'test_repo_2';
   const env = {GITHUB_TOKEN: 'github_token'};
   const failTitle = 'The automated release is failing 🚨';
   const pluginConfig = {failTitle};
@@ -39,13 +41,15 @@ test.serial('Open a new issue with the list of errors', async t => {
     new SemanticReleaseError('Error message 3', 'ERR3', 'Error 3 details'),
   ];
   const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {full_name: `${redirectedOwner}/${redirectedRepo}`})
     .get(
-      `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
-        'state:open'
-      )}+${escape(failTitle)}`
+      `/search/issues?q=${escape('in:title')}+${escape(`repo:${redirectedOwner}/${redirectedRepo}`)}+${escape(
+        'type:issue'
+      )}+${escape('state:open')}+${escape(failTitle)}`
     )
     .reply(200, {items: []})
-    .post(`/repos/${owner}/${repo}/issues`, {
+    .post(`/repos/${redirectedOwner}/${redirectedRepo}/issues`, {
       title: failTitle,
       body: /---\n\n### Error message 1\n\nError 1 details\n\n---\n\n### Error message 2\n\nError 2 details\n\n---\n\n### Error message 3\n\nError 3 details\n\n---/,
       labels: ['semantic-release'],
@@ -71,6 +75,8 @@ test.serial('Open a new issue with the list of errors, retrying 4 times', async 
     new SemanticReleaseError('Error message 3', 'ERR3', 'Error 3 details'),
   ];
   const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {full_name: `${owner}/${repo}`})
     .get(
       `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
         'state:open'
@@ -118,6 +124,8 @@ test.serial('Open a new issue with the list of errors and custom title and comme
     new SemanticReleaseError('Error message 3', 'ERR3', 'Error 3 details'),
   ];
   const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {full_name: `${owner}/${repo}`})
     .get(
       `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
         'state:open'
@@ -150,6 +158,8 @@ test.serial('Open a new issue with assignees and the list of errors', async t =>
     new SemanticReleaseError('Error message 2', 'ERR2', 'Error 2 details'),
   ];
   const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {full_name: `${owner}/${repo}`})
     .get(
       `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
         'state:open'
@@ -183,6 +193,8 @@ test.serial('Open a new issue without labels and the list of errors', async t =>
     new SemanticReleaseError('Error message 2', 'ERR2', 'Error 2 details'),
   ];
   const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {full_name: `${owner}/${repo}`})
     .get(
       `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
         'state:open'
@@ -220,6 +232,8 @@ test.serial('Update the first existing issue with the list of errors', async t =
     {number: 3, body: `Issue 3 body\n\n${ISSUE_ID}`, title: failTitle},
   ];
   const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {full_name: `${owner}/${repo}`})
     .get(
       `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
         'state:open'
