@@ -131,9 +131,8 @@ test.serial('Publish a release with an array of assets', async t => {
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
   const assets = [
-    'upload.txt',
-    {path: ['*.txt', '!**/*_other.txt'], name: 'upload_file_name.txt'},
-    {path: ['*.txt'], name: 'other_file.txt', label: 'Other File'},
+    {path: ['upload.txt'], name: 'upload_file_name.txt'},
+    {path: ['upload_other.txt'], name: 'other_file.txt', label: 'Other File'},
   ];
   const nextRelease = {version: '1.0.0', gitHead: '123', gitTag: 'v1.0.0', notes: 'Test release note body'};
   const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
@@ -163,7 +162,7 @@ test.serial('Publish a release with an array of assets', async t => {
     uploadUrl: 'https://github.com',
     contentLength: (await stat(path.resolve(cwd, 'upload_other.txt'))).size,
   })
-    .post(`${uploadUri}?name=${escape('upload_other.txt')}&label=${escape('Other File')}`)
+    .post(`${uploadUri}?name=${escape('other_file.txt')}&label=${escape('Other File')}`)
     .reply(200, {browser_download_url: otherAssetUrl});
 
   const result = await t.context.m.publish({assets}, {cwd, env, options, nextRelease, logger: t.context.logger});
