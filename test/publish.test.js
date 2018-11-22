@@ -229,6 +229,6 @@ test.serial('Throw error without retries for 400 error', async t => {
 
   const error = await t.throws(publish(pluginConfig, {cwd, env, options, nextRelease, logger: t.context.logger}));
 
-  t.is(error.code, 400);
+  t.is(error.status, 400);
   t.true(github.isDone());
 });

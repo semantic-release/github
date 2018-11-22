@@ -408,7 +408,7 @@ test.serial('Throw error if github return any other errors', async t => {
     verify({}, {env, options: {repositoryUrl: `https://github.com/${owner}/${repo}.git`}, logger: t.context.logger})
   );
 
-  t.is(error.code, 500);
+  t.is(error.status, 500);
   t.true(github.isDone());
 });
 
