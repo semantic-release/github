@@ -107,7 +107,7 @@ test.serial('Retries 4 times', async t => {
 
   const error = await t.throws(findSRIssues(client, title, owner, repo));
 
-  t.is(error.code, 422);
+  t.is(error.status, 422);
   t.true(github.isDone());
 });
 
@@ -125,6 +125,6 @@ test.serial('Do not retry on 401 error', async t => {
 
   const error = await t.throws(findSRIssues(client, title, owner, repo));
 
-  t.is(error.code, 401);
+  t.is(error.status, 401);
   t.true(github.isDone());
 });

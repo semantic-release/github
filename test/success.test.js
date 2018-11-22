@@ -678,8 +678,8 @@ test.serial('Ignore errors when adding comments and closing issues', async t => 
     success(pluginConfig, {env, options, commits, nextRelease, releases, logger: t.context.logger})
   );
 
-  t.is(error1.code, 400);
-  t.is(error2.code, 500);
+  t.is(error1.status, 400);
+  t.is(error2.status, 500);
   t.true(t.context.error.calledWith('Failed to add a comment to the issue #%d.', 1));
   t.true(t.context.error.calledWith('Failed to close the issue #%d.', 2));
   t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 2, 'https://github.com/successcomment-2'));
