@@ -163,6 +163,28 @@ test('Use the same throttler for endpoints in the same rate limit group', async 
   t.true(inRange(f - e, searchRate - 50, searchRate + 50));
 });
 
+test('Use different throttler for read and write endpoints', async t => {
+  const createRelease = stub().callsFake(() => Date.now());
+  const get = stub().callsFake(() => Date.now());
+  const octokit = {repos: {createRelease, get}, authenticate: stub()};
+  const writeRate = 300;
+  const readRate = 150;
+  const github = proxyquire('../lib/get-client', {
+    '@octokit/rest': stub().returns(octokit),
+    './definitions/rate-limit': {RATE_LIMITS: {core: {write: writeRate, read: readRate}}, GLOBAL_RATE_LIMIT: 1},
+  })();
+
+  const a = await github.repos.get();
+  const b = await github.repos.get();
+  const c = await github.repos.createRelease();
+  const d = await github.repos.createRelease();
+
+  // `repos.get` should be called `readRate` ms after `repos.get`
+  t.true(inRange(b - a, readRate - 50, readRate + 50));
+  // `repos.createRelease` should be called `coreRate` ms after `repos.createRelease`
+  t.true(inRange(d - c, writeRate - 50, writeRate + 50));
+});
+
 test('Use the same throttler when retrying', async t => {
   // eslint-disable-next-line require-await
   const createRelease = stub().callsFake(async () => {
