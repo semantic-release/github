@@ -4,11 +4,12 @@ import https from 'https';
 import {promisify} from 'util';
 import {readFile} from 'fs-extra';
 import test from 'ava';
-import {isFunction, isPlainObject, inRange} from 'lodash';
+import {inRange} from 'lodash';
 import {stub, spy} from 'sinon';
 import proxyquire from 'proxyquire';
 import Proxy from 'proxy';
 import serverDestroy from 'server-destroy';
+import Octokit from '@octokit/rest';
 import rateLimit from './helpers/rate-limit';
 
 const getClient = proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit});
@@ -85,32 +86,15 @@ test.serial('Use a https proxy', async t => {
   await promisify(server.destroy).bind(server)();
 });
 
-test('Wrap Octokit in a proxy', t => {
-  const github = getClient({githubToken: 'github_token'});
-
-  t.true(Reflect.apply(Object.prototype.hasOwnProperty, github, ['repos']));
-  t.true(isPlainObject(github.repos));
-  t.true(Reflect.apply(Object.prototype.hasOwnProperty, github.repos, ['createRelease']));
-  t.true(isFunction(github.repos.createRelease));
-
-  t.true(Reflect.apply(Object.prototype.hasOwnProperty, github, ['search']));
-  t.true(isPlainObject(github.search));
-  t.true(Reflect.apply(Object.prototype.hasOwnProperty, github.search, ['issues']));
-  t.true(isFunction(github.search.issues));
-
-  t.falsy(github.unknown);
-});
-
 test('Use the global throttler for all endpoints', async t => {
-  const createRelease = stub().callsFake(() => Date.now());
-  const createComment = stub().callsFake(() => Date.now());
-  const issues = stub().callsFake(() => Date.now());
-  const octokit = {repos: {createRelease}, issues: {createComment}, search: {issues}, authenticate: stub()};
   const rate = 150;
+
+  const octokit = new Octokit();
+  octokit.hook.wrap('request', () => Date.now());
   const github = proxyquire('../lib/get-client', {
     '@octokit/rest': stub().returns(octokit),
     './definitions/rate-limit': {RATE_LIMITS: {search: 1, core: 1}, GLOBAL_RATE_LIMIT: rate},
-  })();
+  })({githubToken: 'token'});
 
   const a = await github.repos.createRelease();
   const b = await github.issues.createComment();
@@ -132,16 +116,15 @@ test('Use the global throttler for all endpoints', async t => {
 });
 
 test('Use the same throttler for endpoints in the same rate limit group', async t => {
-  const createRelease = stub().callsFake(() => Date.now());
-  const createComment = stub().callsFake(() => Date.now());
-  const issues = stub().callsFake(() => Date.now());
-  const octokit = {repos: {createRelease}, issues: {createComment}, search: {issues}, authenticate: stub()};
   const searchRate = 300;
   const coreRate = 150;
+
+  const octokit = new Octokit();
+  octokit.hook.wrap('request', () => Date.now());
   const github = proxyquire('../lib/get-client', {
     '@octokit/rest': stub().returns(octokit),
     './definitions/rate-limit': {RATE_LIMITS: {search: searchRate, core: coreRate}, GLOBAL_RATE_LIMIT: 1},
-  })();
+  })({githubToken: 'token'});
 
   const a = await github.repos.createRelease();
   const b = await github.issues.createComment();
@@ -164,15 +147,15 @@ test('Use the same throttler for endpoints in the same rate limit group', async 
 });
 
 test('Use different throttler for read and write endpoints', async t => {
-  const createRelease = stub().callsFake(() => Date.now());
-  const get = stub().callsFake(() => Date.now());
-  const octokit = {repos: {createRelease, get}, authenticate: stub()};
   const writeRate = 300;
   const readRate = 150;
+
+  const octokit = new Octokit();
+  octokit.hook.wrap('request', () => Date.now());
   const github = proxyquire('../lib/get-client', {
     '@octokit/rest': stub().returns(octokit),
     './definitions/rate-limit': {RATE_LIMITS: {core: {write: writeRate, read: readRate}}, GLOBAL_RATE_LIMIT: 1},
-  })();
+  })({githubToken: 'token'});
 
   const a = await github.repos.get();
   const b = await github.repos.get();
@@ -186,16 +169,17 @@ test('Use different throttler for read and write endpoints', async t => {
 });
 
 test('Use the same throttler when retrying', async t => {
+  const coreRate = 200;
+
   // eslint-disable-next-line require-await
-  const createRelease = stub().callsFake(async () => {
+  const request = stub().callsFake(async () => {
     const err = new Error();
     err.time = Date.now();
-    err.code = 404;
+    err.status = 404;
     throw err;
   });
-
-  const octokit = {repos: {createRelease}, authenticate: stub()};
-  const coreRate = 200;
+  const octokit = new Octokit();
+  octokit.hook.wrap('request', request);
   const github = proxyquire('../lib/get-client', {
     '@octokit/rest': stub().returns(octokit),
     './definitions/rate-limit': {
@@ -203,15 +187,14 @@ test('Use the same throttler when retrying', async t => {
       RATE_LIMITS: {core: coreRate},
       GLOBAL_RATE_LIMIT: 1,
     },
-  })();
+  })({githubToken: 'token'});
 
   await t.throws(github.repos.createRelease());
-  t.is(createRelease.callCount, 4);
 
-  const {time: a} = await t.throws(createRelease.getCall(0).returnValue);
-  const {time: b} = await t.throws(createRelease.getCall(1).returnValue);
-  const {time: c} = await t.throws(createRelease.getCall(2).returnValue);
-  const {time: d} = await t.throws(createRelease.getCall(3).returnValue);
+  const {time: a} = await t.throws(request.getCall(0).returnValue);
+  const {time: b} = await t.throws(request.getCall(1).returnValue);
+  const {time: c} = await t.throws(request.getCall(2).returnValue);
+  const {time: d} = await t.throws(request.getCall(3).returnValue);
 
   // Each retry should be done after `coreRate` ms
   t.true(inRange(b - a, coreRate - 50, coreRate + 50));
