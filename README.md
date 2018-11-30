@@ -59,6 +59,8 @@ Follow the [Creating a personal access token for the command line](https://help.
 | `GH_TOKEN` or `GITHUB_TOKEN`   | **Required.** The token used to authenticate with GitHub. |
 | `GH_URL` or `GITHUB_URL`       | The GitHub Enterprise endpoint.                           |
 | `GH_PREFIX` or `GITHUB_PREFIX` | The GitHub Enterprise API prefix.                         |
+| `DRAFT`                        | true: Create a draft release.                             |
+| `PRERELEASE`                   | true: Create a prerelease.                                |
 
 ### Options
 
@@ -74,6 +76,8 @@ Follow the [Creating a personal access token for the command line](https://help.
 | `labels`              | The [labels](https://help.github.com/articles/about-labels) to add to the issue created when a release fails. Set to `false` to not add any label.                                  | `['semantic-release']`                                                                                                                               |
 | `assignees`           | The [assignees](https://help.github.com/articles/assigning-issues-and-pull-requests-to-other-github-users) to add to the issue created when a release fails.                        | -                                                                                                                                                    |
 | `releasedLabels`      | The [labels](https://help.github.com/articles/about-labels) to add to each issue and pull request resolved by the release. Set to `false` to not add any label.                     | `['released']`                                                                                                                                       |
+| `draft`               | `true` to create a draft (unpublished) release, `false` to create a published one.  | `false` |
+| `prerelease`          | `true` to identify the release as a prerelease. `false` to identify the release as a full release. | `false` |
 
 #### proxy
 
