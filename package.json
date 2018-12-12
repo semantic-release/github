@@ -30,7 +30,7 @@
     "lodash": "^4.17.4",
     "mime": "^2.0.3",
     "p-filter": "^1.0.0",
-    "p-retry": "^2.0.0",
+    "p-retry": "^3.0.0",
     "parse-github-url": "^1.0.1",
     "url-join": "^4.0.0"
   },
