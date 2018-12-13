@@ -52,6 +52,11 @@ The GitHub authentication configuration is **required** and can be set via [envi
 
 Follow the [Creating a personal access token for the command line](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line) documentation to obtain an authentication token. The token has to be made available in your CI environment via the `GH_TOKEN` environment variable. The user associated with the token must have push permission to the repository.
 
+When creating the token, the **minimum required scopes** are:
+
+- [`repo`](https://github.com/settings/tokens/new?scopes=repo) for a private repository
+- [`public_repo`](https://github.com/settings/tokens/new?scopes=public_repo) for a public repository
+
 ### Environment variables
 
 | Variable                       | Description                                               |
