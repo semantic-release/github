@@ -367,7 +367,7 @@ test.serial('Throw error without retries for 400 error', async t => {
     })
     .reply(400);
 
-  const error = await t.throws(
+  const error = await t.throwsAsync(
     publish(pluginConfig, {cwd, env, options, branch: {type: 'release'}, nextRelease, logger: t.context.logger})
   );
 

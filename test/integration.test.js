@@ -44,7 +44,7 @@ test.serial('Verify GitHub auth', async t => {
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {permissions: {push: true}});
 
-  await t.notThrows(t.context.m.verifyConditions({}, {cwd, env, options, logger: t.context.logger}));
+  await t.notThrowsAsync(t.context.m.verifyConditions({}, {cwd, env, options, logger: t.context.logger}));
 
   t.true(github.isDone());
 });
@@ -61,7 +61,7 @@ test.serial('Verify GitHub auth with publish options', async t => {
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {permissions: {push: true}});
 
-  await t.notThrows(t.context.m.verifyConditions({}, {cwd, env, options, logger: t.context.logger}));
+  await t.notThrowsAsync(t.context.m.verifyConditions({}, {cwd, env, options, logger: t.context.logger}));
 
   t.true(github.isDone());
 });
@@ -85,7 +85,7 @@ test.serial('Verify GitHub auth and assets config', async t => {
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {permissions: {push: true}});
 
-  await t.notThrows(t.context.m.verifyConditions({assets}, {cwd, env, options, logger: t.context.logger}));
+  await t.notThrowsAsync(t.context.m.verifyConditions({assets}, {cwd, env, options, logger: t.context.logger}));
 
   t.true(github.isDone());
 });
@@ -106,7 +106,9 @@ test.serial('Throw SemanticReleaseError if invalid config', async t => {
     repositoryUrl: 'invalid_url',
   };
 
-  const errors = [...(await t.throws(t.context.m.verifyConditions({}, {cwd, env, options, logger: t.context.logger})))];
+  const errors = [
+    ...(await t.throwsAsync(t.context.m.verifyConditions({}, {cwd, env, options, logger: t.context.logger}))),
+  ];
 
   t.is(errors[0].name, 'SemanticReleaseError');
   t.is(errors[0].code, 'EINVALIDASSETS');
@@ -353,7 +355,7 @@ test.serial('Verify, release and notify success', async t => {
     .post(`${uploadUri}?name=${escape('other_file.txt')}&label=${escape('Other File')}`)
     .reply(200, {browser_download_url: otherAssetUrl});
 
-  await t.notThrows(t.context.m.verifyConditions({}, {cwd, env, options, logger: t.context.logger}));
+  await t.notThrowsAsync(t.context.m.verifyConditions({}, {cwd, env, options, logger: t.context.logger}));
   await t.context.m.publish(
     {assets},
     {cwd, env, options, branch: {type: 'release'}, nextRelease, logger: t.context.logger}
@@ -419,7 +421,7 @@ test.serial('Verify, update release and notify success', async t => {
     )
     .reply(200, {items: []});
 
-  await t.notThrows(t.context.m.verifyConditions({}, {cwd, env, options, logger: t.context.logger}));
+  await t.notThrowsAsync(t.context.m.verifyConditions({}, {cwd, env, options, logger: t.context.logger}));
   await t.context.m.addChannel(
     {},
     {cwd, env, branch: {type: 'release'}, currentRelease, nextRelease, options, logger: t.context.logger}
@@ -463,7 +465,7 @@ test.serial('Verify and notify failure', async t => {
     })
     .reply(200, {html_url: 'https://github.com/issues/1', number: 1});
 
-  await t.notThrows(t.context.m.verifyConditions({}, {cwd, env, options, logger: t.context.logger}));
+  await t.notThrowsAsync(t.context.m.verifyConditions({}, {cwd, env, options, logger: t.context.logger}));
   await t.context.m.fail({failTitle}, {cwd, env, options, branch: {name: 'master'}, errors, logger: t.context.logger});
 
   t.deepEqual(t.context.log.args[0], ['Verify GitHub authentication']);

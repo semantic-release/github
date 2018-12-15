@@ -264,7 +264,7 @@ test.serial('Throw error if cannot read current release', async t => {
     .times(4)
     .reply(500);
 
-  const error = await t.throws(
+  const error = await t.throwsAsync(
     addChannel(pluginConfig, {
       env,
       options,
@@ -301,7 +301,7 @@ test.serial('Throw error if cannot create missing current release', async t => {
     .times(4)
     .reply(500);
 
-  const error = await t.throws(
+  const error = await t.throwsAsync(
     addChannel(pluginConfig, {
       env,
       options,
@@ -337,7 +337,7 @@ test.serial('Throw error if cannot update release', async t => {
     .times(4)
     .reply(404);
 
-  const error = await t.throws(
+  const error = await t.throwsAsync(
     addChannel(pluginConfig, {
       env,
       options,
