@@ -202,7 +202,7 @@ test.serial('Comment and add labels on PR included in the releases', async t => 
     .reply(200, [{sha: commits[0].hash}])
     .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
     .reply(200, {html_url: 'https://github.com/successcomment-1'})
-    .post(`/repos/${owner}/${repo}/issues/1/labels`, '{"labels":["released"]}')
+    .post(`/repos/${owner}/${repo}/issues/1/labels`, '["released"]')
     .reply(200, {})
     .get(
       `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
@@ -297,7 +297,7 @@ test.serial('Verify, release and notify success', async t => {
     .reply(200, [{sha: commits[0].hash}])
     .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
     .reply(200, {html_url: 'https://github.com/successcomment-1'})
-    .post(`/repos/${owner}/${repo}/issues/1/labels`, '{"labels":["released"]}')
+    .post(`/repos/${owner}/${repo}/issues/1/labels`, '["released"]')
     .reply(200, {})
     .get(
       `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
