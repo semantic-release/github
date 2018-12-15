@@ -674,7 +674,7 @@ test.serial('Ignore errors when adding comments and closing issues', async t => 
     .patch(`/repos/${owner}/${repo}/issues/3`, {state: 'closed'})
     .reply(200, {html_url: 'https://github.com/issues/3'});
 
-  const [error1, error2] = await t.throws(
+  const [error1, error2] = await t.throwsAsync(
     success(pluginConfig, {env, options, commits, nextRelease, releases, logger: t.context.logger})
   );
 
