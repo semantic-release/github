@@ -189,12 +189,11 @@ test('Use the same throttler when retrying', async t => {
     },
   })({githubToken: 'token'});
 
-  await t.throws(github.repos.createRelease());
-
-  const {time: a} = await t.throws(request.getCall(0).returnValue);
-  const {time: b} = await t.throws(request.getCall(1).returnValue);
-  const {time: c} = await t.throws(request.getCall(2).returnValue);
-  const {time: d} = await t.throws(request.getCall(3).returnValue);
+  await t.throwsAsync(github.repos.createRelease());
+  const {time: a} = await t.throwsAsync(request.getCall(0).returnValue);
+  const {time: b} = await t.throwsAsync(request.getCall(1).returnValue);
+  const {time: c} = await t.throwsAsync(request.getCall(2).returnValue);
+  const {time: d} = await t.throwsAsync(request.getCall(3).returnValue);
 
   // Each retry should be done after `coreRate` ms
   t.true(inRange(b - a, coreRate - 50, coreRate + 50));
