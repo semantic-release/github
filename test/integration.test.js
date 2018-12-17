@@ -284,7 +284,7 @@ test.serial('Open a new issue with the list of errors', async t => {
     })
     .reply(200, {html_url: 'https://github.com/issues/1', number: 1});
 
-  await t.context.m.fail({failTitle}, {cwd, env, options, errors, logger: t.context.logger});
+  await t.context.m.fail({failTitle}, {cwd, env, options, branch: {name: 'master'}, errors, logger: t.context.logger});
 
   t.deepEqual(t.context.log.args[0], ['Verify GitHub authentication']);
   t.true(t.context.log.calledWith('Created issue #%d: %s.', 1, 'https://github.com/issues/1'));
@@ -464,7 +464,7 @@ test.serial('Verify and notify failure', async t => {
     .reply(200, {html_url: 'https://github.com/issues/1', number: 1});
 
   await t.notThrows(t.context.m.verifyConditions({}, {cwd, env, options, logger: t.context.logger}));
-  await t.context.m.fail({failTitle}, {cwd, env, options, errors, logger: t.context.logger});
+  await t.context.m.fail({failTitle}, {cwd, env, options, branch: {name: 'master'}, errors, logger: t.context.logger});
 
   t.deepEqual(t.context.log.args[0], ['Verify GitHub authentication']);
   t.true(t.context.log.calledWith('Created issue #%d: %s.', 1, 'https://github.com/issues/1'));
