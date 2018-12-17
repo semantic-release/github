@@ -27,7 +27,7 @@ test.afterEach.always(() => {
 });
 
 test.serial(
-  'Add comment and labels to PRs associated with release commits and issues closed by PR/commits comments',
+  'Add comment and labels to PRs associated with release commits and issues solved by PR/commits comments',
   async t => {
     const owner = 'test_user';
     const repo = 'test_repo';
@@ -73,14 +73,10 @@ test.serial(
       .reply(200, {html_url: 'https://github.com/successcomment-2'})
       .post(`/repos/${redirectedOwner}/${redirectedRepo}/issues/2/labels`, '["released"]')
       .reply(200, {})
-      .get(`/repos/${redirectedOwner}/${redirectedRepo}/issues/3`)
-      .reply(200, {state: 'closed'})
       .post(`/repos/${redirectedOwner}/${redirectedRepo}/issues/3/comments`, {body: /This issue has been resolved/})
       .reply(200, {html_url: 'https://github.com/successcomment-3'})
       .post(`/repos/${redirectedOwner}/${redirectedRepo}/issues/3/labels`, '["released"]')
       .reply(200, {})
-      .get(`/repos/${redirectedOwner}/${redirectedRepo}/issues/4`)
-      .reply(200, {state: 'closed'})
       .post(`/repos/${redirectedOwner}/${redirectedRepo}/issues/4/comments`, {body: /This issue has been resolved/})
       .reply(200, {html_url: 'https://github.com/successcomment-4'})
       .post(`/repos/${redirectedOwner}/${redirectedRepo}/issues/4/labels`, '["released"]')
@@ -147,14 +143,10 @@ test.serial(
       .reply(200, {html_url: 'https://custom-url.com/successcomment-2'})
       .post(`/repos/${owner}/${repo}/issues/2/labels`, '["released on @next"]')
       .reply(200, {})
-      .get(`/repos/${owner}/${repo}/issues/3`)
-      .reply(200, {state: 'closed'})
       .post(`/repos/${owner}/${repo}/issues/3/comments`, {body: /This issue has been resolved/})
       .reply(200, {html_url: 'https://custom-url.com/successcomment-3'})
       .post(`/repos/${owner}/${repo}/issues/3/labels`, '["released on @next"]')
       .reply(200, {})
-      .get(`/repos/${owner}/${repo}/issues/4`)
-      .reply(200, {state: 'closed'})
       .post(`/repos/${owner}/${repo}/issues/4/comments`, {body: /This issue has been resolved/})
       .reply(200, {html_url: 'https://custom-url.com/successcomment-4'})
       .post(`/repos/${owner}/${repo}/issues/4/labels`, '["released on @next"]')
@@ -330,49 +322,6 @@ test.serial(
   }
 );
 
-test.serial('Do not add comment and labels to open issues/PRs', async t => {
-  const owner = 'test_user';
-  const repo = 'test_repo';
-  const env = {GITHUB_TOKEN: 'github_token'};
-  const failTitle = 'The automated release is failing 🚨';
-  const pluginConfig = {failTitle};
-  const prs = [{number: 1, pull_request: {}, body: 'Fixes #2', state: 'closed'}];
-  const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
-  const commits = [{hash: '123', message: 'Commit 1 message'}];
-  const nextRelease = {version: '1.0.0'};
-  const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
-  const github = authenticate(env)
-    .get(`/repos/${owner}/${repo}`)
-    .reply(200, {full_name: `${owner}/${repo}`})
-    .get(
-      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
-        .map(commit => commit.hash)
-        .join('+')}`
-    )
-    .reply(200, {items: prs})
-    .get(`/repos/${owner}/${repo}/pulls/1/commits`)
-    .reply(200, [{sha: commits[0].hash}])
-    .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
-    .reply(200, {html_url: 'https://github.com/successcomment-1'})
-    .post(`/repos/${owner}/${repo}/issues/1/labels`, '["released"]')
-    .reply(200, {})
-    .get(`/repos/${owner}/${repo}/issues/2`)
-    .reply(200, {state: 'open'})
-    .get(
-      `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
-        'state:open'
-      )}+${escape(failTitle)}`
-    )
-    .reply(200, {items: []});
-
-  await success(pluginConfig, {env, options, commits, nextRelease, releases, logger: t.context.logger});
-
-  t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 1, 'https://github.com/successcomment-1'));
-  t.true(t.context.log.calledWith('Added labels %O to issue #%d', ['released'], 1));
-  t.true(t.context.log.calledWith("Skip comment and labels on issue #%d as it's open: %s", 2));
-  t.true(github.isDone());
-});
-
 test.serial('Do not add comment and labels if no PR is associated with release commits', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
@@ -427,8 +376,6 @@ test.serial('Do not add comment and labels to PR/issues from other repo', async 
         .join('+')}`
     )
     .reply(200, {items: []})
-    .get(`/repos/${owner}/${repo}/issues/2`)
-    .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/2/comments`, {body: /This issue has been resolved/})
     .reply(200, {html_url: 'https://github.com/successcomment-2'})
     .post(`/repos/${owner}/${repo}/issues/2/labels`, '["released"]')
@@ -481,8 +428,6 @@ test.serial('Ignore missing issues/PRs', async t => {
     .post(`/repos/${owner}/${repo}/issues/2/comments`, {body: /This PR is included/})
     .times(3)
     .reply(404)
-    .get(`/repos/${owner}/${repo}/issues/3`)
-    .reply(200, {state: 'closed'})
     .post(`/repos/${owner}/${repo}/issues/3/comments`, {body: /This issue has been resolved/})
     .reply(200, {html_url: 'https://github.com/successcomment-3'})
     .post(`/repos/${owner}/${repo}/issues/3/labels`, '["released"]')
