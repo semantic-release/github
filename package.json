@@ -18,7 +18,7 @@
   "dependencies": {
     "@octokit/rest": "^16.0.1",
     "@semantic-release/error": "^2.2.0",
-    "aggregate-error": "^1.0.0",
+    "aggregate-error": "^2.0.0",
     "bottleneck": "^2.0.1",
     "debug": "^4.0.0",
     "dir-glob": "^2.0.0",
