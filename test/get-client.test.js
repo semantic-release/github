@@ -170,8 +170,6 @@ test('Use different throttler for read and write endpoints', async t => {
 
 test('Use the same throttler when retrying', async t => {
   const coreRate = 200;
-
-  // eslint-disable-next-line require-await
   const request = stub().callsFake(async () => {
     const err = new Error();
     err.time = Date.now();

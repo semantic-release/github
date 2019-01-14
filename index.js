@@ -30,6 +30,7 @@ async function publish(pluginConfig, context) {
     await verifyGitHub(pluginConfig, context);
     verified = true;
   }
+
   return publishGitHub(pluginConfig, context);
 }
 
@@ -38,6 +39,7 @@ async function success(pluginConfig, context) {
     await verifyGitHub(pluginConfig, context);
     verified = true;
   }
+
   await successGitHub(pluginConfig, context);
 }
 
@@ -46,6 +48,7 @@ async function fail(pluginConfig, context) {
     await verifyGitHub(pluginConfig, context);
     verified = true;
   }
+
   await failGitHub(pluginConfig, context);
 }
 
