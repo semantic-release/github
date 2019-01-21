@@ -100,8 +100,8 @@ test('Use the global throttler for all endpoints', async t => {
   const b = await github.issues.createComment();
   const c = await github.repos.createRelease();
   const d = await github.issues.createComment();
-  const e = await github.search.issues();
-  const f = await github.search.issues();
+  const e = await github.search.issuesAndPullRequests();
+  const f = await github.search.issuesAndPullRequests();
 
   // `issues.createComment` should be called `rate` ms after `repos.createRelease`
   t.true(inRange(b - a, rate - 50, rate + 50));
@@ -109,9 +109,9 @@ test('Use the global throttler for all endpoints', async t => {
   t.true(inRange(c - b, rate - 50, rate + 50));
   // `issues.createComment` should be called `rate` ms after `repos.createRelease`
   t.true(inRange(d - c, rate - 50, rate + 50));
-  // `search.issues` should be called `rate` ms after `issues.createComment`
+  // `search.issuesAndPullRequests` should be called `rate` ms after `issues.createComment`
   t.true(inRange(e - d, rate - 50, rate + 50));
-  // `search.issues` should be called `rate` ms after `search.issues`
+  // `search.issuesAndPullRequests` should be called `rate` ms after `search.issuesAndPullRequests`
   t.true(inRange(f - e, rate - 50, rate + 50));
 });
 
@@ -130,8 +130,8 @@ test('Use the same throttler for endpoints in the same rate limit group', async 
   const b = await github.issues.createComment();
   const c = await github.repos.createRelease();
   const d = await github.issues.createComment();
-  const e = await github.search.issues();
-  const f = await github.search.issues();
+  const e = await github.search.issuesAndPullRequests();
+  const f = await github.search.issuesAndPullRequests();
 
   // `issues.createComment` should be called `coreRate` ms after `repos.createRelease`
   t.true(inRange(b - a, coreRate - 50, coreRate + 50));
