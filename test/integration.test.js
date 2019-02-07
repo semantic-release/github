@@ -152,8 +152,13 @@ test.serial('Publish a release with an array of assets', async t => {
       target_commitish: options.branch,
       name: nextRelease.gitTag,
       body: nextRelease.notes,
+      draft: true,
     })
-    .reply(200, {upload_url: uploadUrl, html_url: releaseUrl});
+    .reply(200, {upload_url: uploadUrl, html_url: releaseUrl, id: releaseId})
+    .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {
+      draft: false,
+    })
+    .reply(200, {html_url: releaseUrl});
   const githubUpload1 = upload(env, {
     uploadUrl: 'https://github.com',
     contentLength: (await stat(path.resolve(cwd, 'upload.txt'))).size,
@@ -171,9 +176,9 @@ test.serial('Publish a release with an array of assets', async t => {
 
   t.is(result.url, releaseUrl);
   t.deepEqual(t.context.log.args[0], ['Verify GitHub authentication']);
-  t.deepEqual(t.context.log.args[1], ['Published GitHub release: %s', releaseUrl]);
   t.true(t.context.log.calledWith('Published file %s', otherAssetUrl));
   t.true(t.context.log.calledWith('Published file %s', assetUrl));
+  t.true(t.context.log.calledWith('Published GitHub release: %s', releaseUrl));
   t.true(github.isDone());
   t.true(githubUpload1.isDone());
   t.true(githubUpload2.isDone());
@@ -285,8 +290,13 @@ test.serial('Verify, release and notify success', async t => {
       target_commitish: options.branch,
       name: nextRelease.gitTag,
       body: nextRelease.notes,
+      draft: true,
     })
-    .reply(200, {upload_url: uploadUrl, html_url: releaseUrl})
+    .reply(200, {upload_url: uploadUrl, html_url: releaseUrl, id: releaseId})
+    .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {
+      draft: false,
+    })
+    .reply(200, {html_url: releaseUrl})
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {full_name: `${owner}/${repo}`})
     .get(
@@ -328,9 +338,9 @@ test.serial('Verify, release and notify success', async t => {
   );
 
   t.deepEqual(t.context.log.args[0], ['Verify GitHub authentication']);
-  t.deepEqual(t.context.log.args[1], ['Published GitHub release: %s', releaseUrl]);
   t.true(t.context.log.calledWith('Published file %s', otherAssetUrl));
   t.true(t.context.log.calledWith('Published file %s', assetUrl));
+  t.true(t.context.log.calledWith('Published GitHub release: %s', releaseUrl));
   t.true(github.isDone());
   t.true(githubUpload1.isDone());
   t.true(githubUpload2.isDone());
