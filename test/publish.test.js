@@ -46,8 +46,13 @@ test.serial('Publish a release', async t => {
       target_commitish: options.branch,
       name: nextRelease.gitTag,
       body: nextRelease.notes,
+      draft: true,
     })
-    .reply(200, {upload_url: uploadUrl, html_url: releaseUrl});
+    .reply(200, {upload_url: uploadUrl, html_url: releaseUrl, id: releaseId})
+    .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {
+      draft: false,
+    })
+    .reply(200, {html_url: releaseUrl});
 
   const result = await publish(pluginConfig, {cwd, env, options, nextRelease, logger: t.context.logger});
 
@@ -74,6 +79,7 @@ test.serial('Publish a release, retrying 4 times', async t => {
       target_commitish: options.branch,
       name: nextRelease.gitTag,
       body: nextRelease.notes,
+      draft: true,
     })
     .times(3)
     .reply(404)
@@ -82,8 +88,13 @@ test.serial('Publish a release, retrying 4 times', async t => {
       target_commitish: options.branch,
       name: nextRelease.gitTag,
       body: nextRelease.notes,
+      draft: true,
     })
-    .reply(200, {upload_url: uploadUrl, html_url: releaseUrl});
+    .reply(200, {upload_url: uploadUrl, html_url: releaseUrl, id: releaseId})
+    .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {
+      draft: false,
+    })
+    .reply(200, {html_url: releaseUrl});
 
   const result = await publish(pluginConfig, {cwd, env, options, nextRelease, logger: t.context.logger});
 
@@ -113,6 +124,11 @@ test.serial('Publish a release with one asset', async t => {
       target_commitish: options.branch,
       name: nextRelease.gitTag,
       body: nextRelease.notes,
+      draft: true,
+    })
+    .reply(200, {upload_url: uploadUrl, html_url: releaseUrl, id: releaseId})
+    .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {
+      draft: false,
     })
     .reply(200, {upload_url: uploadUrl, html_url: releaseUrl});
 
@@ -126,7 +142,7 @@ test.serial('Publish a release with one asset', async t => {
   const result = await publish(pluginConfig, {cwd, env, options, nextRelease, logger: t.context.logger});
 
   t.is(result.url, releaseUrl);
-  t.deepEqual(t.context.log.args[0], ['Published GitHub release: %s', releaseUrl]);
+  t.true(t.context.log.calledWith('Published GitHub release: %s', releaseUrl));
   t.true(t.context.log.calledWith('Published file %s', assetUrl));
   t.true(github.isDone());
   t.true(githubUpload.isDone());
@@ -153,6 +169,11 @@ test.serial('Publish a release with one asset and custom github url', async t =>
       target_commitish: options.branch,
       name: nextRelease.gitTag,
       body: nextRelease.notes,
+      draft: true,
+    })
+    .reply(200, {upload_url: uploadUrl, html_url: releaseUrl, id: releaseId})
+    .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {
+      draft: false,
     })
     .reply(200, {upload_url: uploadUrl, html_url: releaseUrl});
 
@@ -166,7 +187,7 @@ test.serial('Publish a release with one asset and custom github url', async t =>
   const result = await publish(pluginConfig, {cwd, env, options, nextRelease, logger: t.context.logger});
 
   t.is(result.url, releaseUrl);
-  t.deepEqual(t.context.log.args[0], ['Published GitHub release: %s', releaseUrl]);
+  t.true(t.context.log.calledWith('Published GitHub release: %s', releaseUrl));
   t.true(t.context.log.calledWith('Published file %s', assetUrl));
   t.true(github.isDone());
   t.true(githubUpload.isDone());
@@ -191,13 +212,18 @@ test.serial('Publish a release with an array of missing assets', async t => {
       target_commitish: options.branch,
       name: nextRelease.gitTag,
       body: nextRelease.notes,
+      draft: true,
     })
-    .reply(200, {upload_url: uploadUrl, html_url: releaseUrl});
+    .reply(200, {upload_url: uploadUrl, html_url: releaseUrl, id: releaseId})
+    .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {
+      draft: false,
+    })
+    .reply(200, {html_url: releaseUrl});
 
   const result = await publish(pluginConfig, {cwd, env, options, nextRelease, logger: t.context.logger});
 
   t.is(result.url, releaseUrl);
-  t.deepEqual(t.context.log.args[0], ['Published GitHub release: %s', releaseUrl]);
+  t.true(t.context.log.calledWith('Published GitHub release: %s', releaseUrl));
   t.true(t.context.error.calledWith('The asset %s cannot be read, and will be ignored.', 'missing.txt'));
   t.true(t.context.error.calledWith('The asset %s is not a file, and will be ignored.', emptyDirectory));
   t.true(github.isDone());
@@ -217,6 +243,7 @@ test.serial('Throw error without retries for 400 error', async t => {
       target_commitish: options.branch,
       name: nextRelease.gitTag,
       body: nextRelease.notes,
+      draft: true,
     })
     .reply(404)
     .post(`/repos/${owner}/${repo}/releases`, {
@@ -224,6 +251,7 @@ test.serial('Throw error without retries for 400 error', async t => {
       target_commitish: options.branch,
       name: nextRelease.gitTag,
       body: nextRelease.notes,
+      draft: true,
     })
     .reply(400);
 
