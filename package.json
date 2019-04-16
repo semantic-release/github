@@ -47,7 +47,7 @@
     "semantic-release": "^15.0.0",
     "server-destroy": "^1.0.1",
     "sinon": "^7.1.1",
-    "tempy": "^0.2.1",
+    "tempy": "^0.3.0",
     "xo": "^0.24.0"
   },
   "engines": {
