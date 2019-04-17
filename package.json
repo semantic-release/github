@@ -16,7 +16,7 @@
     "Gregor Martynus (https://twitter.com/gr2m)"
   ],
   "dependencies": {
-    "@octokit/rest": "^16.13.1",
+    "@octokit/rest": "^16.24.3",
     "@semantic-release/error": "^2.2.0",
     "aggregate-error": "^3.0.0",
     "bottleneck": "^2.0.1",
