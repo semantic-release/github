@@ -108,6 +108,11 @@
   },
   "xo": {
     "prettier": true,
-    "space": true
+    "space": true,
+    "rules": {
+      "camelcase": ["error", {
+        "allow": ["issue_number", "pull_number"]
+      }]
+    }
   }
 }
