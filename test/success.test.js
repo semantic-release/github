@@ -500,7 +500,7 @@ test.serial('Ignore missing issues/PRs', async t => {
   t.true(t.context.log.calledWith('Added labels %O to issue #%d', ['released'], 1));
   t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 3, 'https://github.com/successcomment-3'));
   t.true(t.context.log.calledWith('Added labels %O to issue #%d', ['released'], 3));
-  t.true(t.context.error.calledWith("Failed to add a comment to the issue #%d as it doesn't exists.", 2));
+  t.true(t.context.error.calledWith("Failed to add a comment to the issue #%d as it doesn't exist.", 2));
   t.true(github.isDone());
 });
 
