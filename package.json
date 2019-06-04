@@ -35,7 +35,7 @@
     "url-join": "^4.0.0"
   },
   "devDependencies": {
-    "ava": "^1.0.1",
+    "ava": "^2.0.0",
     "clear-module": "^3.0.0",
     "codecov": "^3.0.0",
     "commitizen": "^3.0.0",
@@ -106,13 +106,24 @@
     "semantic-release": "semantic-release",
     "test": "nyc ava -v"
   },
+  "ava": {
+    "helpers": [
+      "test/helpers/**/*"
+    ]
+  },
   "xo": {
     "prettier": true,
     "space": true,
     "rules": {
-      "camelcase": ["error", {
-        "allow": ["issue_number", "pull_number"]
-      }]
+      "camelcase": [
+        "error",
+        {
+          "allow": [
+            "issue_number",
+            "pull_number"
+          ]
+        }
+      ]
     }
   }
 }
