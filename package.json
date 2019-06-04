@@ -3,6 +3,11 @@
   "description": "semantic-release plugin to publish a GitHub release and comment on released Pull Requests/Issues",
   "version": "0.0.0-development",
   "author": "Pierre Vanduynslager (https://twitter.com/@pvdlg_)",
+  "ava": {
+    "helpers": [
+      "test/helpers/**/*"
+    ]
+  },
   "bugs": {
     "url": "https://github.com/semantic-release/github/issues"
   },
@@ -105,11 +110,6 @@
     "pretest": "npm run lint",
     "semantic-release": "semantic-release",
     "test": "nyc ava -v"
-  },
-  "ava": {
-    "helpers": [
-      "test/helpers/**/*"
-    ]
   },
   "xo": {
     "prettier": true,
