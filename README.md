@@ -185,6 +185,6 @@ Each label name is generated with [Lodash template](https://lodash.com/docs#temp
 
 ##### releasedLabels example
 
-The `releasedLabels` `['released<%= nextRelease.channel ? \` on @\${nextRelease.channel}\` : "" %> from <%= branch.name %>']` will generate the label:
+The `releasedLabels` ```['released<%= nextRelease.channel ? ` on @\${nextRelease.channel}` : "" %> from <%= branch.name %>']``` will generate the label:
 
 > released on @next from branch next
