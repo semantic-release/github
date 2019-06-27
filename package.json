@@ -26,7 +26,7 @@
     "aggregate-error": "^3.0.0",
     "bottleneck": "^2.18.1",
     "debug": "^4.0.0",
-    "dir-glob": "^2.0.0",
+    "dir-glob": "^3.0.0",
     "fs-extra": "^8.0.0",
     "globby": "^9.0.0",
     "http-proxy-agent": "^2.1.0",
