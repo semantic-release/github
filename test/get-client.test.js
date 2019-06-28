@@ -43,7 +43,7 @@ test.serial('Use a http proxy', async t => {
   t.is(proxyHandler.args[0][0].headers.accept, 'application/vnd.github.v3+json');
   t.is(serverHandler.args[0][0].headers.accept, 'application/vnd.github.v3+json');
   t.regex(serverHandler.args[0][0].headers.via, /proxy/);
-  t.truthy(serverHandler.args[0][0].headers['x-forwarded-for'], /proxy/);
+  t.truthy(serverHandler.args[0][0].headers['x-forwarded-for']);
 
   await promisify(proxy.destroy).bind(proxy)();
   await promisify(server.destroy).bind(server)();
