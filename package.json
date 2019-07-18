@@ -43,7 +43,7 @@
     "ava": "^2.0.0",
     "clear-module": "^4.0.0",
     "codecov": "^3.5.0",
-    "commitizen": "^3.0.0",
+    "commitizen": "^4.0.0",
     "cz-conventional-changelog": "^2.0.0",
     "nock": "^10.0.0",
     "nyc": "^14.1.1",
