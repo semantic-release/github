@@ -15,7 +15,7 @@
 | `verifyConditions` | Verify the presence and the validity of the authentication (set via [environment variables](#environment-variables)) and the [assets](#assets) option configuration.                                                                     |
 | `publish`          | Publish a [GitHub release](https://help.github.com/articles/about-releases), optionally uploading file assets.                                                                                                                           |
 | `success`          | Add a comment to each [GitHub Issue](https://help.github.com/articles/about-issues) or [Pull Request](https://help.github.com/articles/about-pull-requests) resolved by the release and close issues previously open by the `fail` step. |
-| `fail`             | Open or update a [GitHub Issue](https://help.github.com/articles/about-issues) with informations about the errors that caused the release to fail.                                                                                       |
+| `fail`             | Open or update a [GitHub Issue](https://help.github.com/articles/about-issues) with information about the errors that caused the release to fail.                                                                                       |
 
 ## Install
 
@@ -158,7 +158,7 @@ The message for the issue content is generated with [Lodash template](https://lo
 | Parameter | Description                                                                                                                                                                                                                                                                                                             |
 |-----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `branch`  | The branch from which the release had failed.                                                                                                                                                                                                                                                                           |
-| `errors`  | An `Array` of [SemanticReleaseError](https://github.com/semantic-release/error). Each error has the `message`, `code`, `pluginName` and `details` properties.<br>`pluginName` contains the package name of the plugin that threw the error.<br>`details` contains a informations about the error formatted in markdown. |
+| `errors`  | An `Array` of [SemanticReleaseError](https://github.com/semantic-release/error). Each error has the `message`, `code`, `pluginName` and `details` properties.<br>`pluginName` contains the package name of the plugin that threw the error.<br>`details` contains a information about the error formatted in markdown. |
 
 ##### failComment examples
 
