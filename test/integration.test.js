@@ -49,6 +49,21 @@ test.serial('Verify GitHub auth', async t => {
   t.true(github.isDone());
 });
 
+test.serial('Verify GitHub auth with a custom repository URL', async t => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  const env = {GITHUB_TOKEN: 'github_token'};
+  const options = {repositoryUrl: `bad url`};
+  const pluginConfig = {repositoryUrl: `git+https://othertesturl.com/${owner}/${repo}.git`};
+  const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {permissions: {push: true}});
+
+  await t.notThrowsAsync(t.context.m.verifyConditions(pluginConfig, {cwd, env, options, logger: t.context.logger}));
+
+  t.true(github.isDone());
+});
+
 test.serial('Verify GitHub auth with publish options', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
