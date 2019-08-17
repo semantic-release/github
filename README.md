@@ -109,6 +109,8 @@ Can be a [glob](https://github.com/isaacs/node-glob#glob-primer) or and `Array` 
 | `name`   | The name of the downloadable file on the GitHub release.                                                 | File name extracted from the `path`. |
 | `label`  | Short description of the file displayed on the GitHub release.                                           | -                                    |
 
+`name` and `label` may contain template tags to insert values from the next release, e.g. `${nextRelease.gitTag}`, which will be replaced with the tag name of the release. For example: `v1.2.3`.
+
 Each entry in the `assets` `Array` is globbed individually. A [glob](https://github.com/isaacs/node-glob#glob-primer)
 can be a `String` (`"dist/**/*.js"` or `"dist/mylib.js"`) or an `Array` of `String`s that will be globbed together
 (`["dist/**", "!**/*.css"]`).
@@ -131,6 +133,19 @@ distribution` and `MyLibrary CSS distribution` in the GitHub release.
 `[['dist/**/*.{js,css}', '!**/*.min.*'], {path: 'build/MyLibrary.zip', label: 'MyLibrary'}]`: include all the `js` and
 `css` files in the `dist` directory and its sub-directories excluding the minified version, plus the
 `build/MyLibrary.zip` file and label it `MyLibrary` in the GitHub release.
+
+##### usage of template tags
+
+These placeholders can be used:
+
+- `${nextRelease.version}`:  the next version, e.g. `1.0.0`
+- `${nextRelease.gitTag}`: the git tag, e.g. `v1.0.0`
+- `${nextRelease.gitHead}`: the git hash
+- `${nextRelease.notes}`: notes for the release
+
+###### Example
+
+`[{path: 'dist/MyLibrary.js', name: 'MyLibrary-${nextRelease.gitTag}.js', label: 'MyLibrary JS (${nextRelease.gitTag}) distribution'}]`: include the `dist/MyLibrary.js` file with the filename `MyLibrary-v1.0.0.js` and label it `MyLibrary JS (v1.0.0) distribution` in the GitHub release.
 
 #### successComment
 
