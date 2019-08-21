@@ -136,6 +136,10 @@ distribution` and `MyLibrary CSS distribution` in the GitHub release.
 
 ##### usage of template tags
 
+The `context` object passed to `publish` is available for constructing template tags.
+
+Of special interest in case you want to include release information in asset labels and filenames is the `nextRelease` property.
+
 These placeholders can be used:
 
 - `${nextRelease.version}`:  the next version, e.g. `1.0.0`
