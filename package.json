@@ -46,7 +46,7 @@
     "server-destroy": "^1.0.1",
     "sinon": "^7.1.1",
     "tempy": "^0.3.0",
-    "xo": "^0.24.0"
+    "xo": "^0.25.2"
   },
   "engines": {
     "node": ">=8.3"
@@ -110,10 +110,7 @@
       "camelcase": [
         "error",
         {
-          "allow": [
-            "issue_number",
-            "pull_number"
-          ]
+          "properties": "never"
         }
       ]
     }
