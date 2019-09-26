@@ -25,7 +25,7 @@ Your **[semantic-release](${HOME_URL})** bot :package::rocket:`
 });
 
 test('Comment for PR with multiple releases', t => {
-  const issue = {number: 1, pull_request: {}}; // eslint-disable-line camelcase
+  const issue = {number: 1, pull_request: {}};
   const releaseInfos = [
     {name: 'GitHub release', url: 'https://github.com/release'},
     {name: 'npm release', url: 'https://npm.com/release'},

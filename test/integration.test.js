@@ -10,8 +10,6 @@ import SemanticReleaseError from '@semantic-release/error';
 import {authenticate, upload} from './helpers/mock-github';
 import rateLimit from './helpers/rate-limit';
 
-/* eslint camelcase: ["error", {properties: "never"}] */
-
 const cwd = 'test/fixtures/files';
 const client = proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit});
 
