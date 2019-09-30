@@ -149,7 +149,9 @@ These placeholders can be used:
 
 ###### Example
 
-`[{path: 'dist/MyLibrary.js', name: 'MyLibrary-${nextRelease.gitTag}.js', label: 'MyLibrary JS (${nextRelease.gitTag}) distribution'}]`: include the `dist/MyLibrary.js` file with the filename `MyLibrary-v1.0.0.js` and label it `MyLibrary JS (v1.0.0) distribution` in the GitHub release.
+The `assets` `[{path: 'dist/MyLibrary.js', name: 'MyLibrary-${nextRelease.gitTag}.js', label: 'MyLibrary JS (${nextRelease.gitTag}) distribution'}]` will result in this asset attached to the GitHub release:
+
+> [MyLibrary JS (v1.0.0) distribution](MyLibrary-v1.0.0.js)
 
 #### successComment
 
