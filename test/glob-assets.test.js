@@ -94,10 +94,7 @@ test('Retrieve multiple files from single glob', async t => {
   await copy(fixtures, cwd);
   const globbedAssets = await globAssets({cwd}, ['*.txt']);
 
-  t.deepEqual(
-    sortAssets(globbedAssets),
-    sortAssets(['upload_other.txt', 'upload.txt', 'upload_for_release_in_name_other.txt'])
-  );
+  t.deepEqual(sortAssets(globbedAssets), sortAssets(['upload_other.txt', 'upload.txt']));
 });
 
 test('Accept glob array with one value', async t => {
@@ -105,10 +102,7 @@ test('Accept glob array with one value', async t => {
   await copy(fixtures, cwd);
   const globbedAssets = await globAssets({cwd}, [['*load.txt'], ['*_other.txt']]);
 
-  t.deepEqual(
-    sortAssets(globbedAssets),
-    sortAssets(['upload_other.txt', 'upload.txt', 'upload_for_release_in_name_other.txt'])
-  );
+  t.deepEqual(sortAssets(globbedAssets), sortAssets(['upload_other.txt', 'upload.txt']));
 });
 
 test('Include globs that resolve to no files as defined', async t => {
@@ -124,10 +118,7 @@ test('Accept glob array with one value for missing files', async t => {
   await copy(fixtures, cwd);
   const globbedAssets = await globAssets({cwd}, [['*missing.txt'], ['*_other.txt']]);
 
-  t.deepEqual(
-    sortAssets(globbedAssets),
-    sortAssets(['upload_other.txt', '*missing.txt', 'upload_for_release_in_name_other.txt'])
-  );
+  t.deepEqual(sortAssets(globbedAssets), sortAssets(['upload_other.txt', '*missing.txt']));
 });
 
 test('Replace name by filename for Object that match multiple files', async t => {
@@ -140,11 +131,6 @@ test('Replace name by filename for Object that match multiple files', async t =>
     sortAssets([
       {path: 'upload.txt', name: 'upload.txt', label: 'Upload label'},
       {path: 'upload_other.txt', name: 'upload_other.txt', label: 'Upload label'},
-      {
-        path: 'upload_for_release_in_name_other.txt',
-        name: 'upload_for_release_in_name_other.txt',
-        label: 'Upload label',
-      },
     ])
   );
 });
@@ -186,16 +172,7 @@ test('Expand directories', async t => {
   await copy(fixtures, path.resolve(cwd, 'dir'));
   const globbedAssets = await globAssets({cwd}, [['dir']]);
 
-  t.deepEqual(
-    sortAssets(globbedAssets),
-    sortAssets([
-      'dir',
-      'dir/upload_other.txt',
-      'dir/upload_for_release_in_name_other.txt',
-      'dir/upload.txt',
-      'dir/.dotfile',
-    ])
-  );
+  t.deepEqual(sortAssets(globbedAssets), sortAssets(['dir', 'dir/upload_other.txt', 'dir/upload.txt', 'dir/.dotfile']));
 });
 
 test('Include empty directory as defined', async t => {

@@ -133,20 +133,12 @@ test.serial('Publish a release with an array of assets', async t => {
   const assets = [
     {path: ['upload.txt'], name: 'upload_file_name.txt'},
     {path: ['upload_other.txt'], name: 'other_file.txt', label: 'Other File'},
-    {
-      path: ['upload_for_release_in_name_other.txt'],
-      /* eslint-disable no-template-curly-in-string */
-      name: 'file_with_release_${nextRelease.gitTag}_in_filename.txt',
-      label: 'File with release ${nextRelease.gitTag} in label',
-      /* eslint-enable no-template-curly-in-string */
-    },
   ];
   const nextRelease = {version: '1.0.0', gitHead: '123', gitTag: 'v1.0.0', notes: 'Test release note body'};
   const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
   const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
   const assetUrl = `https://github.com/${owner}/${repo}/releases/download/${nextRelease.version}/upload.txt`;
   const otherAssetUrl = `https://github.com/${owner}/${repo}/releases/download/${nextRelease.version}/other_file.txt`;
-  const assetWithReleaseUrl = `https://github.com/${owner}/${repo}/releases/download/${nextRelease.version}/file_with_release_v1.0.0_in_filename.txt`;
   const releaseId = 1;
   const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
   const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
@@ -177,16 +169,6 @@ test.serial('Publish a release with an array of assets', async t => {
   })
     .post(`${uploadUri}?name=${escape('other_file.txt')}&label=${escape('Other File')}`)
     .reply(200, {browser_download_url: otherAssetUrl});
-  const githubUpload3 = upload(env, {
-    uploadUrl: 'https://github.com',
-    contentLength: (await stat(path.resolve(cwd, 'upload_for_release_in_name_other.txt'))).size,
-  })
-    .post(
-      `${uploadUri}?name=${escape('file_with_release_v1.0.0_in_filename.txt')}&label=${escape(
-        'File with release v1.0.0 in label'
-      )}`
-    )
-    .reply(200, {browser_download_url: assetWithReleaseUrl});
 
   const result = await t.context.m.publish({assets}, {cwd, env, options, nextRelease, logger: t.context.logger});
 
@@ -194,12 +176,64 @@ test.serial('Publish a release with an array of assets', async t => {
   t.deepEqual(t.context.log.args[0], ['Verify GitHub authentication']);
   t.true(t.context.log.calledWith('Published file %s', otherAssetUrl));
   t.true(t.context.log.calledWith('Published file %s', assetUrl));
-  t.true(t.context.log.calledWith('Published file %s', assetWithReleaseUrl));
   t.true(t.context.log.calledWith('Published GitHub release: %s', releaseUrl));
   t.true(github.isDone());
   t.true(githubUpload1.isDone());
   t.true(githubUpload2.isDone());
-  t.true(githubUpload3.isDone());
+});
+
+test.serial('Publish a release with release information in assets', async t => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  const env = {GITHUB_TOKEN: 'github_token'};
+  const assets = [
+    {
+      path: ['upload.txt'],
+      name: `file_with_release_\${nextRelease.gitTag}_in_filename.txt`,
+      label: `File with release \${nextRelease.gitTag} in label`,
+    },
+  ];
+  const nextRelease = {version: '1.0.0', gitHead: '123', gitTag: 'v1.0.0', notes: 'Test release note body'};
+  const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
+  const assetUrl = `https://github.com/${owner}/${repo}/releases/download/${nextRelease.version}/file_with_release_v1.0.0_in_filename.txt`;
+  const releaseId = 1;
+  const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
+  const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
+  const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {permissions: {push: true}})
+    .post(`/repos/${owner}/${repo}/releases`, {
+      tag_name: nextRelease.gitTag,
+      target_commitish: options.branch,
+      name: nextRelease.gitTag,
+      body: nextRelease.notes,
+      draft: true,
+    })
+    .reply(200, {upload_url: uploadUrl, html_url: releaseUrl, id: releaseId})
+    .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {
+      draft: false,
+    })
+    .reply(200, {html_url: releaseUrl});
+  const githubUpload = upload(env, {
+    uploadUrl: 'https://github.com',
+    contentLength: (await stat(path.resolve(cwd, 'upload.txt'))).size,
+  })
+    .post(
+      `${uploadUri}?name=${escape('file_with_release_v1.0.0_in_filename.txt')}&label=${escape(
+        'File with release v1.0.0 in label'
+      )}`
+    )
+    .reply(200, {browser_download_url: assetUrl});
+
+  const result = await t.context.m.publish({assets}, {cwd, env, options, nextRelease, logger: t.context.logger});
+
+  t.is(result.url, releaseUrl);
+  t.deepEqual(t.context.log.args[0], ['Verify GitHub authentication']);
+  t.true(t.context.log.calledWith('Published file %s', assetUrl));
+  t.true(t.context.log.calledWith('Published GitHub release: %s', releaseUrl));
+  t.true(github.isDone());
+  t.true(githubUpload.isDone());
 });
 
 test.serial('Comment and add labels on PR included in the releases', async t => {
