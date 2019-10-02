@@ -17,7 +17,7 @@
 | `publish`          | Publish a [GitHub release](https://help.github.com/articles/about-releases), optionally uploading file assets.                                                                                                                           |
 | `addChannel`       | Update a [GitHub release](https://help.github.com/articles/about-releases)'s `pre-release` field.                                                                                                                                        |
 | `success`          | Add a comment to each [GitHub Issue](https://help.github.com/articles/about-issues) or [Pull Request](https://help.github.com/articles/about-pull-requests) resolved by the release and close issues previously open by the `fail` step. |
-| `fail`             | Open or update a [GitHub Issue](https://help.github.com/articles/about-issues) with informations about the errors that caused the release to fail.                                                                                       |
+| `fail`             | Open or update a [GitHub Issue](https://help.github.com/articles/about-issues) with information about the errors that caused the release to fail.                                                                                        |
 
 ## Install
 
@@ -117,6 +117,15 @@ can be a `String` (`"dist/**/*.js"` or `"dist/mylib.js"`) or an `Array` of `Stri
 
 If a directory is configured, all the files under this directory and its children will be included.
 
+The `name` and `label` for each assets are generated with [Lodash template](https://lodash.com/docs#template). The following variables are available:
+
+| Parameter     | Description                                                                         |
+|---------------|-------------------------------------------------------------------------------------|
+| `branch`      | The branch from which the release is done.                                          |
+| `lastRelease` | `Object` with `version`, `gitTag` and `gitHead` of the last release.                |
+| `nextRelease` | `Object` with `version`, `gitTag`, `gitHead` and `notes` of the release being done. |
+| `commits`     | `Array` of commit `Object`s with `hash`, `subject`, `body` `message` and `author`.  |
+
 **Note**: If a file has a match in `assets` it will be included even if it also has a match in `.gitignore`.
 
 ##### assets examples
@@ -133,6 +142,10 @@ distribution` and `MyLibrary CSS distribution` in the GitHub release.
 `[['dist/**/*.{js,css}', '!**/*.min.*'], {path: 'build/MyLibrary.zip', label: 'MyLibrary'}]`: include all the `js` and
 `css` files in the `dist` directory and its sub-directories excluding the minified version, plus the
 `build/MyLibrary.zip` file and label it `MyLibrary` in the GitHub release.
+
+`[{path: 'dist/MyLibrary.js', name: 'MyLibrary-${nextRelease.gitTag}.js', label: 'MyLibrary JS (${nextRelease.gitTag}) distribution'}]`: include the file `dist/MyLibrary.js` and upload it to the GitHub release with name `MyLibrary-v1.0.0.js` and label `MyLibrary JS (v1.0.0) distribution` which will generate the link:
+
+> `[MyLibrary JS (v1.0.0) distribution](MyLibrary-v1.0.0.js)`
 
 #### successComment
 
@@ -157,10 +170,10 @@ The `successComment` `This ${issue.pull_request ? 'pull request' : 'issue'} is i
 
 The message for the issue content is generated with [Lodash template](https://lodash.com/docs#template). The following variables are available:
 
-| Parameter | Description                                                                                                                                                                                                                                                                                                             |
-|-----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `branch`  | `Object` with `name`, `type`, `channel`, `range` and `prerelease` properties of the branch from which the release is done.                                                                                                                                                                                              |
-| `errors`  | An `Array` of [SemanticReleaseError](https://github.com/semantic-release/error). Each error has the `message`, `code`, `pluginName` and `details` properties.<br>`pluginName` contains the package name of the plugin that threw the error.<br>`details` contains a informations about the error formatted in markdown. |
+| Parameter | Description                                                                                                                                                                                                                                                                                                            |
+|-----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `branch`  | The branch from which the release had failed.                                                                                                                                                                                                                                                                          |
+| `errors`  | An `Array` of [SemanticReleaseError](https://github.com/semantic-release/error). Each error has the `message`, `code`, `pluginName` and `details` properties.<br>`pluginName` contains the package name of the plugin that threw the error.<br>`details` contains a information about the error formatted in markdown. |
 
 ##### failComment example
 

@@ -1,3 +1,5 @@
+/* eslint require-atomic-updates: off */
+
 const {defaultTo, castArray} = require('lodash');
 const verifyGitHub = require('./lib/verify');
 const addChannelGitHub = require('./lib/add-channel');

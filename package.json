@@ -11,11 +11,6 @@
   "bugs": {
     "url": "https://github.com/semantic-release/github/issues"
   },
-  "config": {
-    "commitizen": {
-      "path": "cz-conventional-changelog"
-    }
-  },
   "contributors": [
     "Stephan Bönnemann <stephan@boennemann.me> (http://boennemann.me)",
     "Gregor Martynus (https://twitter.com/gr2m)"
@@ -28,7 +23,7 @@
     "debug": "^4.0.0",
     "dir-glob": "^3.0.0",
     "fs-extra": "^8.0.0",
-    "globby": "^9.0.0",
+    "globby": "^10.0.0",
     "http-proxy-agent": "^2.1.0",
     "https-proxy-agent": "^2.2.1",
     "issue-parser": "^4.0.0",
@@ -41,11 +36,9 @@
   },
   "devDependencies": {
     "ava": "^2.0.0",
-    "clear-module": "^3.0.0",
+    "clear-module": "^4.0.0",
     "codecov": "^3.5.0",
-    "commitizen": "^3.0.0",
-    "cz-conventional-changelog": "^2.0.0",
-    "nock": "^10.0.0",
+    "nock": "^11.1.0",
     "nyc": "^14.1.1",
     "proxy": "^0.2.4",
     "proxyquire": "^2.0.0",
@@ -53,7 +46,7 @@
     "server-destroy": "^1.0.1",
     "sinon": "^7.1.1",
     "tempy": "^0.3.0",
-    "xo": "^0.24.0"
+    "xo": "^0.25.2"
   },
   "engines": {
     "node": ">=8.3"
@@ -103,7 +96,6 @@
     "url": "https://github.com/semantic-release/github.git"
   },
   "scripts": {
-    "cm": "git-cz",
     "codecov": "codecov -f coverage/coverage-final.json",
     "lint": "xo",
     "pretest": "npm run lint",
@@ -117,12 +109,7 @@
       "camelcase": [
         "error",
         {
-          "allow": [
-            "issue_number",
-            "pull_number",
-            "tag_name",
-            "release_id"
-          ]
+          "properties": "never"
         }
       ]
     }

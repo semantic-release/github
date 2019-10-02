@@ -220,6 +220,7 @@ test.serial('Publish a release with one asset', async t => {
   };
   const nextRelease = {gitTag: 'v1.0.0', name: 'v1.0.0', notes: 'Test release note body'};
   const options = {repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const untaggedReleaseUrl = `https://github.com/${owner}/${repo}/releases/untagged-123`;
   const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
   const assetUrl = `https://github.com/${owner}/${repo}/releases/download/${nextRelease.version}/.dotfile`;
   const releaseId = 1;
@@ -234,7 +235,7 @@ test.serial('Publish a release with one asset', async t => {
       draft: true,
       prerelease: false,
     })
-    .reply(200, {upload_url: uploadUrl, html_url: releaseUrl, id: releaseId})
+    .reply(200, {upload_url: uploadUrl, html_url: untaggedReleaseUrl, id: releaseId})
     .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {draft: false})
     .reply(200, {upload_url: uploadUrl, html_url: releaseUrl});
 
@@ -270,6 +271,7 @@ test.serial('Publish a release with one asset and custom github url', async t =>
   };
   const nextRelease = {gitTag: 'v1.0.0', name: 'v1.0.0', notes: 'Test release note body'};
   const options = {repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const untaggedReleaseUrl = `${env.GH_URL}/${owner}/${repo}/releases/untagged-123`;
   const releaseUrl = `${env.GH_URL}/${owner}/${repo}/releases/${nextRelease.version}`;
   const assetUrl = `${env.GH_URL}/${owner}/${repo}/releases/download/${nextRelease.version}/upload.txt`;
   const releaseId = 1;
@@ -284,7 +286,7 @@ test.serial('Publish a release with one asset and custom github url', async t =>
       draft: true,
       prerelease: false,
     })
-    .reply(200, {upload_url: uploadUrl, html_url: releaseUrl, id: releaseId})
+    .reply(200, {upload_url: uploadUrl, html_url: untaggedReleaseUrl, id: releaseId})
     .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {draft: false})
     .reply(200, {upload_url: uploadUrl, html_url: releaseUrl});
 
@@ -319,6 +321,7 @@ test.serial('Publish a release with an array of missing assets', async t => {
   const pluginConfig = {assets: [emptyDirectory, {path: 'missing.txt', name: 'missing.txt'}]};
   const nextRelease = {gitTag: 'v1.0.0', name: 'v1.0.0', notes: 'Test release note body'};
   const options = {repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const untaggedReleaseUrl = `https://github.com/${owner}/${repo}/releases/untagged-123`;
   const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
   const releaseId = 1;
   const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
@@ -332,7 +335,7 @@ test.serial('Publish a release with an array of missing assets', async t => {
       draft: true,
       prerelease: false,
     })
-    .reply(200, {upload_url: uploadUrl, html_url: releaseUrl, id: releaseId})
+    .reply(200, {upload_url: uploadUrl, html_url: untaggedReleaseUrl, id: releaseId})
     .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {draft: false})
     .reply(200, {html_url: releaseUrl});
 
