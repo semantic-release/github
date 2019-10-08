@@ -394,7 +394,7 @@ test.serial('Do not add comment and labels to PR/issues from other repo', async 
   t.true(github.isDone());
 });
 
-test.serial('Ignore missing issues/PRs', async t => {
+test.serial('Ignore missing and forbidden issues/PRs', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -402,10 +402,15 @@ test.serial('Ignore missing issues/PRs', async t => {
   const pluginConfig = {failTitle};
   const prs = [
     {number: 1, pull_request: {}, state: 'closed'},
-    {number: 2, pull_request: {}, body: 'Fixes #3', state: 'closed'},
+    {number: 2, pull_request: {}, body: 'Fixes #4', state: 'closed'},
+    {number: 3, pull_request: {}, body: 'Fixes #5', state: 'closed'},
   ];
   const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
-  const commits = [{hash: '123', message: 'Commit 1 message\n\n Fix #1'}, {hash: '456', message: 'Commit 2 message'}];
+  const commits = [
+    {hash: '123', message: 'Commit 1 message\n\n Fix #1'},
+    {hash: '456', message: 'Commit 2 message'},
+    {hash: '789', message: 'Commit 3 message'},
+  ];
   const nextRelease = {version: '1.0.0'};
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
   const github = authenticate(env)
@@ -421,6 +426,8 @@ test.serial('Ignore missing issues/PRs', async t => {
     .reply(200, [{sha: commits[0].hash}])
     .get(`/repos/${owner}/${repo}/pulls/2/commits`)
     .reply(200, [{sha: commits[1].hash}])
+    .get(`/repos/${owner}/${repo}/pulls/3/commits`)
+    .reply(200, [{sha: commits[2].hash}])
     .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
     .reply(200, {html_url: 'https://github.com/successcomment-1'})
     .post(`/repos/${owner}/${repo}/issues/1/labels`, '["released"]')
@@ -428,9 +435,15 @@ test.serial('Ignore missing issues/PRs', async t => {
     .post(`/repos/${owner}/${repo}/issues/2/comments`, {body: /This PR is included/})
     .times(3)
     .reply(404)
-    .post(`/repos/${owner}/${repo}/issues/3/comments`, {body: /This issue has been resolved/})
-    .reply(200, {html_url: 'https://github.com/successcomment-3'})
-    .post(`/repos/${owner}/${repo}/issues/3/labels`, '["released"]')
+    .post(`/repos/${owner}/${repo}/issues/3/comments`, {body: /This PR is included/})
+    .reply(403)
+    .post(`/repos/${owner}/${repo}/issues/4/comments`, {body: /This issue has been resolved/})
+    .reply(200, {html_url: 'https://github.com/successcomment-4'})
+    .post(`/repos/${owner}/${repo}/issues/4/labels`, '["released"]')
+    .reply(200, {})
+    .post(`/repos/${owner}/${repo}/issues/5/comments`, {body: /This issue has been resolved/})
+    .reply(200, {html_url: 'https://github.com/successcomment-5'})
+    .post(`/repos/${owner}/${repo}/issues/5/labels`, '["released"]')
     .reply(200, {})
     .get(
       `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
@@ -443,9 +456,12 @@ test.serial('Ignore missing issues/PRs', async t => {
 
   t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 1, 'https://github.com/successcomment-1'));
   t.true(t.context.log.calledWith('Added labels %O to issue #%d', ['released'], 1));
-  t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 3, 'https://github.com/successcomment-3'));
-  t.true(t.context.log.calledWith('Added labels %O to issue #%d', ['released'], 3));
+  t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 4, 'https://github.com/successcomment-4'));
+  t.true(t.context.log.calledWith('Added labels %O to issue #%d', ['released'], 4));
+  t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 5, 'https://github.com/successcomment-5'));
+  t.true(t.context.log.calledWith('Added labels %O to issue #%d', ['released'], 5));
   t.true(t.context.error.calledWith("Failed to add a comment to the issue #%d as it doesn't exist.", 2));
+  t.true(t.context.error.calledWith('Not allowed to add a comment to the issue #%d.', 3));
   t.true(github.isDone());
 });
 
