@@ -31,7 +31,6 @@
     "mime": "^2.4.3",
     "p-filter": "^2.0.0",
     "p-retry": "^4.0.0",
-    "parse-github-url": "^1.0.1",
     "url-join": "^4.0.0"
   },
   "devDependencies": {

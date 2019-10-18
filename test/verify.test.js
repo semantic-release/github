@@ -113,6 +113,23 @@ test.serial('Verify package, token and repository access and custom URL without 
   t.deepEqual(t.context.log.args[0], ['Verify GitHub authentication (%s)', 'https://othertesturl.com:9090']);
 });
 
+test.serial('Verify package, token and repository access and shorthand repositoryUrl URL', async t => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  const env = {GH_TOKEN: 'github_token'};
+  const githubUrl = 'https://othertesturl.com:9090';
+  const github = authenticate(env, {githubUrl})
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {permissions: {push: true}});
+
+  await t.notThrowsAsync(
+    verify({githubUrl}, {env, options: {repositoryUrl: `github:${owner}/${repo}`}, logger: t.context.logger})
+  );
+
+  t.true(github.isDone());
+  t.deepEqual(t.context.log.args[0], ['Verify GitHub authentication (%s)', 'https://othertesturl.com:9090']);
+});
+
 test.serial('Verify package, token and repository with environment variables', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
