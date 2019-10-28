@@ -1,7 +1,7 @@
 import nock from 'nock';
 
 /**
- * Retun a `nock` object setup to respond to a github authentication request. Other expectation and responses can be chained.
+ * Return a `nock` object setup to respond to a github authentication request. Other expectation and responses can be chained.
  *
  * @param {Object} [env={}] Environment variables.
  * @param {String} [githubToken=env.GH_TOKEN || env.GITHUB_TOKEN || 'GH_TOKEN'] The github token to return in the authentication response.
@@ -21,7 +21,7 @@ export function authenticate(
 }
 
 /**
- * Retun a `nock` object setup to respond to a github release upload request. Other expectation and responses can be chained.
+ * Return a `nock` object setup to respond to a github release upload request. Other expectation and responses can be chained.
  *
  * @param {Object} [env={}] Environment variables.
  * @param {String} [githubToken=env.GH_TOKEN || env.GITHUB_TOKEN || 'GH_TOKEN'] The github token to return in the authentication response.
