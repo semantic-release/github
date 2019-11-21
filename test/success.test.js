@@ -289,9 +289,15 @@ test.serial(
     const env = {GITHUB_TOKEN: 'github_token'};
     const failTitle = 'The automated release is failing 🚨';
     const pluginConfig = {failTitle};
-    const prs = [{number: 1, pull_request: {}, state: 'closed'}, {number: 2, pull_request: {}, state: 'closed'}];
+    const prs = [
+      {number: 1, pull_request: {}, state: 'closed'},
+      {number: 2, pull_request: {}, state: 'closed'},
+    ];
     const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
-    const commits = [{hash: '123', message: 'Commit 1 message'}, {hash: '456', message: 'Commit 2 message'}];
+    const commits = [
+      {hash: '123', message: 'Commit 1 message'},
+      {hash: '456', message: 'Commit 2 message'},
+    ];
     const nextRelease = {version: '1.0.0'};
     const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
     const github = authenticate(env)
@@ -658,9 +664,15 @@ test.serial('Ignore errors when adding comments and closing issues', async t => 
     {number: 2, body: `Issue 2 body\n\n${ISSUE_ID}`, title: failTitle},
     {number: 3, body: `Issue 3 body\n\n${ISSUE_ID}`, title: failTitle},
   ];
-  const prs = [{number: 1, pull_request: {}, state: 'closed'}, {number: 2, pull_request: {}, state: 'closed'}];
+  const prs = [
+    {number: 1, pull_request: {}, state: 'closed'},
+    {number: 2, pull_request: {}, state: 'closed'},
+  ];
   const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
-  const commits = [{hash: '123', message: 'Commit 1 message'}, {hash: '456', message: 'Commit 2 message'}];
+  const commits = [
+    {hash: '123', message: 'Commit 1 message'},
+    {hash: '456', message: 'Commit 2 message'},
+  ];
   const nextRelease = {version: '1.0.0'};
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
   const github = authenticate(env)
