@@ -77,7 +77,10 @@ test.serial('Return empty array if not issues has matching ID', async t => {
   const repo = 'test_repo';
   const githubToken = 'github_token';
   const title = 'The automated release is failing 🚨';
-  const issues = [{number: 1, body: 'Issue 1 body', title}, {number: 2, body: 'Issue 2 body', title}];
+  const issues = [
+    {number: 1, body: 'Issue 1 body', title},
+    {number: 2, body: 'Issue 2 body', title},
+  ];
   const github = authenticate({}, {githubToken})
     .get(
       `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(

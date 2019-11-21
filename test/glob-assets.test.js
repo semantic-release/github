@@ -77,7 +77,10 @@ test('Favor Object over String values when removing duplicates', async t => {
 
   t.deepEqual(
     sortAssets(globbedAssets),
-    sortAssets([{path: 'upload.txt', name: 'upload_name'}, {path: 'upload_other.txt', name: 'upload_other_name'}])
+    sortAssets([
+      {path: 'upload.txt', name: 'upload_name'},
+      {path: 'upload_other.txt', name: 'upload_other_name'},
+    ])
   );
 });
 
