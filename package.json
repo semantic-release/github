@@ -26,12 +26,11 @@
     "globby": "^10.0.0",
     "http-proxy-agent": "^2.1.0",
     "https-proxy-agent": "^3.0.0",
-    "issue-parser": "^4.0.0",
+    "issue-parser": "^5.0.0",
     "lodash": "^4.17.4",
     "mime": "^2.4.3",
     "p-filter": "^2.0.0",
     "p-retry": "^4.0.0",
-    "parse-github-url": "^1.0.1",
     "url-join": "^4.0.0"
   },
   "devDependencies": {
@@ -49,7 +48,7 @@
     "xo": "^0.25.2"
   },
   "engines": {
-    "node": ">=8.3"
+    "node": ">=8.16"
   },
   "files": [
     "lib",
