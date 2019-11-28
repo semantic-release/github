@@ -170,7 +170,7 @@ test.serial('Publish a release with an array of assets', async t => {
 
   const result = await t.context.m.publish(
     {assets},
-    {cwd, env, options, branch: {type: 'release'}, nextRelease, logger: t.context.logger}
+    {cwd, env, options, branch: {type: 'release', main: true}, nextRelease, logger: t.context.logger}
   );
 
   t.is(result.url, releaseUrl);
@@ -244,7 +244,6 @@ test.serial('Update a release', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
-  const currentRelease = {gitTag: 'v1.0.0@next', channel: 'next', name: 'v1.0.0', notes: 'Test release note body'};
   const nextRelease = {gitTag: 'v1.0.0', name: 'v1.0.0', notes: 'Test release note body'};
   const options = {repositoryUrl: `https://github.com/${owner}/${repo}.git`};
   const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
@@ -253,7 +252,7 @@ test.serial('Update a release', async t => {
   const github = authenticate(env)
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {permissions: {push: true}})
-    .get(`/repos/${owner}/${repo}/releases/tags/${currentRelease.gitTag}`)
+    .get(`/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`)
     .reply(200, {id: releaseId})
     .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {
       tag_name: nextRelease.gitTag,
@@ -264,7 +263,7 @@ test.serial('Update a release', async t => {
 
   const result = await t.context.m.addChannel(
     {},
-    {cwd, env, options, branch: {type: 'release'}, currentRelease, nextRelease, logger: t.context.logger}
+    {cwd, env, options, branch: {type: 'release', main: true}, nextRelease, logger: t.context.logger}
   );
 
   t.is(result.url, releaseUrl);
@@ -419,7 +418,7 @@ test.serial('Verify, release and notify success', async t => {
   await t.notThrowsAsync(t.context.m.verifyConditions({}, {cwd, env, options, logger: t.context.logger}));
   await t.context.m.publish(
     {assets},
-    {cwd, env, options, branch: {type: 'release'}, nextRelease, logger: t.context.logger}
+    {cwd, env, options, branch: {type: 'release', main: true}, nextRelease, logger: t.context.logger}
   );
   await t.context.m.success(
     {assets, failTitle},
@@ -444,7 +443,6 @@ test.serial('Verify, update release and notify success', async t => {
     publish: [{path: '@semantic-release/npm'}, {path: '@semantic-release/github'}],
     repositoryUrl: `https://github.com/${owner}/${repo}.git`,
   };
-  const currentRelease = {gitTag: 'v1.0.0@next', channel: 'next', name: 'v1.0.0', notes: 'Test release note body'};
   const nextRelease = {gitTag: 'v1.0.0', name: 'v1.0.0', notes: 'Test release note body'};
   const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
   const releaseId = 1;
@@ -453,7 +451,7 @@ test.serial('Verify, update release and notify success', async t => {
   const github = authenticate(env)
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {permissions: {push: true}})
-    .get(`/repos/${owner}/${repo}/releases/tags/${currentRelease.gitTag}`)
+    .get(`/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`)
     .reply(200, {id: releaseId})
     .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {
       tag_name: nextRelease.gitTag,
@@ -485,7 +483,7 @@ test.serial('Verify, update release and notify success', async t => {
   await t.notThrowsAsync(t.context.m.verifyConditions({}, {cwd, env, options, logger: t.context.logger}));
   await t.context.m.addChannel(
     {},
-    {cwd, env, branch: {type: 'release'}, currentRelease, nextRelease, options, logger: t.context.logger}
+    {cwd, env, branch: {type: 'release', main: true}, nextRelease, options, logger: t.context.logger}
   );
   await t.context.m.success(
     {failTitle},
