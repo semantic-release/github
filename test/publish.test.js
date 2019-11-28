@@ -53,7 +53,7 @@ test.serial('Publish a release', async t => {
     cwd,
     env,
     options,
-    branch: {type: 'release'},
+    branch: {type: 'release', main: true},
     nextRelease,
     logger: t.context.logger,
   });
@@ -88,7 +88,7 @@ test.serial('Publish a release on a channel', async t => {
     cwd,
     env,
     options,
-    branch: {type: 'release', channel: 'next'},
+    branch: {type: 'release', channel: 'next', main: false},
     nextRelease,
     logger: t.context.logger,
   });
@@ -133,7 +133,7 @@ test.serial('Publish a prerelease', async t => {
   t.true(github.isDone());
 });
 
-test.serial('Publish a lts release', async t => {
+test.serial('Publish a maintenance release', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -158,7 +158,7 @@ test.serial('Publish a lts release', async t => {
     cwd,
     env,
     options,
-    branch: {type: 'lts', channel: '1.x'},
+    branch: {type: 'maintenance', channel: '1.x', main: false},
     nextRelease,
     logger: t.context.logger,
   });
@@ -201,7 +201,7 @@ test.serial('Publish a release, retrying 4 times', async t => {
     cwd,
     env,
     options,
-    branch: {type: 'release'},
+    branch: {type: 'release', main: true},
     nextRelease,
     logger: t.context.logger,
   });
@@ -250,7 +250,7 @@ test.serial('Publish a release with one asset', async t => {
     cwd,
     env,
     options,
-    branch: {type: 'release'},
+    branch: {type: 'release', main: true},
     nextRelease,
     logger: t.context.logger,
   });
@@ -301,7 +301,7 @@ test.serial('Publish a release with one asset and custom github url', async t =>
     cwd,
     env,
     options,
-    branch: {type: 'release'},
+    branch: {type: 'release', main: true},
     nextRelease,
     logger: t.context.logger,
   });
@@ -343,7 +343,7 @@ test.serial('Publish a release with an array of missing assets', async t => {
     cwd,
     env,
     options,
-    branch: {type: 'release'},
+    branch: {type: 'release', main: true},
     nextRelease,
     logger: t.context.logger,
   });
@@ -380,7 +380,14 @@ test.serial('Throw error without retries for 400 error', async t => {
     .reply(400);
 
   const error = await t.throwsAsync(
-    publish(pluginConfig, {cwd, env, options, branch: {type: 'release'}, nextRelease, logger: t.context.logger})
+    publish(pluginConfig, {
+      cwd,
+      env,
+      options,
+      branch: {type: 'release', main: true},
+      nextRelease,
+      logger: t.context.logger,
+    })
   );
 
   t.is(error.status, 400);
