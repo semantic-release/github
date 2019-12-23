@@ -38,7 +38,7 @@
     "clear-module": "^4.0.0",
     "codecov": "^3.5.0",
     "nock": "^11.1.0",
-    "nyc": "^14.1.1",
+    "nyc": "^15.0.0",
     "proxy": "^1.0.0",
     "proxyquire": "^2.0.0",
     "semantic-release": "^15.13.12",
