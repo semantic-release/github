@@ -14,6 +14,8 @@ import rateLimit from './helpers/rate-limit';
 
 const getClient = proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit});
 
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
+
 test.serial('Use a http proxy', async t => {
   const server = http.createServer();
   await promisify(server.listen).bind(server)();
@@ -73,7 +75,7 @@ test.serial('Use a https proxy', async t => {
     githubToken: 'github_token',
     githubUrl: `https://localhost:${serverPort}`,
     githubApiPathPrefix: '',
-    proxy: {host: 'localhost', port: proxyPort, rejectUnauthorized: false, headers: {foo: 'bar'}},
+    proxy: {host: 'localhost', port: proxyPort, headers: {foo: 'bar'}},
   });
 
   await github.repos.get({repo: 'repo', owner: 'owner'});
