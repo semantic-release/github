@@ -134,8 +134,8 @@ test.serial('Publish a release with an array of assets', async t => {
     {path: ['upload.txt'], name: 'upload_file_name.txt'},
     {path: ['upload_other.txt'], name: 'other_file.txt', label: 'Other File'},
   ];
-  const nextRelease = {version: '1.0.0', gitHead: '123', gitTag: 'v1.0.0', notes: 'Test release note body'};
-  const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const nextRelease = {gitTag: 'v1.0.0', name: 'v1.0.0', notes: 'Test release note body'};
+  const options = {repositoryUrl: `https://github.com/${owner}/${repo}.git`};
   const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
   const assetUrl = `https://github.com/${owner}/${repo}/releases/download/${nextRelease.version}/upload.txt`;
   const otherAssetUrl = `https://github.com/${owner}/${repo}/releases/download/${nextRelease.version}/other_file.txt`;
@@ -147,15 +147,13 @@ test.serial('Publish a release with an array of assets', async t => {
     .reply(200, {permissions: {push: true}})
     .post(`/repos/${owner}/${repo}/releases`, {
       tag_name: nextRelease.gitTag,
-      target_commitish: options.branch,
-      name: nextRelease.gitTag,
+      name: nextRelease.name,
       body: nextRelease.notes,
       draft: true,
+      prerelease: false,
     })
     .reply(200, {upload_url: uploadUrl, html_url: releaseUrl, id: releaseId})
-    .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {
-      draft: false,
-    })
+    .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {draft: false})
     .reply(200, {html_url: releaseUrl});
   const githubUpload1 = upload(env, {
     uploadUrl: 'https://github.com',
@@ -170,7 +168,10 @@ test.serial('Publish a release with an array of assets', async t => {
     .post(`${uploadUri}?name=${escape('other_file.txt')}&label=${escape('Other File')}`)
     .reply(200, {browser_download_url: otherAssetUrl});
 
-  const result = await t.context.m.publish({assets}, {cwd, env, options, nextRelease, logger: t.context.logger});
+  const result = await t.context.m.publish(
+    {assets},
+    {cwd, env, options, branch: {type: 'release', main: true}, nextRelease, logger: t.context.logger}
+  );
 
   t.is(result.url, releaseUrl);
   t.deepEqual(t.context.log.args[0], ['Verify GitHub authentication']);
@@ -193,8 +194,8 @@ test.serial('Publish a release with release information in assets', async t => {
       label: `File with release \${nextRelease.gitTag} in label`,
     },
   ];
-  const nextRelease = {version: '1.0.0', gitHead: '123', gitTag: 'v1.0.0', notes: 'Test release note body'};
-  const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const nextRelease = {gitTag: 'v1.0.0', name: 'v1.0.0', notes: 'Test release note body'};
+  const options = {repositoryUrl: `https://github.com/${owner}/${repo}.git`};
   const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
   const assetUrl = `https://github.com/${owner}/${repo}/releases/download/${nextRelease.version}/file_with_release_v1.0.0_in_filename.txt`;
   const releaseId = 1;
@@ -226,7 +227,10 @@ test.serial('Publish a release with release information in assets', async t => {
     )
     .reply(200, {browser_download_url: assetUrl});
 
-  const result = await t.context.m.publish({assets}, {cwd, env, options, nextRelease, logger: t.context.logger});
+  const result = await t.context.m.publish(
+    {assets},
+    {cwd, env, options, branch: {type: 'release'}, nextRelease, logger: t.context.logger}
+  );
 
   t.is(result.url, releaseUrl);
   t.deepEqual(t.context.log.args[0], ['Verify GitHub authentication']);
@@ -236,13 +240,45 @@ test.serial('Publish a release with release information in assets', async t => {
   t.true(githubUpload.isDone());
 });
 
+test.serial('Update a release', async t => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  const env = {GITHUB_TOKEN: 'github_token'};
+  const nextRelease = {gitTag: 'v1.0.0', name: 'v1.0.0', notes: 'Test release note body'};
+  const options = {repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
+  const releaseId = 1;
+
+  const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {permissions: {push: true}})
+    .get(`/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`)
+    .reply(200, {id: releaseId})
+    .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {
+      tag_name: nextRelease.gitTag,
+      name: nextRelease.name,
+      prerelease: false,
+    })
+    .reply(200, {html_url: releaseUrl});
+
+  const result = await t.context.m.addChannel(
+    {},
+    {cwd, env, options, branch: {type: 'release', main: true}, nextRelease, logger: t.context.logger}
+  );
+
+  t.is(result.url, releaseUrl);
+  t.deepEqual(t.context.log.args[0], ['Verify GitHub authentication']);
+  t.deepEqual(t.context.log.args[1], ['Updated GitHub release: %s', releaseUrl]);
+  t.true(github.isDone());
+});
+
 test.serial('Comment and add labels on PR included in the releases', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
   const failTitle = 'The automated release is failing 🚨';
   const prs = [{number: 1, pull_request: {}, state: 'closed'}];
-  const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const options = {repositoryUrl: `https://github.com/${owner}/${repo}.git`};
   const commits = [{hash: '123', message: 'Commit 1 message'}];
   const nextRelease = {version: '1.0.0'};
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
@@ -283,7 +319,7 @@ test.serial('Open a new issue with the list of errors', async t => {
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
   const failTitle = 'The automated release is failing 🚨';
-  const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const options = {repositoryUrl: `https://github.com/${owner}/${repo}.git`};
   const errors = [
     new SemanticReleaseError('Error message 1', 'ERR1', 'Error 1 details'),
     new SemanticReleaseError('Error message 2', 'ERR2', 'Error 2 details'),
@@ -307,7 +343,7 @@ test.serial('Open a new issue with the list of errors', async t => {
     })
     .reply(200, {html_url: 'https://github.com/issues/1', number: 1});
 
-  await t.context.m.fail({failTitle}, {cwd, env, options, errors, logger: t.context.logger});
+  await t.context.m.fail({failTitle}, {cwd, env, options, branch: {name: 'master'}, errors, logger: t.context.logger});
 
   t.deepEqual(t.context.log.args[0], ['Verify GitHub authentication']);
   t.true(t.context.log.calledWith('Created issue #%d: %s.', 1, 'https://github.com/issues/1'));
@@ -322,10 +358,9 @@ test.serial('Verify, release and notify success', async t => {
   const failTitle = 'The automated release is failing 🚨';
   const options = {
     publish: [{path: '@semantic-release/npm'}, {path: '@semantic-release/github', assets}],
-    branch: 'master',
     repositoryUrl: `https://github.com/${owner}/${repo}.git`,
   };
-  const nextRelease = {version: '1.0.0', gitHead: '123', gitTag: 'v1.0.0', notes: 'Test release note body'};
+  const nextRelease = {gitTag: 'v1.0.0', name: 'v1.0.0', notes: 'Test release note body'};
   const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
   const assetUrl = `https://github.com/${owner}/${repo}/releases/download/${nextRelease.version}/upload.txt`;
   const otherAssetUrl = `https://github.com/${owner}/${repo}/releases/download/${nextRelease.version}/other_file.txt`;
@@ -339,15 +374,13 @@ test.serial('Verify, release and notify success', async t => {
     .reply(200, {permissions: {push: true}})
     .post(`/repos/${owner}/${repo}/releases`, {
       tag_name: nextRelease.gitTag,
-      target_commitish: options.branch,
-      name: nextRelease.gitTag,
+      name: nextRelease.name,
       body: nextRelease.notes,
       draft: true,
+      prerelease: false,
     })
     .reply(200, {upload_url: uploadUrl, html_url: releaseUrl, id: releaseId})
-    .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {
-      draft: false,
-    })
+    .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {draft: false})
     .reply(200, {html_url: releaseUrl})
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {full_name: `${owner}/${repo}`})
@@ -383,7 +416,10 @@ test.serial('Verify, release and notify success', async t => {
     .reply(200, {browser_download_url: otherAssetUrl});
 
   await t.notThrowsAsync(t.context.m.verifyConditions({}, {cwd, env, options, logger: t.context.logger}));
-  await t.context.m.publish({assets}, {cwd, env, options, nextRelease, logger: t.context.logger});
+  await t.context.m.publish(
+    {assets},
+    {cwd, env, options, branch: {type: 'release', main: true}, nextRelease, logger: t.context.logger}
+  );
   await t.context.m.success(
     {assets, failTitle},
     {cwd, env, options, nextRelease, commits, releases: [], logger: t.context.logger}
@@ -398,12 +434,73 @@ test.serial('Verify, release and notify success', async t => {
   t.true(githubUpload2.isDone());
 });
 
+test.serial('Verify, update release and notify success', async t => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  const env = {GITHUB_TOKEN: 'github_token'};
+  const failTitle = 'The automated release is failing 🚨';
+  const options = {
+    publish: [{path: '@semantic-release/npm'}, {path: '@semantic-release/github'}],
+    repositoryUrl: `https://github.com/${owner}/${repo}.git`,
+  };
+  const nextRelease = {gitTag: 'v1.0.0', name: 'v1.0.0', notes: 'Test release note body'};
+  const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
+  const releaseId = 1;
+  const prs = [{number: 1, pull_request: {}, state: 'closed'}];
+  const commits = [{hash: '123', message: 'Commit 1 message', tree: {long: 'aaa'}}];
+  const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {permissions: {push: true}})
+    .get(`/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`)
+    .reply(200, {id: releaseId})
+    .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {
+      tag_name: nextRelease.gitTag,
+      name: nextRelease.name,
+      prerelease: false,
+    })
+    .reply(200, {html_url: releaseUrl})
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {full_name: `${owner}/${repo}`})
+    .get(
+      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
+        .map(commit => commit.hash)
+        .join('+')}`
+    )
+    .reply(200, {items: prs})
+    .get(`/repos/${owner}/${repo}/pulls/1/commits`)
+    .reply(200, [{sha: commits[0].hash}])
+    .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
+    .reply(200, {html_url: 'https://github.com/successcomment-1'})
+    .post(`/repos/${owner}/${repo}/issues/1/labels`, '["released"]')
+    .reply(200, {})
+    .get(
+      `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
+        'state:open'
+      )}+${escape(failTitle)}`
+    )
+    .reply(200, {items: []});
+
+  await t.notThrowsAsync(t.context.m.verifyConditions({}, {cwd, env, options, logger: t.context.logger}));
+  await t.context.m.addChannel(
+    {},
+    {cwd, env, branch: {type: 'release', main: true}, nextRelease, options, logger: t.context.logger}
+  );
+  await t.context.m.success(
+    {failTitle},
+    {cwd, env, options, nextRelease, commits, releases: [], logger: t.context.logger}
+  );
+
+  t.deepEqual(t.context.log.args[0], ['Verify GitHub authentication']);
+  t.deepEqual(t.context.log.args[1], ['Updated GitHub release: %s', releaseUrl]);
+  t.true(github.isDone());
+});
+
 test.serial('Verify and notify failure', async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
   const failTitle = 'The automated release is failing 🚨';
-  const options = {branch: 'master', repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const options = {repositoryUrl: `https://github.com/${owner}/${repo}.git`};
   const errors = [
     new SemanticReleaseError('Error message 1', 'ERR1', 'Error 1 details'),
     new SemanticReleaseError('Error message 2', 'ERR2', 'Error 2 details'),
@@ -428,7 +525,7 @@ test.serial('Verify and notify failure', async t => {
     .reply(200, {html_url: 'https://github.com/issues/1', number: 1});
 
   await t.notThrowsAsync(t.context.m.verifyConditions({}, {cwd, env, options, logger: t.context.logger}));
-  await t.context.m.fail({failTitle}, {cwd, env, options, errors, logger: t.context.logger});
+  await t.context.m.fail({failTitle}, {cwd, env, options, branch: {name: 'master'}, errors, logger: t.context.logger});
 
   t.deepEqual(t.context.log.args[0], ['Verify GitHub authentication']);
   t.true(t.context.log.calledWith('Created issue #%d: %s.', 1, 'https://github.com/issues/1'));

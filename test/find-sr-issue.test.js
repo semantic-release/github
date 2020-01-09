@@ -3,7 +3,7 @@ import test from 'ava';
 import nock from 'nock';
 import {stub} from 'sinon';
 import proxyquire from 'proxyquire';
-import ISSUE_ID from '../lib/definitions/sr-issue-id';
+import {ISSUE_ID} from '../lib/definitions/constants';
 import findSRIssues from '../lib/find-sr-issues';
 import {authenticate} from './helpers/mock-github';
 import rateLimit from './helpers/rate-limit';

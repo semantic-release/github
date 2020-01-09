@@ -41,14 +41,14 @@
     "nyc": "^15.0.0",
     "proxy": "^1.0.0",
     "proxyquire": "^2.0.0",
-    "semantic-release": "^15.13.12",
+    "semantic-release": "^16.0.0-beta",
     "server-destroy": "^1.0.1",
     "sinon": "^8.0.0",
     "tempy": "^0.3.0",
     "xo": "^0.25.2"
   },
   "engines": {
-    "node": ">=8.16"
+    "node": ">=10.13"
   },
   "files": [
     "lib",
@@ -81,15 +81,14 @@
     "all": true
   },
   "peerDependencies": {
-    "semantic-release": ">=15.8.0 <16.0.0"
+    "semantic-release": ">=16.0.0-beta <17.0.0"
   },
   "prettier": {
     "printWidth": 120,
     "trailingComma": "es5"
   },
   "publishConfig": {
-    "access": "public",
-    "tag": "next"
+    "access": "public"
   },
   "repository": {
     "type": "git",
