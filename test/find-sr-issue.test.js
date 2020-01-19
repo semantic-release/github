@@ -1,12 +1,12 @@
-import {escape} from 'querystring';
-import test from 'ava';
-import nock from 'nock';
-import {stub} from 'sinon';
-import proxyquire from 'proxyquire';
-import {ISSUE_ID} from '../lib/definitions/constants';
-import findSRIssues from '../lib/find-sr-issues';
-import {authenticate} from './helpers/mock-github';
-import rateLimit from './helpers/rate-limit';
+const {escape} = require('querystring');
+const test = require('ava');
+const nock = require('nock');
+const {stub} = require('sinon');
+const proxyquire = require('proxyquire');
+const {ISSUE_ID} = require('../lib/definitions/constants');
+const findSRIssues = require('../lib/find-sr-issues');
+const {authenticate} = require('./helpers/mock-github');
+const rateLimit = require('./helpers/rate-limit');
 
 const githubToken = 'github_token';
 const client = proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit})({githubToken});

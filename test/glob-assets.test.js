@@ -1,9 +1,9 @@
-import path from 'path';
-import test from 'ava';
-import {copy, ensureDir} from 'fs-extra';
-import {isPlainObject, sortBy} from 'lodash';
-import tempy from 'tempy';
-import globAssets from '../lib/glob-assets';
+const path = require('path');
+const test = require('ava');
+const {copy, ensureDir} = require('fs-extra');
+const {isPlainObject, sortBy} = require('lodash');
+const tempy = require('tempy');
+const globAssets = require('../lib/glob-assets');
 
 const sortAssets = assets => sortBy(assets, asset => (isPlainObject(asset) ? asset.path : asset));
 

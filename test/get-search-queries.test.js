@@ -1,6 +1,6 @@
-import test from 'ava';
-import {repeat} from 'lodash';
-import getSearchQueries from '../lib/get-search-queries';
+const test = require('ava');
+const {repeat} = require('lodash');
+const getSearchQueries = require('../lib/get-search-queries');
 
 test('Generate queries of 256 characters maximum', t => {
   const commits = [

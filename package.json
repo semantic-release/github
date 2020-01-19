@@ -4,8 +4,8 @@
   "version": "0.0.0-development",
   "author": "Pierre Vanduynslager (https://twitter.com/@pvdlg_)",
   "ava": {
-    "helpers": [
-      "test/helpers/**/*"
+    "files": [
+      "test/**/*.test.js"
     ]
   },
   "bugs": {
@@ -34,7 +34,7 @@
     "url-join": "^4.0.0"
   },
   "devDependencies": {
-    "ava": "^2.0.0",
+    "ava": "^3.1.0",
     "clear-module": "^4.0.0",
     "codecov": "^3.5.0",
     "nock": "^11.1.0",

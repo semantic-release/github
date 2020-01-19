@@ -1,5 +1,5 @@
-import test from 'ava';
-import getSuccessComment from '../lib/get-success-comment';
+const test = require('ava');
+const getSuccessComment = require('../lib/get-success-comment');
 
 const HOME_URL = 'https://github.com/semantic-release/semantic-release';
 
