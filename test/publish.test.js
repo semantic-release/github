@@ -1,13 +1,13 @@
-import path from 'path';
-import {escape} from 'querystring';
-import test from 'ava';
-import {stat} from 'fs-extra';
-import nock from 'nock';
-import {stub} from 'sinon';
-import proxyquire from 'proxyquire';
-import tempy from 'tempy';
-import {authenticate, upload} from './helpers/mock-github';
-import rateLimit from './helpers/rate-limit';
+const path = require('path');
+const {escape} = require('querystring');
+const test = require('ava');
+const {stat} = require('fs-extra');
+const nock = require('nock');
+const {stub} = require('sinon');
+const proxyquire = require('proxyquire');
+const tempy = require('tempy');
+const {authenticate, upload} = require('./helpers/mock-github');
+const rateLimit = require('./helpers/rate-limit');
 
 /* eslint camelcase: ["error", {properties: "never"}] */
 

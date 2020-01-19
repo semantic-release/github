@@ -1,16 +1,16 @@
-import path from 'path';
-import http from 'http';
-import https from 'https';
-import {promisify} from 'util';
-import {readFile} from 'fs-extra';
-import test from 'ava';
-import {inRange} from 'lodash';
-import {stub, spy} from 'sinon';
-import proxyquire from 'proxyquire';
-import Proxy from 'proxy';
-import serverDestroy from 'server-destroy';
-import Octokit from '@octokit/rest';
-import rateLimit from './helpers/rate-limit';
+const path = require('path');
+const http = require('http');
+const https = require('https');
+const {promisify} = require('util');
+const {readFile} = require('fs-extra');
+const test = require('ava');
+const {inRange} = require('lodash');
+const {stub, spy} = require('sinon');
+const proxyquire = require('proxyquire');
+const Proxy = require('proxy');
+const serverDestroy = require('server-destroy');
+const Octokit = require('@octokit/rest');
+const rateLimit = require('./helpers/rate-limit');
 
 const getClient = proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit});
 

@@ -1,14 +1,14 @@
-import path from 'path';
-import {escape} from 'querystring';
-import test from 'ava';
-import {stat} from 'fs-extra';
-import nock from 'nock';
-import {stub} from 'sinon';
-import proxyquire from 'proxyquire';
-import clearModule from 'clear-module';
-import SemanticReleaseError from '@semantic-release/error';
-import {authenticate, upload} from './helpers/mock-github';
-import rateLimit from './helpers/rate-limit';
+const path = require('path');
+const {escape} = require('querystring');
+const test = require('ava');
+const {stat} = require('fs-extra');
+const nock = require('nock');
+const {stub} = require('sinon');
+const proxyquire = require('proxyquire');
+const clearModule = require('clear-module');
+const SemanticReleaseError = require('@semantic-release/error');
+const {authenticate, upload} = require('./helpers/mock-github');
+const rateLimit = require('./helpers/rate-limit');
 
 const cwd = 'test/fixtures/files';
 const client = proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit});

@@ -4,4 +4,4 @@ const RATE_LIMITS = {search: 1, core: {read: 1, write: 1}};
 
 const GLOBAL_RATE_LIMIT = 1;
 
-export default {RETRY_CONF, RATE_LIMITS, GLOBAL_RATE_LIMIT};
+module.exports = {RETRY_CONF, RATE_LIMITS, GLOBAL_RATE_LIMIT};

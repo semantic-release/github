@@ -1,4 +1,4 @@
-import nock from 'nock';
+const nock = require('nock');
 
 /**
  * Return a `nock` object setup to respond to a github authentication request. Other expectation and responses can be chained.
@@ -9,7 +9,7 @@ import nock from 'nock';
  * @param {String} [githubApiPathPrefix=env.GH_PREFIX || env.GITHUB_PREFIX || ''] The GitHub Enterprise API prefix.
  * @return {Object} A `nock` object ready to respond to a github authentication request.
  */
-export function authenticate(
+function authenticate(
   env = {},
   {
     githubToken = env.GH_TOKEN || env.GITHUB_TOKEN || 'GH_TOKEN',
@@ -28,7 +28,7 @@ export function authenticate(
  * @param {String} [uploadUrl] The url on which to intercept http requests.
  * @return {Object} A `nock` object ready to respond to a github file upload request.
  */
-export function upload(
+function upload(
   env = {},
   {
     githubToken = env.GH_TOKEN || env.GITHUB_TOKEN || 'GH_TOKEN',
@@ -41,3 +41,5 @@ export function upload(
     reqheaders: {Authorization: `token ${githubToken}`, 'content-type': contentType, 'content-length': contentLength},
   });
 }
+
+module.exports = {authenticate, upload};
