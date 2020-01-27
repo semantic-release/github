@@ -41,7 +41,7 @@
     "nyc": "^15.0.0",
     "proxy": "^1.0.0",
     "proxyquire": "^2.0.0",
-    "semantic-release": "^16.0.0",
+    "semantic-release": "^17.0.0",
     "server-destroy": "^1.0.1",
     "sinon": "^8.0.0",
     "tempy": "^0.3.0",
