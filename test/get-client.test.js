@@ -9,7 +9,7 @@ const {stub, spy} = require('sinon');
 const proxyquire = require('proxyquire');
 const Proxy = require('proxy');
 const serverDestroy = require('server-destroy');
-const Octokit = require('@octokit/rest');
+const {Octokit} = require('@octokit/rest');
 const rateLimit = require('./helpers/rate-limit');
 
 const getClient = proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit});
@@ -94,7 +94,7 @@ test('Use the global throttler for all endpoints', async t => {
   const octokit = new Octokit();
   octokit.hook.wrap('request', () => Date.now());
   const github = proxyquire('../lib/get-client', {
-    '@octokit/rest': stub().returns(octokit),
+    '@octokit/rest': {Octokit: stub().returns(octokit)},
     './definitions/rate-limit': {RATE_LIMITS: {search: 1, core: 1}, GLOBAL_RATE_LIMIT: rate},
   })({githubToken: 'token'});
 
@@ -124,7 +124,7 @@ test('Use the same throttler for endpoints in the same rate limit group', async 
   const octokit = new Octokit();
   octokit.hook.wrap('request', () => Date.now());
   const github = proxyquire('../lib/get-client', {
-    '@octokit/rest': stub().returns(octokit),
+    '@octokit/rest': {Octokit: stub().returns(octokit)},
     './definitions/rate-limit': {RATE_LIMITS: {search: searchRate, core: coreRate}, GLOBAL_RATE_LIMIT: 1},
   })({githubToken: 'token'});
 
@@ -155,7 +155,7 @@ test('Use different throttler for read and write endpoints', async t => {
   const octokit = new Octokit();
   octokit.hook.wrap('request', () => Date.now());
   const github = proxyquire('../lib/get-client', {
-    '@octokit/rest': stub().returns(octokit),
+    '@octokit/rest': {Octokit: stub().returns(octokit)},
     './definitions/rate-limit': {RATE_LIMITS: {core: {write: writeRate, read: readRate}}, GLOBAL_RATE_LIMIT: 1},
   })({githubToken: 'token'});
 
@@ -181,7 +181,7 @@ test('Use the same throttler when retrying', async t => {
   const octokit = new Octokit();
   octokit.hook.wrap('request', request);
   const github = proxyquire('../lib/get-client', {
-    '@octokit/rest': stub().returns(octokit),
+    '@octokit/rest': {Octokit: stub().returns(octokit)},
     './definitions/rate-limit': {
       RETRY_CONF: {retries: 3, factor: 1, minTimeout: 1},
       RATE_LIMITS: {core: coreRate},
