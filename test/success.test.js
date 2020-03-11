@@ -466,7 +466,7 @@ test.serial('Ignore missing and forbidden issues/PRs', async t => {
   t.true(t.context.log.calledWith('Added labels %O to issue #%d', ['released'], 4));
   t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 5, 'https://github.com/successcomment-5'));
   t.true(t.context.log.calledWith('Added labels %O to issue #%d', ['released'], 5));
-  t.true(t.context.error.calledWith("Failed to add a comment to the issue #%d as it doesn't exist.", 2));
+  t.true(t.context.error.calledWith('Failed to add a comment to the issue #%d as it doesn’t exist.', 2));
   t.true(t.context.error.calledWith('Not allowed to add a comment to the issue #%d.', 3));
   t.true(github.isDone());
 });
