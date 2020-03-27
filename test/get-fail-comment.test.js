@@ -34,7 +34,7 @@ test('Comment with missing error details and pluginName', t => {
   t.regex(comment, /the `master` branch/);
   t.regex(
     comment,
-    /---\n\n### Error message 1\n\nUnfortunately this error doesn’t have any additional information. Feel free to kindly ask the author of the `some-plugin` plugin to add more helpful information.\n\n---/
+    /---\n\n### Error message 1\n\nUnfortunately this error doesn't have any additional information. Feel free to kindly ask the author of the `some-plugin` plugin to add more helpful information.\n\n---/
   );
 });
 
@@ -46,6 +46,6 @@ test('Comment with missing error details and no pluginName', t => {
   t.regex(comment, /the `master` branch/);
   t.regex(
     comment,
-    /---\n\n### Error message 1\n\nUnfortunately this error doesn’t have any additional information.\n\n---/
+    /---\n\n### Error message 1\n\nUnfortunately this error doesn't have any additional information.\n\n---/
   );
 });

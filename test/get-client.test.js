@@ -98,13 +98,14 @@ test('Use the global throttler for all endpoints', async t => {
     './definitions/rate-limit': {RATE_LIMITS: {search: 1, core: 1}, GLOBAL_RATE_LIMIT: rate},
   })({githubToken: 'token'});
 
+  /* eslint-disable unicorn/prevent-abbreviations */
+
   const a = await github.repos.createRelease();
   const b = await github.issues.createComment();
   const c = await github.repos.createRelease();
   const d = await github.issues.createComment();
-  // Skipping "e" so the XO linter won't complain
+  const e = await github.search.issuesAndPullRequests();
   const f = await github.search.issuesAndPullRequests();
-  const g = await github.search.issuesAndPullRequests();
 
   // `issues.createComment` should be called `rate` ms after `repos.createRelease`
   t.true(inRange(b - a, rate - 50, rate + 50));
@@ -113,9 +114,11 @@ test('Use the global throttler for all endpoints', async t => {
   // `issues.createComment` should be called `rate` ms after `repos.createRelease`
   t.true(inRange(d - c, rate - 50, rate + 50));
   // `search.issuesAndPullRequests` should be called `rate` ms after `issues.createComment`
-  t.true(inRange(f - d, rate - 50, rate + 50));
+  t.true(inRange(e - d, rate - 50, rate + 50));
   // `search.issuesAndPullRequests` should be called `rate` ms after `search.issuesAndPullRequests`
-  t.true(inRange(g - f, rate - 50, rate + 50));
+  t.true(inRange(f - e, rate - 50, rate + 50));
+
+  /* eslint-enable unicorn/prevent-abbreviations */
 });
 
 test('Use the same throttler for endpoints in the same rate limit group', async t => {
@@ -129,13 +132,14 @@ test('Use the same throttler for endpoints in the same rate limit group', async 
     './definitions/rate-limit': {RATE_LIMITS: {search: searchRate, core: coreRate}, GLOBAL_RATE_LIMIT: 1},
   })({githubToken: 'token'});
 
+  /* eslint-disable unicorn/prevent-abbreviations */
+
   const a = await github.repos.createRelease();
   const b = await github.issues.createComment();
   const c = await github.repos.createRelease();
   const d = await github.issues.createComment();
-  // Skipping "e" so the XO linter won't complain
+  const e = await github.search.issuesAndPullRequests();
   const f = await github.search.issuesAndPullRequests();
-  const g = await github.search.issuesAndPullRequests();
 
   // `issues.createComment` should be called `coreRate` ms after `repos.createRelease`
   t.true(inRange(b - a, coreRate - 50, coreRate + 50));
@@ -145,9 +149,11 @@ test('Use the same throttler for endpoints in the same rate limit group', async 
   t.true(inRange(d - c, coreRate - 50, coreRate + 50));
 
   // The first search should be called immediatly as it uses a different throttler
-  t.true(inRange(f - d, -50, 50));
+  t.true(inRange(e - d, -50, 50));
   // The second search should be called only after `searchRate` ms
-  t.true(inRange(g - f, searchRate - 50, searchRate + 50));
+  t.true(inRange(f - e, searchRate - 50, searchRate + 50));
+
+  /* eslint-enable unicorn/prevent-abbreviations */
 });
 
 test('Use different throttler for read and write endpoints', async t => {
