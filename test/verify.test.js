@@ -403,7 +403,7 @@ test('Throw SemanticReleaseError for invalid repositoryUrl', async t => {
   t.is(error.code, 'EINVALIDGITHUBURL');
 });
 
-test.serial('Throw SemanticReleaseError if token doesn’t have the push permission on the repository', async t => {
+test.serial("Throw SemanticReleaseError if token doesn't have the push permission on the repository", async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -421,7 +421,7 @@ test.serial('Throw SemanticReleaseError if token doesn’t have the push permiss
   t.true(github.isDone());
 });
 
-test.serial('Throw SemanticReleaseError if the repository doesn’t exist', async t => {
+test.serial("Throw SemanticReleaseError if the repository doesn't exist", async t => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
