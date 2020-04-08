@@ -11,7 +11,7 @@ const rateLimit = require('./helpers/rate-limit');
 const githubToken = 'github_token';
 const client = proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit})({githubToken});
 
-test.beforeEach(t => {
+test.beforeEach((t) => {
   // Mock logger
   t.context.log = stub();
   t.context.error = stub();
@@ -23,7 +23,7 @@ test.afterEach.always(() => {
   nock.cleanAll();
 });
 
-test.serial('Filter out issues without ID', async t => {
+test.serial('Filter out issues without ID', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const githubToken = 'github_token';
@@ -51,7 +51,7 @@ test.serial('Filter out issues without ID', async t => {
   t.true(github.isDone());
 });
 
-test.serial('Return empty array if not issues found', async t => {
+test.serial('Return empty array if not issues found', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const githubToken = 'github_token';
@@ -72,7 +72,7 @@ test.serial('Return empty array if not issues found', async t => {
   t.true(github.isDone());
 });
 
-test.serial('Return empty array if not issues has matching ID', async t => {
+test.serial('Return empty array if not issues has matching ID', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const githubToken = 'github_token';
@@ -95,7 +95,7 @@ test.serial('Return empty array if not issues has matching ID', async t => {
   t.true(github.isDone());
 });
 
-test.serial('Retries 4 times', async t => {
+test.serial('Retries 4 times', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const title = 'The automated release is failing :rotating_light:';
@@ -114,7 +114,7 @@ test.serial('Retries 4 times', async t => {
   t.true(github.isDone());
 });
 
-test.serial('Do not retry on 401 error', async t => {
+test.serial('Do not retry on 401 error', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const title = 'The automated release is failing :rotating_light:';

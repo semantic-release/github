@@ -2,7 +2,7 @@ const test = require('ava');
 const SemanticReleaseError = require('@semantic-release/error');
 const getfailComment = require('../lib/get-fail-comment');
 
-test('Comment with mutiple errors', t => {
+test('Comment with mutiple errors', (t) => {
   const errors = [
     new SemanticReleaseError('Error message 1', 'ERR1', 'Error 1 details'),
     new SemanticReleaseError('Error message 2', 'ERR2', 'Error 2 details'),
@@ -17,7 +17,7 @@ test('Comment with mutiple errors', t => {
   );
 });
 
-test('Comment with one error', t => {
+test('Comment with one error', (t) => {
   const errors = [new SemanticReleaseError('Error message 1', 'ERR1', 'Error 1 details')];
   const comment = getfailComment({name: 'master'}, errors);
 
@@ -25,7 +25,7 @@ test('Comment with one error', t => {
   t.regex(comment, /---\n\n### Error message 1\n\nError 1 details\n\n---/);
 });
 
-test('Comment with missing error details and pluginName', t => {
+test('Comment with missing error details and pluginName', (t) => {
   const error = new SemanticReleaseError('Error message 1', 'ERR1');
   error.pluginName = 'some-plugin';
   const errors = [error];
@@ -38,7 +38,7 @@ test('Comment with missing error details and pluginName', t => {
   );
 });
 
-test('Comment with missing error details and no pluginName', t => {
+test('Comment with missing error details and no pluginName', (t) => {
   const error = new SemanticReleaseError('Error message 1', 'ERR1');
   const errors = [error];
   const comment = getfailComment({name: 'master'}, errors);

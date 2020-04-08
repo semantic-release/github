@@ -16,7 +16,7 @@ const getClient = proxyquire('../lib/get-client', {'./definitions/rate-limit': r
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
-test.serial('Use a http proxy', async t => {
+test.serial('Use a http proxy', async (t) => {
   const server = http.createServer();
   await promisify(server.listen).bind(server)();
   const serverPort = server.address().port;
@@ -51,7 +51,7 @@ test.serial('Use a http proxy', async t => {
   await promisify(server.destroy).bind(server)();
 });
 
-test.serial('Use a https proxy', async t => {
+test.serial('Use a https proxy', async (t) => {
   const server = https.createServer({
     key: await readFile(path.join(__dirname, '/fixtures/ssl/ssl-cert-snakeoil.key')),
     cert: await readFile(path.join(__dirname, '/fixtures/ssl/ssl-cert-snakeoil.pem')),
@@ -88,7 +88,7 @@ test.serial('Use a https proxy', async t => {
   await promisify(server.destroy).bind(server)();
 });
 
-test('Use the global throttler for all endpoints', async t => {
+test('Use the global throttler for all endpoints', async (t) => {
   const rate = 150;
 
   const octokit = new Octokit();
@@ -121,7 +121,7 @@ test('Use the global throttler for all endpoints', async t => {
   /* eslint-enable unicorn/prevent-abbreviations */
 });
 
-test('Use the same throttler for endpoints in the same rate limit group', async t => {
+test('Use the same throttler for endpoints in the same rate limit group', async (t) => {
   const searchRate = 300;
   const coreRate = 150;
 
@@ -156,7 +156,7 @@ test('Use the same throttler for endpoints in the same rate limit group', async 
   /* eslint-enable unicorn/prevent-abbreviations */
 });
 
-test('Use different throttler for read and write endpoints', async t => {
+test('Use different throttler for read and write endpoints', async (t) => {
   const writeRate = 300;
   const readRate = 150;
 
@@ -178,7 +178,7 @@ test('Use different throttler for read and write endpoints', async t => {
   t.true(inRange(d - c, writeRate - 50, writeRate + 50));
 });
 
-test('Use the same throttler when retrying', async t => {
+test('Use the same throttler when retrying', async (t) => {
   const coreRate = 200;
   const request = stub().callsFake(async () => {
     const err = new Error();

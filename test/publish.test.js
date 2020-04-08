@@ -16,7 +16,7 @@ const publish = proxyquire('../lib/publish', {
   './get-client': proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit}),
 });
 
-test.beforeEach(t => {
+test.beforeEach((t) => {
   // Mock logger
   t.context.log = stub();
   t.context.error = stub();
@@ -28,7 +28,7 @@ test.afterEach.always(() => {
   nock.cleanAll();
 });
 
-test.serial('Publish a release', async t => {
+test.serial('Publish a release', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -63,7 +63,7 @@ test.serial('Publish a release', async t => {
   t.true(github.isDone());
 });
 
-test.serial('Publish a release on a channel', async t => {
+test.serial('Publish a release on a channel', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -98,7 +98,7 @@ test.serial('Publish a release on a channel', async t => {
   t.true(github.isDone());
 });
 
-test.serial('Publish a prerelease', async t => {
+test.serial('Publish a prerelease', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -133,7 +133,7 @@ test.serial('Publish a prerelease', async t => {
   t.true(github.isDone());
 });
 
-test.serial('Publish a maintenance release', async t => {
+test.serial('Publish a maintenance release', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -168,7 +168,7 @@ test.serial('Publish a maintenance release', async t => {
   t.true(github.isDone());
 });
 
-test.serial('Publish a release, retrying 4 times', async t => {
+test.serial('Publish a release, retrying 4 times', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -211,7 +211,7 @@ test.serial('Publish a release, retrying 4 times', async t => {
   t.true(github.isDone());
 });
 
-test.serial('Publish a release with one asset', async t => {
+test.serial('Publish a release with one asset', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -262,7 +262,7 @@ test.serial('Publish a release with one asset', async t => {
   t.true(githubUpload.isDone());
 });
 
-test.serial('Publish a release with one asset and custom github url', async t => {
+test.serial('Publish a release with one asset and custom github url', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_URL: 'https://othertesturl.com:443', GH_TOKEN: 'github_token', GH_PREFIX: 'prefix'};
@@ -313,7 +313,7 @@ test.serial('Publish a release with one asset and custom github url', async t =>
   t.true(githubUpload.isDone());
 });
 
-test.serial('Publish a release with an array of missing assets', async t => {
+test.serial('Publish a release with an array of missing assets', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -355,7 +355,7 @@ test.serial('Publish a release with an array of missing assets', async t => {
   t.true(github.isDone());
 });
 
-test.serial('Throw error without retries for 400 error', async t => {
+test.serial('Throw error without retries for 400 error', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};

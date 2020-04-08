@@ -13,7 +13,7 @@ const rateLimit = require('./helpers/rate-limit');
 const cwd = 'test/fixtures/files';
 const client = proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit});
 
-test.beforeEach(t => {
+test.beforeEach((t) => {
   // Clear npm cache to refresh the module state
   clearModule('..');
   t.context.m = proxyquire('..', {
@@ -33,7 +33,7 @@ test.afterEach.always(() => {
   nock.cleanAll();
 });
 
-test.serial('Verify GitHub auth', async t => {
+test.serial('Verify GitHub auth', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -47,7 +47,7 @@ test.serial('Verify GitHub auth', async t => {
   t.true(github.isDone());
 });
 
-test.serial('Verify GitHub auth with publish options', async t => {
+test.serial('Verify GitHub auth with publish options', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -64,7 +64,7 @@ test.serial('Verify GitHub auth with publish options', async t => {
   t.true(github.isDone());
 });
 
-test.serial('Verify GitHub auth and assets config', async t => {
+test.serial('Verify GitHub auth and assets config', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -88,7 +88,7 @@ test.serial('Verify GitHub auth and assets config', async t => {
   t.true(github.isDone());
 });
 
-test.serial('Throw SemanticReleaseError if invalid config', async t => {
+test.serial('Throw SemanticReleaseError if invalid config', async (t) => {
   const env = {};
   const assets = [{wrongProperty: 'lib/file.js'}];
   const successComment = 42;
@@ -126,7 +126,7 @@ test.serial('Throw SemanticReleaseError if invalid config', async t => {
   t.is(errors[7].code, 'ENOGHTOKEN');
 });
 
-test.serial('Publish a release with an array of assets', async t => {
+test.serial('Publish a release with an array of assets', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -183,7 +183,7 @@ test.serial('Publish a release with an array of assets', async t => {
   t.true(githubUpload2.isDone());
 });
 
-test.serial('Publish a release with release information in assets', async t => {
+test.serial('Publish a release with release information in assets', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -240,7 +240,7 @@ test.serial('Publish a release with release information in assets', async t => {
   t.true(githubUpload.isDone());
 });
 
-test.serial('Update a release', async t => {
+test.serial('Update a release', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -272,7 +272,7 @@ test.serial('Update a release', async t => {
   t.true(github.isDone());
 });
 
-test.serial('Comment and add labels on PR included in the releases', async t => {
+test.serial('Comment and add labels on PR included in the releases', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -289,7 +289,7 @@ test.serial('Comment and add labels on PR included in the releases', async t => 
     .reply(200, {full_name: `${owner}/${repo}`})
     .get(
       `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
-        .map(commit => commit.hash)
+        .map((commit) => commit.hash)
         .join('+')}`
     )
     .reply(200, {items: prs})
@@ -314,7 +314,7 @@ test.serial('Comment and add labels on PR included in the releases', async t => 
   t.true(github.isDone());
 });
 
-test.serial('Open a new issue with the list of errors', async t => {
+test.serial('Open a new issue with the list of errors', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -350,7 +350,7 @@ test.serial('Open a new issue with the list of errors', async t => {
   t.true(github.isDone());
 });
 
-test.serial('Verify, release and notify success', async t => {
+test.serial('Verify, release and notify success', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -386,7 +386,7 @@ test.serial('Verify, release and notify success', async t => {
     .reply(200, {full_name: `${owner}/${repo}`})
     .get(
       `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
-        .map(commit => commit.hash)
+        .map((commit) => commit.hash)
         .join('+')}`
     )
     .reply(200, {items: prs})
@@ -434,7 +434,7 @@ test.serial('Verify, release and notify success', async t => {
   t.true(githubUpload2.isDone());
 });
 
-test.serial('Verify, update release and notify success', async t => {
+test.serial('Verify, update release and notify success', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -463,7 +463,7 @@ test.serial('Verify, update release and notify success', async t => {
     .reply(200, {full_name: `${owner}/${repo}`})
     .get(
       `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
-        .map(commit => commit.hash)
+        .map((commit) => commit.hash)
         .join('+')}`
     )
     .reply(200, {items: prs})
@@ -495,7 +495,7 @@ test.serial('Verify, update release and notify success', async t => {
   t.true(github.isDone());
 });
 
-test.serial('Verify and notify failure', async t => {
+test.serial('Verify and notify failure', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
