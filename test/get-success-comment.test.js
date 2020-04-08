@@ -3,7 +3,7 @@ const getSuccessComment = require('../lib/get-success-comment');
 
 const HOME_URL = 'https://github.com/semantic-release/semantic-release';
 
-test('Comment for issue with multiple releases', t => {
+test('Comment for issue with multiple releases', (t) => {
   const issue = {number: 1};
   const releaseInfos = [
     {name: 'GitHub release', url: 'https://github.com/release'},
@@ -24,7 +24,7 @@ Your **[semantic-release](${HOME_URL})** bot :package::rocket:`
   );
 });
 
-test('Comment for PR with multiple releases', t => {
+test('Comment for PR with multiple releases', (t) => {
   const issue = {number: 1, pull_request: {}};
   const releaseInfos = [
     {name: 'GitHub release', url: 'https://github.com/release'},
@@ -45,7 +45,7 @@ Your **[semantic-release](${HOME_URL})** bot :package::rocket:`
   );
 });
 
-test('Comment with missing release URL', t => {
+test('Comment with missing release URL', (t) => {
   const issue = {number: 1};
   const releaseInfos = [{name: 'GitHub release', url: 'https://github.com/release'}, {name: 'npm release'}];
   const nextRelease = {version: '1.0.0'};
@@ -63,7 +63,7 @@ Your **[semantic-release](${HOME_URL})** bot :package::rocket:`
   );
 });
 
-test('Comment with one release', t => {
+test('Comment with one release', (t) => {
   const issue = {number: 1};
   const releaseInfos = [{name: 'GitHub release', url: 'https://github.com/release'}];
   const nextRelease = {version: '1.0.0'};
@@ -79,7 +79,7 @@ Your **[semantic-release](${HOME_URL})** bot :package::rocket:`
   );
 });
 
-test('Comment with no release object', t => {
+test('Comment with no release object', (t) => {
   const issue = {number: 1};
   const releaseInfos = [];
   const nextRelease = {version: '1.0.0'};

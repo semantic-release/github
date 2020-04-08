@@ -14,7 +14,7 @@ const fail = proxyquire('../lib/fail', {
   './get-client': proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit}),
 });
 
-test.beforeEach(t => {
+test.beforeEach((t) => {
   // Mock logger
   t.context.log = stub();
   t.context.error = stub();
@@ -26,7 +26,7 @@ test.afterEach.always(() => {
   nock.cleanAll();
 });
 
-test.serial('Open a new issue with the list of errors', async t => {
+test.serial('Open a new issue with the list of errors', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const redirectedOwner = 'test_user_2';
@@ -62,7 +62,7 @@ test.serial('Open a new issue with the list of errors', async t => {
   t.true(github.isDone());
 });
 
-test.serial('Open a new issue with the list of errors, retrying 4 times', async t => {
+test.serial('Open a new issue with the list of errors, retrying 4 times', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -110,7 +110,7 @@ test.serial('Open a new issue with the list of errors, retrying 4 times', async 
   t.true(github.isDone());
 });
 
-test.serial('Open a new issue with the list of errors and custom title and comment', async t => {
+test.serial('Open a new issue with the list of errors and custom title and comment', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -145,7 +145,7 @@ test.serial('Open a new issue with the list of errors and custom title and comme
   t.true(github.isDone());
 });
 
-test.serial('Open a new issue with assignees and the list of errors', async t => {
+test.serial('Open a new issue with assignees and the list of errors', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -180,7 +180,7 @@ test.serial('Open a new issue with assignees and the list of errors', async t =>
   t.true(github.isDone());
 });
 
-test.serial('Open a new issue without labels and the list of errors', async t => {
+test.serial('Open a new issue without labels and the list of errors', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -214,7 +214,7 @@ test.serial('Open a new issue without labels and the list of errors', async t =>
   t.true(github.isDone());
 });
 
-test.serial('Update the first existing issue with the list of errors', async t => {
+test.serial('Update the first existing issue with the list of errors', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -252,7 +252,7 @@ test.serial('Update the first existing issue with the list of errors', async t =
   t.true(github.isDone());
 });
 
-test.serial('Skip if "failComment" is "false"', async t => {
+test.serial('Skip if "failComment" is "false"', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -269,7 +269,7 @@ test.serial('Skip if "failComment" is "false"', async t => {
   t.true(t.context.log.calledWith('Skip issue creation.'));
 });
 
-test.serial('Skip if "failTitle" is "false"', async t => {
+test.serial('Skip if "failTitle" is "false"', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};

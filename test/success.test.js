@@ -14,7 +14,7 @@ const success = proxyquire('../lib/success', {
   './get-client': proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit}),
 });
 
-test.beforeEach(t => {
+test.beforeEach((t) => {
   // Mock logger
   t.context.log = stub();
   t.context.error = stub();
@@ -28,7 +28,7 @@ test.afterEach.always(() => {
 
 test.serial(
   'Add comment and labels to PRs associated with release commits and issues solved by PR/commits comments',
-  async t => {
+  async (t) => {
     const owner = 'test_user';
     const repo = 'test_repo';
     const redirectedOwner = 'test_user_2';
@@ -58,7 +58,7 @@ test.serial(
       .get(
         `/search/issues?q=${escape(`repo:${redirectedOwner}/${redirectedRepo}`)}+${escape('type:pr')}+${escape(
           'is:merged'
-        )}+${commits.map(commit => commit.hash).join('+')}`
+        )}+${commits.map((commit) => commit.hash).join('+')}`
       )
       .reply(200, {items: prs})
       .get(`/repos/${redirectedOwner}/${redirectedRepo}/pulls/1/commits`)
@@ -104,7 +104,7 @@ test.serial(
 
 test.serial(
   'Add comment and labels to PRs associated with release commits and issues closed by PR/commits comments with custom URL',
-  async t => {
+  async (t) => {
     const owner = 'test_user';
     const repo = 'test_repo';
     const env = {GH_URL: 'https://custom-url.com', GH_TOKEN: 'github_token', GH_PREFIX: 'prefix'};
@@ -127,7 +127,7 @@ test.serial(
       .reply(200, {full_name: `${owner}/${repo}`})
       .get(
         `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
-          .map(commit => commit.hash)
+          .map((commit) => commit.hash)
           .join('+')}`
       )
       .reply(200, {items: prs})
@@ -172,7 +172,7 @@ test.serial(
   }
 );
 
-test.serial('Make multiple search queries if necessary', async t => {
+test.serial('Make multiple search queries if necessary', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -275,7 +275,7 @@ test.serial('Make multiple search queries if necessary', async t => {
 
 test.serial(
   'Do not add comment and labels for unrelated PR returned by search (compare sha and merge_commit_sha)',
-  async t => {
+  async (t) => {
     const owner = 'test_user';
     const repo = 'test_repo';
     const env = {GITHUB_TOKEN: 'github_token'};
@@ -297,7 +297,7 @@ test.serial(
       .reply(200, {full_name: `${owner}/${repo}`})
       .get(
         `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
-          .map(commit => commit.hash)
+          .map((commit) => commit.hash)
           .join('+')}`
       )
       .reply(200, {items: prs})
@@ -328,7 +328,7 @@ test.serial(
   }
 );
 
-test.serial('Do not add comment and labels if no PR is associated with release commits', async t => {
+test.serial('Do not add comment and labels if no PR is associated with release commits', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -343,7 +343,7 @@ test.serial('Do not add comment and labels if no PR is associated with release c
     .reply(200, {full_name: `${owner}/${repo}`})
     .get(
       `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
-        .map(commit => commit.hash)
+        .map((commit) => commit.hash)
         .join('+')}`
     )
     .reply(200, {items: []})
@@ -359,7 +359,7 @@ test.serial('Do not add comment and labels if no PR is associated with release c
   t.true(github.isDone());
 });
 
-test.serial('Do not add comment and labels to PR/issues from other repo', async t => {
+test.serial('Do not add comment and labels to PR/issues from other repo', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -378,7 +378,7 @@ test.serial('Do not add comment and labels to PR/issues from other repo', async 
     .reply(200, {full_name: `${owner}/${repo}`})
     .get(
       `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
-        .map(commit => commit.hash)
+        .map((commit) => commit.hash)
         .join('+')}`
     )
     .reply(200, {items: []})
@@ -400,7 +400,7 @@ test.serial('Do not add comment and labels to PR/issues from other repo', async 
   t.true(github.isDone());
 });
 
-test.serial('Ignore missing and forbidden issues/PRs', async t => {
+test.serial('Ignore missing and forbidden issues/PRs', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -424,7 +424,7 @@ test.serial('Ignore missing and forbidden issues/PRs', async t => {
     .reply(200, {full_name: `${owner}/${repo}`})
     .get(
       `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
-        .map(commit => commit.hash)
+        .map((commit) => commit.hash)
         .join('+')}`
     )
     .reply(200, {items: prs})
@@ -471,7 +471,7 @@ test.serial('Ignore missing and forbidden issues/PRs', async t => {
   t.true(github.isDone());
 });
 
-test.serial('Add custom comment and labels', async t => {
+test.serial('Add custom comment and labels', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -492,7 +492,7 @@ test.serial('Add custom comment and labels', async t => {
     .reply(200, {full_name: `${owner}/${repo}`})
     .get(
       `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
-        .map(commit => commit.hash)
+        .map((commit) => commit.hash)
         .join('+')}`
     )
     .reply(200, {items: prs})
@@ -527,7 +527,7 @@ test.serial('Add custom comment and labels', async t => {
   t.true(github.isDone());
 });
 
-test.serial('Add custom label', async t => {
+test.serial('Add custom label', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -544,7 +544,7 @@ test.serial('Add custom label', async t => {
     .reply(200, {full_name: `${owner}/${repo}`})
     .get(
       `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
-        .map(commit => commit.hash)
+        .map((commit) => commit.hash)
         .join('+')}`
     )
     .reply(200, {items: prs})
@@ -577,7 +577,7 @@ test.serial('Add custom label', async t => {
   t.true(github.isDone());
 });
 
-test.serial('Comment on issue/PR without ading a label', async t => {
+test.serial('Comment on issue/PR without ading a label', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -594,7 +594,7 @@ test.serial('Comment on issue/PR without ading a label', async t => {
     .reply(200, {full_name: `${owner}/${repo}`})
     .get(
       `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
-        .map(commit => commit.hash)
+        .map((commit) => commit.hash)
         .join('+')}`
     )
     .reply(200, {items: prs})
@@ -624,7 +624,7 @@ test.serial('Comment on issue/PR without ading a label', async t => {
   t.true(github.isDone());
 });
 
-test.serial('Ignore errors when adding comments and closing issues', async t => {
+test.serial('Ignore errors when adding comments and closing issues', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -651,7 +651,7 @@ test.serial('Ignore errors when adding comments and closing issues', async t => 
     .reply(200, {full_name: `${owner}/${repo}`})
     .get(
       `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
-        .map(commit => commit.hash)
+        .map((commit) => commit.hash)
         .join('+')}`
     )
     .reply(200, {items: prs})
@@ -696,7 +696,7 @@ test.serial('Ignore errors when adding comments and closing issues', async t => 
   t.true(github.isDone());
 });
 
-test.serial('Close open issues when a release is successful', async t => {
+test.serial('Close open issues when a release is successful', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -716,7 +716,7 @@ test.serial('Close open issues when a release is successful', async t => {
     .reply(200, {full_name: `${owner}/${repo}`})
     .get(
       `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
-        .map(commit => commit.hash)
+        .map((commit) => commit.hash)
         .join('+')}`
     )
     .reply(200, {items: []})
@@ -746,7 +746,7 @@ test.serial('Close open issues when a release is successful', async t => {
   t.true(github.isDone());
 });
 
-test.serial('Skip commention on issues/PR if "successComment" is "false"', async t => {
+test.serial('Skip commention on issues/PR if "successComment" is "false"', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -780,7 +780,7 @@ test.serial('Skip commention on issues/PR if "successComment" is "false"', async
   t.true(github.isDone());
 });
 
-test.serial('Skip closing issues if "failComment" is "false"', async t => {
+test.serial('Skip closing issues if "failComment" is "false"', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -794,7 +794,7 @@ test.serial('Skip closing issues if "failComment" is "false"', async t => {
     .reply(200, {full_name: `${owner}/${repo}`})
     .get(
       `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
-        .map(commit => commit.hash)
+        .map((commit) => commit.hash)
         .join('+')}`
     )
     .reply(200, {items: []});
@@ -812,7 +812,7 @@ test.serial('Skip closing issues if "failComment" is "false"', async t => {
   t.true(github.isDone());
 });
 
-test.serial('Skip closing issues if "failTitle" is "false"', async t => {
+test.serial('Skip closing issues if "failTitle" is "false"', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -826,7 +826,7 @@ test.serial('Skip closing issues if "failTitle" is "false"', async t => {
     .reply(200, {full_name: `${owner}/${repo}`})
     .get(
       `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
-        .map(commit => commit.hash)
+        .map((commit) => commit.hash)
         .join('+')}`
     )
     .reply(200, {items: []});

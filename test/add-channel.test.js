@@ -11,7 +11,7 @@ const addChannel = proxyquire('../lib/add-channel', {
   './get-client': proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit}),
 });
 
-test.beforeEach(t => {
+test.beforeEach((t) => {
   // Mock logger
   t.context.log = stub();
   t.context.error = stub();
@@ -23,7 +23,7 @@ test.afterEach.always(() => {
   nock.cleanAll();
 });
 
-test.serial('Update a release', async t => {
+test.serial('Update a release', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -56,7 +56,7 @@ test.serial('Update a release', async t => {
   t.true(github.isDone());
 });
 
-test.serial('Update a maintenance release', async t => {
+test.serial('Update a maintenance release', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -89,7 +89,7 @@ test.serial('Update a maintenance release', async t => {
   t.true(github.isDone());
 });
 
-test.serial('Update a prerelease', async t => {
+test.serial('Update a prerelease', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -122,7 +122,7 @@ test.serial('Update a prerelease', async t => {
   t.true(github.isDone());
 });
 
-test.serial('Update a release with a custom github url', async t => {
+test.serial('Update a release with a custom github url', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_URL: 'https://othertesturl.com:443', GH_TOKEN: 'github_token', GH_PREFIX: 'prefix'};
@@ -155,7 +155,7 @@ test.serial('Update a release with a custom github url', async t => {
   t.true(github.isDone());
 });
 
-test.serial('Update a release, retrying 4 times', async t => {
+test.serial('Update a release, retrying 4 times', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -198,7 +198,7 @@ test.serial('Update a release, retrying 4 times', async t => {
   t.true(github.isDone());
 });
 
-test.serial('Create the new release if current one is missing', async t => {
+test.serial('Create the new release if current one is missing', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -233,7 +233,7 @@ test.serial('Create the new release if current one is missing', async t => {
   t.true(github.isDone());
 });
 
-test.serial('Throw error if cannot read current release', async t => {
+test.serial('Throw error if cannot read current release', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -260,7 +260,7 @@ test.serial('Throw error if cannot read current release', async t => {
   t.true(github.isDone());
 });
 
-test.serial('Throw error if cannot create missing current release', async t => {
+test.serial('Throw error if cannot create missing current release', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -295,7 +295,7 @@ test.serial('Throw error if cannot create missing current release', async t => {
   t.true(github.isDone());
 });
 
-test.serial('Throw error if cannot update release', async t => {
+test.serial('Throw error if cannot update release', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
