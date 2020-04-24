@@ -360,6 +360,26 @@ test.serial('Verify if run in GitHub Action', async (t) => {
   );
 });
 
+test.serial('Verify if skip permissions check option works', async (t) => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  const env = {GITHUB_TOKEN: 'v1.1234567890123456789012345678901234567890'};
+  const proxy = 'https://localhost';
+  const assets = [{path: 'lib/file.js'}, 'file.js'];
+  const successComment = 'Test comment';
+  const failTitle = 'Test title';
+  const failComment = 'Test comment';
+  const labels = ['semantic-release'];
+  const skipPermissionsCheck = true;
+
+  await t.notThrowsAsync(
+    verify(
+      {proxy, assets, successComment, failTitle, failComment, labels, skipPermissionsCheck},
+      {env, options: {repositoryUrl: `git+https://othertesturl.com/${owner}/${repo}.git`}, logger: t.context.logger}
+    )
+  );
+});
+
 test('Throw SemanticReleaseError for missing github token', async (t) => {
   const [error, ...errors] = await t.throwsAsync(
     verify(
