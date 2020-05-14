@@ -394,7 +394,7 @@ test.serial('Throw error without retries for 400 error', async (t) => {
   t.true(github.isDone());
 });
 
-test.serial(
+test.serial.only(
   'Publish a release when env.GITHUB_URL is set to https://github.com (Default in GitHub Actions, #268)',
   async (t) => {
     const owner = 'test_user';
@@ -412,7 +412,7 @@ test.serial(
     const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
     const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
 
-    const github = authenticate({...env, GITHUB_TOKEN: 'https://api.github.com'})
+    const github = authenticate({...env, GITHUB_URL: 'https://api.github.com'})
       .post(`/repos/${owner}/${repo}/releases`, {
         tag_name: nextRelease.gitTag,
         name: nextRelease.name,
