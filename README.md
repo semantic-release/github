@@ -64,11 +64,11 @@ If you have actions that trigger on newly created releases, please use a generat
 
 ### Environment variables
 
-| Variable                       | Description                                               |
-| ------------------------------ | --------------------------------------------------------- |
-| `GH_TOKEN` or `GITHUB_TOKEN`   | **Required.** The token used to authenticate with GitHub. |
-| `GH_URL` or `GITHUB_URL`       | The GitHub Enterprise endpoint.                           |
-| `GH_PREFIX` or `GITHUB_PREFIX` | The GitHub Enterprise API prefix.                         |
+| Variable                                           | Description                                               |
+| -------------------------------------------------- | --------------------------------------------------------- |
+| `GH_TOKEN` or `GITHUB_TOKEN`                       | **Required.** The token used to authenticate with GitHub. |
+| `GITHUB_API_URL` or `GH_URL` or `GITHUB_URL`       | The GitHub Enterprise endpoint.                           |
+| `GH_PREFIX` or `GITHUB_PREFIX`                     | The GitHub Enterprise API prefix.                         |
 
 ### Options
 
