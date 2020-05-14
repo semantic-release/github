@@ -5,7 +5,7 @@ const nock = require('nock');
  *
  * @param {Object} [env={}] Environment variables.
  * @param {String} [githubToken=env.GH_TOKEN || env.GITHUB_TOKEN || 'GH_TOKEN'] The github token to return in the authentication response.
- * @param {String} [githubUrl=env.GH_URL || env.GITHUB_URL || 'https://api.github.com'] The url on which to intercept http requests.
+ * @param {String} [githubUrl=env.GITHUB_API_URL || env.GH_URL || env.GITHUB_URL || 'https://api.github.com'] The url on which to intercept http requests.
  * @param {String} [githubApiPathPrefix=env.GH_PREFIX || env.GITHUB_PREFIX || ''] The GitHub Enterprise API prefix.
  * @return {Object} A `nock` object ready to respond to a github authentication request.
  */
@@ -13,7 +13,7 @@ function authenticate(
   env = {},
   {
     githubToken = env.GH_TOKEN || env.GITHUB_TOKEN || 'GH_TOKEN',
-    githubUrl = env.GH_URL || env.GITHUB_URL || 'https://api.github.com',
+    githubUrl = env.GITHUB_API_URL || env.GH_URL || env.GITHUB_URL || 'https://api.github.com',
     githubApiPathPrefix = env.GH_PREFIX || env.GITHUB_PREFIX || '',
   } = {}
 ) {
