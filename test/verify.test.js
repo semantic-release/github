@@ -401,23 +401,50 @@ test('Throw SemanticReleaseError for invalid repositoryUrl', async (t) => {
   t.is(error.code, 'EINVALIDGITHUBURL');
 });
 
-test.serial("Throw SemanticReleaseError if token doesn't have the push permission on the repository", async (t) => {
-  const owner = 'test_user';
-  const repo = 'test_repo';
-  const env = {GH_TOKEN: 'github_token'};
-  const github = authenticate(env)
-    .get(`/repos/${owner}/${repo}`)
-    .reply(200, {permissions: {push: false}});
+test.serial(
+  "Throw SemanticReleaseError if token doesn't have the push permission on the repository and it's not a Github installation token",
+  async (t) => {
+    const owner = 'test_user';
+    const repo = 'test_repo';
+    const env = {GH_TOKEN: 'github_token'};
+    const github = authenticate(env)
+      .get(`/repos/${owner}/${repo}`)
+      .reply(200, {permissions: {push: false}})
+      .head('/installation/repositories')
+      .query({per_page: 1})
+      .reply(403);
 
-  const [error, ...errors] = await t.throwsAsync(
-    verify({}, {env, options: {repositoryUrl: `https://github.com/${owner}/${repo}.git`}, logger: t.context.logger})
-  );
+    const [error, ...errors] = await t.throwsAsync(
+      verify({}, {env, options: {repositoryUrl: `https://github.com/${owner}/${repo}.git`}, logger: t.context.logger})
+    );
 
-  t.is(errors.length, 0);
-  t.is(error.name, 'SemanticReleaseError');
-  t.is(error.code, 'EGHNOPERMISSION');
-  t.true(github.isDone());
-});
+    t.is(errors.length, 0);
+    t.is(error.name, 'SemanticReleaseError');
+    t.is(error.code, 'EGHNOPERMISSION');
+    t.true(github.isDone());
+  }
+);
+
+test.serial(
+  "Do not throw SemanticReleaseError if token doesn't have the push permission but it is a Github installation token",
+  async (t) => {
+    const owner = 'test_user';
+    const repo = 'test_repo';
+    const env = {GH_TOKEN: 'github_token'};
+    const github = authenticate(env)
+      .get(`/repos/${owner}/${repo}`)
+      .reply(200, {permissions: {push: false}})
+      .head('/installation/repositories')
+      .query({per_page: 1})
+      .reply(200);
+
+    await t.notThrowsAsync(
+      verify({}, {env, options: {repositoryUrl: `https://github.com/${owner}/${repo}.git`}, logger: t.context.logger})
+    );
+
+    t.true(github.isDone());
+  }
+);
 
 test.serial("Throw SemanticReleaseError if the repository doesn't exist", async (t) => {
   const owner = 'test_user';
