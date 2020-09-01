@@ -7,6 +7,7 @@ const proxyquire = require('proxyquire');
 const {ISSUE_ID} = require('../lib/definitions/constants');
 const {authenticate} = require('./helpers/mock-github');
 const rateLimit = require('./helpers/rate-limit');
+const getReleaseLinks = require('../lib/get-release-links');
 
 /* eslint camelcase: ["error", {properties: "never"}] */
 
@@ -589,6 +590,316 @@ test.serial('Comment on issue/PR without ading a label', async (t) => {
   const commits = [{hash: '123', message: 'Commit 1 message'}];
   const nextRelease = {version: '2.0.0'};
   const releases = [{name: 'GitHub release', url: 'https://github.com/release'}];
+  const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {full_name: `${owner}/${repo}`})
+    .get(
+      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
+        .map((commit) => commit.hash)
+        .join('+')}`
+    )
+    .reply(200, {items: prs})
+    .get(`/repos/${owner}/${repo}/pulls/1/commits`)
+    .reply(200, [{sha: commits[0].hash}])
+    .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
+    .reply(200, {html_url: 'https://github.com/successcomment-1'})
+    .get(
+      `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
+        'state:open'
+      )}+${escape(failTitle)}`
+    )
+    .reply(200, {items: []});
+
+  await success(pluginConfig, {
+    env,
+    options,
+    branch: {name: 'master'},
+    lastRelease,
+    commits,
+    nextRelease,
+    releases,
+    logger: t.context.logger,
+  });
+
+  t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 1, 'https://github.com/successcomment-1'));
+  t.true(github.isDone());
+});
+
+test.serial('Editing the release to include all release links at the bottom', async (t) => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  const env = {GITHUB_TOKEN: 'github_token'};
+  const failTitle = 'The automated release is failing 🚨';
+  const pluginConfig = {releasedLabels: false, addReleases: 'bottom'};
+  const prs = [{number: 1, pull_request: {}, state: 'closed'}];
+  const options = {repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const nextRelease = {version: '2.0.0', gitTag: 'v1.0.0', name: 'v1.0.0', notes: 'Test release note body'};
+  const lastRelease = {version: '1.0.0'};
+  const commits = [{hash: '123', message: 'Commit 1 message'}];
+  const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
+  const releaseId = 1;
+  const releases = [
+    {name: 'GitHub release', url: 'https://github.com/release', id: releaseId},
+    {name: 'S3', url: 's3://my-bucket/release-asset'},
+    {name: 'Docker: docker.io/python:slim'},
+  ];
+  const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {full_name: `${owner}/${repo}`})
+    .get(
+      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
+        .map((commit) => commit.hash)
+        .join('+')}`
+    )
+    .reply(200, {items: prs})
+    .get(`/repos/${owner}/${repo}/pulls/1/commits`)
+    .reply(200, [{sha: commits[0].hash}])
+    .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
+    .reply(200, {html_url: 'https://github.com/successcomment-1'})
+    .get(
+      `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
+        'state:open'
+      )}+${escape(failTitle)}`
+    )
+    .reply(200, {items: []})
+    .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {
+      body: nextRelease.notes.concat('\n---\n', getReleaseLinks(releases)),
+    })
+    .reply(200, {html_url: releaseUrl});
+
+  await success(pluginConfig, {
+    env,
+    options,
+    branch: {name: 'master'},
+    lastRelease,
+    commits,
+    nextRelease,
+    releases,
+    notes: nextRelease.notes,
+    logger: t.context.logger,
+  });
+
+  t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 1, 'https://github.com/successcomment-1'));
+  t.true(github.isDone());
+});
+
+test.serial('Editing the release to include all release links at the top', async (t) => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  const env = {GITHUB_TOKEN: 'github_token'};
+  const failTitle = 'The automated release is failing 🚨';
+  const pluginConfig = {releasedLabels: false, addReleases: 'top'};
+  const prs = [{number: 1, pull_request: {}, state: 'closed'}];
+  const options = {repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const nextRelease = {version: '2.0.0', gitTag: 'v1.0.0', name: 'v1.0.0', notes: 'Test release note body'};
+  const lastRelease = {version: '1.0.0'};
+  const commits = [{hash: '123', message: 'Commit 1 message'}];
+  const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
+  const releaseId = 1;
+  const releases = [
+    {name: 'GitHub release', url: 'https://github.com/release', id: releaseId},
+    {name: 'S3', url: 's3://my-bucket/release-asset'},
+    {name: 'Docker: docker.io/python:slim'},
+  ];
+  const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {full_name: `${owner}/${repo}`})
+    .get(
+      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
+        .map((commit) => commit.hash)
+        .join('+')}`
+    )
+    .reply(200, {items: prs})
+    .get(`/repos/${owner}/${repo}/pulls/1/commits`)
+    .reply(200, [{sha: commits[0].hash}])
+    .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
+    .reply(200, {html_url: 'https://github.com/successcomment-1'})
+    .get(
+      `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
+        'state:open'
+      )}+${escape(failTitle)}`
+    )
+    .reply(200, {items: []})
+    .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {
+      body: getReleaseLinks(releases).concat('\n---\n', nextRelease.notes),
+    })
+    .reply(200, {html_url: releaseUrl});
+
+  await success(pluginConfig, {
+    env,
+    options,
+    branch: {name: 'master'},
+    lastRelease,
+    commits,
+    nextRelease,
+    releases,
+    notes: nextRelease.notes,
+    logger: t.context.logger,
+  });
+
+  t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 1, 'https://github.com/successcomment-1'));
+  t.true(github.isDone());
+});
+
+test.serial('Editing the release to include all release links with no additional releases (top)', async (t) => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  const env = {GITHUB_TOKEN: 'github_token'};
+  const failTitle = 'The automated release is failing 🚨';
+  const pluginConfig = {releasedLabels: false, addReleases: 'top'};
+  const prs = [{number: 1, pull_request: {}, state: 'closed'}];
+  const options = {repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const nextRelease = {version: '2.0.0', gitTag: 'v1.0.0', name: 'v1.0.0', notes: 'Test release note body'};
+  const lastRelease = {version: '1.0.0'};
+  const commits = [{hash: '123', message: 'Commit 1 message'}];
+  const releaseId = 1;
+  const releases = [{name: 'GitHub release', url: 'https://github.com/release', id: releaseId}];
+  const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {full_name: `${owner}/${repo}`})
+    .get(
+      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
+        .map((commit) => commit.hash)
+        .join('+')}`
+    )
+    .reply(200, {items: prs})
+    .get(`/repos/${owner}/${repo}/pulls/1/commits`)
+    .reply(200, [{sha: commits[0].hash}])
+    .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
+    .reply(200, {html_url: 'https://github.com/successcomment-1'})
+    .get(
+      `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
+        'state:open'
+      )}+${escape(failTitle)}`
+    )
+    .reply(200, {items: []});
+
+  await success(pluginConfig, {
+    env,
+    options,
+    branch: {name: 'master'},
+    lastRelease,
+    commits,
+    nextRelease,
+    releases,
+    logger: t.context.logger,
+  });
+
+  t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 1, 'https://github.com/successcomment-1'));
+  t.true(github.isDone());
+});
+
+test.serial('Editing the release to include all release links with no additional releases (bottom)', async (t) => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  const env = {GITHUB_TOKEN: 'github_token'};
+  const failTitle = 'The automated release is failing 🚨';
+  const pluginConfig = {releasedLabels: false, addReleases: 'bottom'};
+  const prs = [{number: 1, pull_request: {}, state: 'closed'}];
+  const options = {repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const nextRelease = {version: '2.0.0', gitTag: 'v1.0.0', name: 'v1.0.0', notes: 'Test release note body'};
+  const lastRelease = {version: '1.0.0'};
+  const commits = [{hash: '123', message: 'Commit 1 message'}];
+  const releaseId = 1;
+  const releases = [{name: 'GitHub release', url: 'https://github.com/release', id: releaseId}];
+  const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {full_name: `${owner}/${repo}`})
+    .get(
+      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
+        .map((commit) => commit.hash)
+        .join('+')}`
+    )
+    .reply(200, {items: prs})
+    .get(`/repos/${owner}/${repo}/pulls/1/commits`)
+    .reply(200, [{sha: commits[0].hash}])
+    .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
+    .reply(200, {html_url: 'https://github.com/successcomment-1'})
+    .get(
+      `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
+        'state:open'
+      )}+${escape(failTitle)}`
+    )
+    .reply(200, {items: []});
+
+  await success(pluginConfig, {
+    env,
+    options,
+    branch: {name: 'master'},
+    lastRelease,
+    commits,
+    nextRelease,
+    releases,
+    logger: t.context.logger,
+  });
+
+  t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 1, 'https://github.com/successcomment-1'));
+  t.true(github.isDone());
+});
+
+test.serial('Editing the release to include all release links with no releases', async (t) => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  const env = {GITHUB_TOKEN: 'github_token'};
+  const failTitle = 'The automated release is failing 🚨';
+  const pluginConfig = {releasedLabels: false, addReleases: 'bottom'};
+  const prs = [{number: 1, pull_request: {}, state: 'closed'}];
+  const options = {repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const nextRelease = {version: '2.0.0', gitTag: 'v1.0.0', name: 'v1.0.0', notes: 'Test release note body'};
+  const lastRelease = {version: '1.0.0'};
+  const commits = [{hash: '123', message: 'Commit 1 message'}];
+  const releases = [];
+  const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {full_name: `${owner}/${repo}`})
+    .get(
+      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape('type:pr')}+${escape('is:merged')}+${commits
+        .map((commit) => commit.hash)
+        .join('+')}`
+    )
+    .reply(200, {items: prs})
+    .get(`/repos/${owner}/${repo}/pulls/1/commits`)
+    .reply(200, [{sha: commits[0].hash}])
+    .post(`/repos/${owner}/${repo}/issues/1/comments`, {body: /This PR is included/})
+    .reply(200, {html_url: 'https://github.com/successcomment-1'})
+    .get(
+      `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
+        'state:open'
+      )}+${escape(failTitle)}`
+    )
+    .reply(200, {items: []});
+
+  await success(pluginConfig, {
+    env,
+    options,
+    branch: {name: 'master'},
+    lastRelease,
+    commits,
+    nextRelease,
+    releases,
+    logger: t.context.logger,
+  });
+
+  t.true(t.context.log.calledWith('Added comment to issue #%d: %s', 1, 'https://github.com/successcomment-1'));
+  t.true(github.isDone());
+});
+
+test.serial('Editing the release with no ID in the release', async (t) => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  const env = {GITHUB_TOKEN: 'github_token'};
+  const failTitle = 'The automated release is failing 🚨';
+  const pluginConfig = {releasedLabels: false, addReleases: 'bottom'};
+  const prs = [{number: 1, pull_request: {}, state: 'closed'}];
+  const options = {repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const nextRelease = {version: '2.0.0', gitTag: 'v1.0.0', name: 'v1.0.0', notes: 'Test release note body'};
+  const lastRelease = {version: '1.0.0'};
+  const commits = [{hash: '123', message: 'Commit 1 message'}];
+  const releases = [
+    {name: 'GitHub release', url: 'https://github.com/release'},
+    {name: 'S3', url: 's3://my-bucket/release-asset'},
+    {name: 'Docker: docker.io/python:slim'},
+  ];
   const github = authenticate(env)
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {full_name: `${owner}/${repo}`})
