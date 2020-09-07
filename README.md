@@ -204,3 +204,13 @@ Each label name is generated with [Lodash template](https://lodash.com/docs#temp
 The `releasedLabels` ```['released<%= nextRelease.channel ? ` on @\${nextRelease.channel}` : "" %> from <%= branch.name %>']``` will generate the label:
 
 > released on @next from branch next
+
+#### addReleases
+
+Add links to other releases to the GitHub release body.
+
+Valid values for this option are `false`, `"top"` or `"bottom"`.
+
+##### addReleases example
+
+See [The introducing PR](https://github.com/semantic-release/github/pull/282) for an example on how it will look.

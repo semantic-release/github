@@ -340,6 +340,63 @@ test.serial('Verify "assignees" is a String', async (t) => {
   t.true(github.isDone());
 });
 
+test.serial('Verify "addReleases" is a valid string (top)', async (t) => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  const env = {GH_TOKEN: 'github_token'};
+  const addReleases = 'top';
+  const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {permissions: {push: true}});
+
+  await t.notThrowsAsync(
+    verify(
+      {addReleases},
+      {env, options: {repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`}, logger: t.context.logger}
+    )
+  );
+
+  t.true(github.isDone());
+});
+
+test.serial('Verify "addReleases" is a valid string (bottom)', async (t) => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  const env = {GH_TOKEN: 'github_token'};
+  const addReleases = 'bottom';
+  const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {permissions: {push: true}});
+
+  await t.notThrowsAsync(
+    verify(
+      {addReleases},
+      {env, options: {repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`}, logger: t.context.logger}
+    )
+  );
+
+  t.true(github.isDone());
+});
+
+test.serial('Verify "addReleases" is valid (false)', async (t) => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  const env = {GH_TOKEN: 'github_token'};
+  const addReleases = false;
+  const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {permissions: {push: true}});
+
+  await t.notThrowsAsync(
+    verify(
+      {addReleases},
+      {env, options: {repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`}, logger: t.context.logger}
+    )
+  );
+
+  t.true(github.isDone());
+});
+
 // https://github.com/semantic-release/github/issues/182
 test.serial('Verify if run in GitHub Action', async (t) => {
   const owner = 'test_user';
@@ -995,5 +1052,71 @@ test.serial('Throw SemanticReleaseError if "releasedLabels" option is a whitespa
   t.is(errors.length, 0);
   t.is(error.name, 'SemanticReleaseError');
   t.is(error.code, 'EINVALIDRELEASEDLABELS');
+  t.true(github.isDone());
+});
+
+test.serial('Throw SemanticReleaseError if "addReleases" option is not a valid string (botom)', async (t) => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  const env = {GH_TOKEN: 'github_token'};
+  const addReleases = 'botom';
+  const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {permissions: {push: true}});
+
+  const [error, ...errors] = await t.throwsAsync(
+    verify(
+      {addReleases},
+      {env, options: {repositoryUrl: `https://github.com/${owner}/${repo}.git`}, logger: t.context.logger}
+    )
+  );
+
+  t.is(errors.length, 0);
+  t.is(error.name, 'SemanticReleaseError');
+  t.is(error.code, 'EINVALIDADDRELEASES');
+  t.true(github.isDone());
+});
+
+test.serial('Throw SemanticReleaseError if "addReleases" option is not a valid string (true)', async (t) => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  const env = {GH_TOKEN: 'github_token'};
+  const addReleases = true;
+  const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {permissions: {push: true}});
+
+  const [error, ...errors] = await t.throwsAsync(
+    verify(
+      {addReleases},
+      {env, options: {repositoryUrl: `https://github.com/${owner}/${repo}.git`}, logger: t.context.logger}
+    )
+  );
+
+  t.is(errors.length, 0);
+  t.is(error.name, 'SemanticReleaseError');
+  t.is(error.code, 'EINVALIDADDRELEASES');
+  t.true(github.isDone());
+});
+
+test.serial('Throw SemanticReleaseError if "addReleases" option is not a valid string (number)', async (t) => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  const env = {GH_TOKEN: 'github_token'};
+  const addReleases = 42;
+  const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {permissions: {push: true}});
+
+  const [error, ...errors] = await t.throwsAsync(
+    verify(
+      {addReleases},
+      {env, options: {repositoryUrl: `https://github.com/${owner}/${repo}.git`}, logger: t.context.logger}
+    )
+  );
+
+  t.is(errors.length, 0);
+  t.is(error.name, 'SemanticReleaseError');
+  t.is(error.code, 'EINVALIDADDRELEASES');
   t.true(github.isDone());
 });
