@@ -675,7 +675,6 @@ test.serial('Editing the release to include all release links at the bottom', as
     commits,
     nextRelease,
     releases,
-    notes: nextRelease.notes,
     logger: t.context.logger,
   });
 
@@ -733,7 +732,6 @@ test.serial('Editing the release to include all release links at the top', async
     commits,
     nextRelease,
     releases,
-    notes: nextRelease.notes,
     logger: t.context.logger,
   });
 
