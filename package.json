@@ -20,7 +20,7 @@
     "@semantic-release/error": "^2.2.0",
     "aggregate-error": "^3.1.0",
     "bottleneck": "^2.19.5",
-    "debug": "^4.0.0",
+    "debug": "^4.2.0",
     "dir-glob": "^3.0.0",
     "fs-extra": "^9.0.0",
     "globby": "^11.0.0",
