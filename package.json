@@ -22,7 +22,7 @@
     "bottleneck": "^2.19.5",
     "debug": "^4.2.0",
     "dir-glob": "^3.0.1",
-    "fs-extra": "^9.0.0",
+    "fs-extra": "^9.0.1",
     "globby": "^11.0.0",
     "http-proxy-agent": "^4.0.0",
     "https-proxy-agent": "^5.0.0",
