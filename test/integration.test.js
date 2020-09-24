@@ -209,6 +209,7 @@ test.serial('Publish a release with release information in assets', async (t) =>
       target_commitish: options.branch,
       name: nextRelease.gitTag,
       body: nextRelease.notes,
+      prerelease: true,
       draft: true,
     })
     .reply(200, {upload_url: uploadUrl, html_url: releaseUrl, id: releaseId})
