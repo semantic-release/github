@@ -30,7 +30,7 @@
     "lodash": "^4.17.20",
     "mime": "^2.4.6",
     "p-filter": "^2.1.0",
-    "p-retry": "^4.0.0",
+    "p-retry": "^4.2.0",
     "url-join": "^4.0.0"
   },
   "devDependencies": {
