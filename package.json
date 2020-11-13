@@ -113,5 +113,10 @@
       ],
       "unicorn/string-content": "off"
     }
+  },
+  "renovate": {
+    "extends": [
+      "github>semantic-release/.github"
+    ]
   }
 }
