@@ -99,7 +99,8 @@
     "lint": "xo",
     "pretest": "npm run lint",
     "semantic-release": "semantic-release",
-    "test": "nyc ava -v"
+    "test": "nyc ava -v",
+    "test:ci": "nyc ava -v"
   },
   "xo": {
     "prettier": true,
