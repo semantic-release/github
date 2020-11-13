@@ -1,0 +1,41 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - master
+      - renovate/**
+
+  pull_request:
+    types:
+      - opened
+      - synchronize
+
+jobs:
+  test_matrix:
+    strategy:
+      matrix:
+        node-version:
+          - 10
+          - 12
+          - 14
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm install
+      - run: npm test
+
+  # separate job to set as required in branch protection,
+  # as the build names above change each time Node versions change
+  test:
+    runs-on: ubuntu-latest
+    needs: test_matrix
+    steps:
+      - run: echo all tests passed

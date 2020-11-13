@@ -1,8 +1,0 @@
-version: ~> 1.0
-
-import:
-  - semantic-release/semantic-release:.travis/node.yml
-  - semantic-release/semantic-release:.travis/node-versions.yml
-  - semantic-release/semantic-release:.travis/semantic-release.yml
-  - semantic-release/semantic-release:.travis/greenkeeper.yml
-  - semantic-release/semantic-release:.travis/codecov.yml
