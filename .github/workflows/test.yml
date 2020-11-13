@@ -19,7 +19,8 @@ jobs:
           - 10
           - 12
           - 14
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        # TODO: enable tests on macos-latest as part of fixing #299
+        os: [ubuntu-latest, windows-latest]
 
     runs-on: ${{ matrix.os }}
 
