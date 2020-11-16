@@ -39,10 +39,12 @@ test.serial('Publish a release', async (t) => {
   const releaseId = 1;
   const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
   const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
+  const branch = 'test_branch';
 
   const github = authenticate(env)
     .post(`/repos/${owner}/${repo}/releases`, {
       tag_name: nextRelease.gitTag,
+      target_commitish: branch,
       name: nextRelease.name,
       body: nextRelease.notes,
       prerelease: false,
@@ -53,7 +55,7 @@ test.serial('Publish a release', async (t) => {
     cwd,
     env,
     options,
-    branch: {type: 'release', main: true},
+    branch: {name: branch, type: 'release', main: true},
     nextRelease,
     logger: t.context.logger,
   });
@@ -74,10 +76,12 @@ test.serial('Publish a release on a channel', async (t) => {
   const releaseId = 1;
   const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
   const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
+  const branch = 'test_branch';
 
   const github = authenticate(env)
     .post(`/repos/${owner}/${repo}/releases`, {
       tag_name: nextRelease.gitTag,
+      target_commitish: branch,
       name: nextRelease.name,
       body: nextRelease.notes,
       prerelease: true,
@@ -88,7 +92,7 @@ test.serial('Publish a release on a channel', async (t) => {
     cwd,
     env,
     options,
-    branch: {type: 'release', channel: 'next', main: false},
+    branch: {name: branch, type: 'release', channel: 'next', main: false},
     nextRelease,
     logger: t.context.logger,
   });
@@ -109,10 +113,12 @@ test.serial('Publish a prerelease', async (t) => {
   const releaseId = 1;
   const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
   const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
+  const branch = 'test_branch';
 
   const github = authenticate(env)
     .post(`/repos/${owner}/${repo}/releases`, {
       tag_name: nextRelease.gitTag,
+      target_commitish: branch,
       name: nextRelease.name,
       body: nextRelease.notes,
       prerelease: true,
@@ -123,7 +129,7 @@ test.serial('Publish a prerelease', async (t) => {
     cwd,
     env,
     options,
-    branch: {type: 'prerelease', channel: 'beta'},
+    branch: {name: branch, type: 'prerelease', channel: 'beta'},
     nextRelease,
     logger: t.context.logger,
   });
@@ -144,10 +150,12 @@ test.serial('Publish a maintenance release', async (t) => {
   const releaseId = 1;
   const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
   const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
+  const branch = 'test_branch';
 
   const github = authenticate(env)
     .post(`/repos/${owner}/${repo}/releases`, {
       tag_name: nextRelease.gitTag,
+      target_commitish: branch,
       name: nextRelease.name,
       body: nextRelease.notes,
       prerelease: false,
@@ -158,7 +166,7 @@ test.serial('Publish a maintenance release', async (t) => {
     cwd,
     env,
     options,
-    branch: {type: 'maintenance', channel: '1.x', main: false},
+    branch: {name: 'test_branch', type: 'maintenance', channel: '1.x', main: false},
     nextRelease,
     logger: t.context.logger,
   });
@@ -179,10 +187,12 @@ test.serial('Publish a release, retrying 4 times', async (t) => {
   const releaseId = 1;
   const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
   const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
+  const branch = 'test_branch';
 
   const github = authenticate(env)
     .post(`/repos/${owner}/${repo}/releases`, {
       tag_name: nextRelease.gitTag,
+      target_commitish: branch,
       name: nextRelease.gitTag,
       body: nextRelease.notes,
       prerelease: false,
@@ -191,6 +201,7 @@ test.serial('Publish a release, retrying 4 times', async (t) => {
     .reply(404)
     .post(`/repos/${owner}/${repo}/releases`, {
       tag_name: nextRelease.gitTag,
+      target_commitish: branch,
       name: nextRelease.name,
       body: nextRelease.notes,
       prerelease: false,
@@ -201,7 +212,7 @@ test.serial('Publish a release, retrying 4 times', async (t) => {
     cwd,
     env,
     options,
-    branch: {type: 'release', main: true},
+    branch: {name: branch, type: 'release', main: true},
     nextRelease,
     logger: t.context.logger,
   });
@@ -226,10 +237,12 @@ test.serial('Publish a release with one asset', async (t) => {
   const releaseId = 1;
   const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
   const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
+  const branch = 'test_branch';
 
   const github = authenticate(env)
     .post(`/repos/${owner}/${repo}/releases`, {
       tag_name: nextRelease.gitTag,
+      target_commitish: branch,
       name: nextRelease.name,
       body: nextRelease.notes,
       draft: true,
@@ -250,7 +263,7 @@ test.serial('Publish a release with one asset', async (t) => {
     cwd,
     env,
     options,
-    branch: {type: 'release', main: true},
+    branch: {name: branch, type: 'release', main: true},
     nextRelease,
     logger: t.context.logger,
   });
@@ -277,10 +290,12 @@ test.serial('Publish a release with one asset and custom github url', async (t) 
   const releaseId = 1;
   const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
   const uploadUrl = `${env.GH_URL}${uploadUri}{?name,label}`;
+  const branch = 'test_branch';
 
   const github = authenticate(env, {})
     .post(`/repos/${owner}/${repo}/releases`, {
       tag_name: nextRelease.gitTag,
+      target_commitish: branch,
       name: nextRelease.name,
       body: nextRelease.notes,
       draft: true,
@@ -301,7 +316,7 @@ test.serial('Publish a release with one asset and custom github url', async (t) 
     cwd,
     env,
     options,
-    branch: {type: 'release', main: true},
+    branch: {name: branch, type: 'release', main: true},
     nextRelease,
     logger: t.context.logger,
   });
@@ -326,10 +341,12 @@ test.serial('Publish a release with an array of missing assets', async (t) => {
   const releaseId = 1;
   const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
   const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
+  const branch = 'test_branch';
 
   const github = authenticate(env)
     .post(`/repos/${owner}/${repo}/releases`, {
       tag_name: nextRelease.gitTag,
+      target_commitish: branch,
       name: nextRelease.name,
       body: nextRelease.notes,
       draft: true,
@@ -343,7 +360,7 @@ test.serial('Publish a release with an array of missing assets', async (t) => {
     cwd,
     env,
     options,
-    branch: {type: 'release', main: true},
+    branch: {name: branch, type: 'release', main: true},
     nextRelease,
     logger: t.context.logger,
   });
@@ -362,10 +379,12 @@ test.serial('Throw error without retries for 400 error', async (t) => {
   const pluginConfig = {};
   const nextRelease = {gitTag: 'v1.0.0', name: 'v1.0.0', notes: 'Test release note body'};
   const options = {repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const branch = 'test_branch';
 
   const github = authenticate(env)
     .post(`/repos/${owner}/${repo}/releases`, {
       tag_name: nextRelease.gitTag,
+      target_commitish: branch,
       name: nextRelease.name,
       body: nextRelease.notes,
       prerelease: false,
@@ -373,6 +392,7 @@ test.serial('Throw error without retries for 400 error', async (t) => {
     .reply(404)
     .post(`/repos/${owner}/${repo}/releases`, {
       tag_name: nextRelease.gitTag,
+      target_commitish: branch,
       name: nextRelease.gitTag,
       body: nextRelease.notes,
       prerelease: false,
@@ -384,7 +404,7 @@ test.serial('Throw error without retries for 400 error', async (t) => {
       cwd,
       env,
       options,
-      branch: {type: 'release', main: true},
+      branch: {name: branch, type: 'release', main: true},
       nextRelease,
       logger: t.context.logger,
     })
@@ -411,10 +431,12 @@ test.serial(
     const releaseId = 1;
     const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
     const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
+    const branch = 'test_branch';
 
     const github = authenticate(env)
       .post(`/repos/${owner}/${repo}/releases`, {
         tag_name: nextRelease.gitTag,
+        target_commitish: branch,
         name: nextRelease.name,
         body: nextRelease.notes,
         prerelease: false,
@@ -425,7 +447,7 @@ test.serial(
       cwd,
       env,
       options,
-      branch: {type: 'release', main: true},
+      branch: {name: branch, type: 'release', main: true},
       nextRelease,
       logger: t.context.logger,
     });
