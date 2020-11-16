@@ -112,7 +112,8 @@
           "properties": "never"
         }
       ],
-      "unicorn/string-content": "off"
+      "unicorn/string-content": "off",
+      "unicorn/no-reduce": "off"
     }
   },
   "renovate": {
