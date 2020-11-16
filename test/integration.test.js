@@ -206,10 +206,10 @@ test.serial('Publish a release with release information in assets', async (t) =>
     .reply(200, {permissions: {push: true}})
     .post(`/repos/${owner}/${repo}/releases`, {
       tag_name: nextRelease.gitTag,
-      target_commitish: options.branch,
       name: nextRelease.gitTag,
       body: nextRelease.notes,
       draft: true,
+      prerelease: true,
     })
     .reply(200, {upload_url: uploadUrl, html_url: releaseUrl, id: releaseId})
     .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {
