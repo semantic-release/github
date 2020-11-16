@@ -3,7 +3,7 @@
 [**semantic-release**](https://github.com/semantic-release/semantic-release) plugin to publish a
 [GitHub release](https://help.github.com/articles/about-releases) and comment on released Pull Requests/Issues.
 
-[![Build Status](https://github.com/octokit/core.js/workflows/Test/badge.svg)](https://github.com/octokit/core.js/actions?query=workflow%3ATest+branch%3Amaster)
+[![Build Status](https://github.com/semantic-release/github/workflows/Test/badge.svg)](https://github.com/semantic-release/github/actions?query=workflow%3ATest+branch%3Amaster)
 
 [![npm latest version](https://img.shields.io/npm/v/@semantic-release/github/latest.svg)](https://www.npmjs.com/package/@semantic-release/github)
 [![npm next version](https://img.shields.io/npm/v/@semantic-release/github/next.svg)](https://www.npmjs.com/package/@semantic-release/github)
