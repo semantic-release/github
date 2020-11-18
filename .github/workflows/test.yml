@@ -45,3 +45,4 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - uses: bahmutov/npm-install@v1
       - run: npm run lint
+      - run: npx lockfile-lint --path package-lock.json
