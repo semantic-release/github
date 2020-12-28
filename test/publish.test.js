@@ -65,6 +65,134 @@ test.serial('Publish a release', async (t) => {
   t.true(github.isDone());
 });
 
+test.serial('Publish a release removing the title from the release notes by default', async (t) => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  const env = {GITHUB_TOKEN: 'github_token'};
+  const pluginConfig = {};
+  const expectedBody = 'Test release note body';
+  const nextRelease = {
+    version: '1.0.1',
+    gitTag: 'v1.0.1',
+    name: 'v1.0.1',
+    notes: `### [1.0.1](https://github.com/${owner}/${repo}/compare/v1.0.0...v1.0.1) (2020-12-12)\n\n${expectedBody}`,
+  };
+  const options = {repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
+  const releaseId = 1;
+  const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
+  const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
+  const branch = 'test_branch';
+
+  const github = authenticate(env)
+    .post(`/repos/${owner}/${repo}/releases`, {
+      tag_name: nextRelease.gitTag,
+      target_commitish: branch,
+      name: nextRelease.name,
+      body: expectedBody,
+      prerelease: false,
+    })
+    .reply(200, {upload_url: uploadUrl, html_url: releaseUrl});
+
+  const result = await publish(pluginConfig, {
+    cwd,
+    env,
+    options,
+    branch: {name: branch, type: 'release', main: true},
+    nextRelease,
+    logger: t.context.logger,
+  });
+
+  t.is(result.url, releaseUrl);
+  t.deepEqual(t.context.log.args[0], ['Published GitHub release: %s', releaseUrl]);
+  t.true(github.isDone());
+});
+
+test.serial('Publish a release removing the title from the release notes', async (t) => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  const env = {GITHUB_TOKEN: 'github_token'};
+  const pluginConfig = {removeTitleFromReleaseNotes: true};
+  const expectedBody = 'Test release note body';
+  const nextRelease = {
+    version: '1.0.1',
+    gitTag: 'v1.0.1',
+    name: 'v1.0.1',
+    notes: `### [1.0.1](https://github.com/${owner}/${repo}/compare/v1.0.0...v1.0.1) (2020-12-12)\n\n${expectedBody}`,
+  };
+  const options = {repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
+  const releaseId = 1;
+  const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
+  const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
+  const branch = 'test_branch';
+
+  const github = authenticate(env)
+    .post(`/repos/${owner}/${repo}/releases`, {
+      tag_name: nextRelease.gitTag,
+      target_commitish: branch,
+      name: nextRelease.name,
+      body: expectedBody,
+      prerelease: false,
+    })
+    .reply(200, {upload_url: uploadUrl, html_url: releaseUrl});
+
+  const result = await publish(pluginConfig, {
+    cwd,
+    env,
+    options,
+    branch: {name: branch, type: 'release', main: true},
+    nextRelease,
+    logger: t.context.logger,
+  });
+
+  t.is(result.url, releaseUrl);
+  t.deepEqual(t.context.log.args[0], ['Published GitHub release: %s', releaseUrl]);
+  t.true(github.isDone());
+});
+
+test.serial('Publish a release without removing the title from the release notes', async (t) => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  const env = {GITHUB_TOKEN: 'github_token'};
+  const pluginConfig = {removeTitleFromReleaseNotes: false};
+  const nextRelease = {
+    version: '1.0.1',
+    gitTag: 'v1.0.1',
+    name: 'v1.0.1',
+    notes: `### [1.0.1](https://github.com/${owner}/${repo}/compare/v1.0.0...v1.0.1) (2020-12-12)\n\nTest release note body`,
+  };
+  const options = {repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
+  const releaseId = 1;
+  const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
+  const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
+  const branch = 'test_branch';
+
+  const github = authenticate(env)
+    .post(`/repos/${owner}/${repo}/releases`, {
+      tag_name: nextRelease.gitTag,
+      target_commitish: branch,
+      name: nextRelease.name,
+      body: nextRelease.notes,
+      prerelease: false,
+    })
+    .reply(200, {upload_url: uploadUrl, html_url: releaseUrl});
+
+  const result = await publish(pluginConfig, {
+    cwd,
+    env,
+    options,
+    branch: {name: branch, type: 'release', main: true},
+    nextRelease,
+    logger: t.context.logger,
+  });
+
+  t.is(result.url, releaseUrl);
+  t.deepEqual(t.context.log.args[0], ['Published GitHub release: %s', releaseUrl]);
+  t.true(github.isDone());
+});
+
 test.serial('Publish a release on a channel', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
