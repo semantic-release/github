@@ -10,7 +10,7 @@
 [![npm beta version](https://img.shields.io/npm/v/@semantic-release/github/beta.svg)](https://www.npmjs.com/package/@semantic-release/github)
 
 | Step               | Description                                                                                                                                                                                                                              |
-|--------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `verifyConditions` | Verify the presence and the validity of the authentication (set via [environment variables](#environment-variables)) and the [assets](#assets) option configuration.                                                                     |
 | `publish`          | Publish a [GitHub release](https://help.github.com/articles/about-releases), optionally uploading file assets.                                                                                                                           |
 | `addChannel`       | Update a [GitHub release](https://help.github.com/articles/about-releases)'s `pre-release` field.                                                                                                                                        |
@@ -62,34 +62,35 @@ If you have actions that trigger on newly created releases, please use a generat
 
 ### Environment variables
 
-| Variable                                           | Description                                               |
-| -------------------------------------------------- | --------------------------------------------------------- |
-| `GH_TOKEN` or `GITHUB_TOKEN`                       | **Required.** The token used to authenticate with GitHub. |
-| `GITHUB_API_URL` or `GH_URL` or `GITHUB_URL`       | The GitHub Enterprise endpoint.                           |
-| `GH_PREFIX` or `GITHUB_PREFIX`                     | The GitHub Enterprise API prefix.                         |
+| Variable                                     | Description                                               |
+| -------------------------------------------- | --------------------------------------------------------- |
+| `GH_TOKEN` or `GITHUB_TOKEN`                 | **Required.** The token used to authenticate with GitHub. |
+| `GITHUB_API_URL` or `GH_URL` or `GITHUB_URL` | The GitHub Enterprise endpoint.                           |
+| `GH_PREFIX` or `GITHUB_PREFIX`               | The GitHub Enterprise API prefix.                         |
 
 ### Options
 
-| Option                | Description                                                                                                                                                                                            | Default                                                                                                                                              |
-|-----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `githubUrl`           | The GitHub Enterprise endpoint.                                                                                                                                                                        | `GH_URL` or `GITHUB_URL` environment variable.                                                                                                       |
-| `githubApiPathPrefix` | The GitHub Enterprise API prefix.                                                                                                                                                                      | `GH_PREFIX` or `GITHUB_PREFIX` environment variable.                                                                                                 |
-| `proxy`               | The proxy to use to access the GitHub API. See [proxy](#proxy).                                                                                                                                        | `HTTP_PROXY` environment variable.                                                                                                                   |
-| `assets`              | An array of files to upload to the release. See [assets](#assets).                                                                                                                                     | -                                                                                                                                                    |
-| `successComment`      | The comment to add to each issue and pull request resolved by the release. Set to `false` to disable commenting on issues and pull requests. See [successComment](#successcomment).                    | `:tada: This issue has been resolved in version ${nextRelease.version} :tada:\n\nThe release is available on [GitHub release](<github_release_url>)` |
-| `failComment`         | The content of the issue created when a release fails. Set to `false` to disable opening an issue when a release fails. See [failComment](#failcomment).                                               | Friendly message with links to **semantic-release** documentation and support, with the list of errors that caused the release to fail.              |
-| `failTitle`           | The title of the issue created when a release fails. Set to `false` to disable opening an issue when a release fails.                                                                                  | `The automated release is failing 🚨`                                                                                                                |
-| `labels`              | The [labels](https://help.github.com/articles/about-labels) to add to the issue created when a release fails. Set to `false` to not add any label.                                                     | `['semantic-release']`                                                                                                                               |
-| `assignees`           | The [assignees](https://help.github.com/articles/assigning-issues-and-pull-requests-to-other-github-users) to add to the issue created when a release fails.                                           | -                                                                                                                                                    |
-| `releasedLabels`      | The [labels](https://help.github.com/articles/about-labels) to add to each issue and pull request resolved by the release. Set to `false` to not add any label. See [releasedLabels](#releasedlabels). | `['released<%= nextRelease.channel ? \` on @\${nextRelease.channel}\` : "" %>']-                                                                                                                                                    |
-| `addReleases`         | Will add release links to the GitHub Release. Can be `false`, `"bottom"` or `"top"`. See [addReleases](#addReleases). | `false`                                                                     |
+| Option                        | Description                                                                                                                                                                                            | Default                                                                                                                                              |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `githubUrl`                   | The GitHub Enterprise endpoint.                                                                                                                                                                        | `GH_URL` or `GITHUB_URL` environment variable.                                                                                                       |
+| `githubApiPathPrefix`         | The GitHub Enterprise API prefix.                                                                                                                                                                      | `GH_PREFIX` or `GITHUB_PREFIX` environment variable.                                                                                                 |
+| `proxy`                       | The proxy to use to access the GitHub API. See [proxy](#proxy).                                                                                                                                        | `HTTP_PROXY` environment variable.                                                                                                                   |
+| `assets`                      | An array of files to upload to the release. See [assets](#assets).                                                                                                                                     | -                                                                                                                                                    |
+| `successComment`              | The comment to add to each issue and pull request resolved by the release. Set to `false` to disable commenting on issues and pull requests. See [successComment](#successcomment).                    | `:tada: This issue has been resolved in version ${nextRelease.version} :tada:\n\nThe release is available on [GitHub release](<github_release_url>)` |
+| `failComment`                 | The content of the issue created when a release fails. Set to `false` to disable opening an issue when a release fails. See [failComment](#failcomment).                                               | Friendly message with links to **semantic-release** documentation and support, with the list of errors that caused the release to fail.              |
+| `failTitle`                   | The title of the issue created when a release fails. Set to `false` to disable opening an issue when a release fails.                                                                                  | `The automated release is failing 🚨`                                                                                                                 |
+| `labels`                      | The [labels](https://help.github.com/articles/about-labels) to add to the issue created when a release fails. Set to `false` to not add any label.                                                     | `['semantic-release']`                                                                                                                               |
+| `assignees`                   | The [assignees](https://help.github.com/articles/assigning-issues-and-pull-requests-to-other-github-users) to add to the issue created when a release fails.                                           | -                                                                                                                                                    |
+| `releasedLabels`              | The [labels](https://help.github.com/articles/about-labels) to add to each issue and pull request resolved by the release. Set to `false` to not add any label. See [releasedLabels](#releasedlabels). | `['released<%= nextRelease.channel ? \` on @\${nextRelease.channel}\` : "" %>']-                                                                     |
+| `addReleases`                 | Will add release links to the GitHub Release. Can be `false`, `"bottom"` or `"top"`. See [addReleases](#addReleases).                                                                                  | `false`                                                                                                                                              |
+| `removeTitleFromReleaseNotes` | Removes the title from the release notes. Can be `true` or `false`. See [removeTitleFromReleaseNotes](#removeTitleFromReleaseNotes).                                                                   | `true`                                                                                                                                               |
 
 #### proxy
 
 Can be a the proxy URL or and `Object` with the following properties:
 
 | Property      | Description                                                    | Default                              |
-|---------------|----------------------------------------------------------------|--------------------------------------|
+| ------------- | -------------------------------------------------------------- | ------------------------------------ |
 | `host`        | **Required.** Proxy host to connect to.                        | -                                    |
 | `port`        | **Required.** Proxy port to connect to.                        | File name extracted from the `path`. |
 | `secureProxy` | If `true`, then use TLS to connect to the proxy.               | `false`                              |
@@ -122,7 +123,7 @@ If a directory is configured, all the files under this directory and its childre
 The `name` and `label` for each assets are generated with [Lodash template](https://lodash.com/docs#template). The following variables are available:
 
 | Parameter     | Description                                                                         |
-|---------------|-------------------------------------------------------------------------------------|
+| ------------- | ----------------------------------------------------------------------------------- |
 | `branch`      | The branch from which the release is done.                                          |
 | `lastRelease` | `Object` with `version`, `gitTag` and `gitHead` of the last release.                |
 | `nextRelease` | `Object` with `version`, `gitTag`, `gitHead` and `notes` of the release being done. |
@@ -154,7 +155,7 @@ distribution` and `MyLibrary CSS distribution` in the GitHub release.
 The message for the issue comments is generated with [Lodash template](https://lodash.com/docs#template). The following variables are available:
 
 | Parameter     | Description                                                                                                                                                                                                                                                                   |
-|---------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `branch`      | `Object` with `name`, `type`, `channel`, `range` and `prerelease` properties of the branch from which the release is done.                                                                                                                                                    |
 | `lastRelease` | `Object` with `version`, `channel`, `gitTag` and `gitHead` of the last release.                                                                                                                                                                                               |
 | `nextRelease` | `Object` with `version`, `channel`, `gitTag`, `gitHead` and `notes` of the release being done.                                                                                                                                                                                |
@@ -173,7 +174,7 @@ The `successComment` `This ${issue.pull_request ? 'pull request' : 'issue'} is i
 The message for the issue content is generated with [Lodash template](https://lodash.com/docs#template). The following variables are available:
 
 | Parameter | Description                                                                                                                                                                                                                                                                                                            |
-|-----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `branch`  | The branch from which the release had failed.                                                                                                                                                                                                                                                                          |
 | `errors`  | An `Array` of [SemanticReleaseError](https://github.com/semantic-release/error). Each error has the `message`, `code`, `pluginName` and `details` properties.<br>`pluginName` contains the package name of the plugin that threw the error.<br>`details` contains a information about the error formatted in markdown. |
 
@@ -190,7 +191,7 @@ The `failComment` `This release from branch ${branch.name} had failed due to the
 Each label name is generated with [Lodash template](https://lodash.com/docs#template). The following variables are available:
 
 | Parameter     | Description                                                                                                                                                                                                                                                                   |
-|---------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `branch`      | `Object` with `name`, `type`, `channel`, `range` and `prerelease` properties of the branch from which the release is done.                                                                                                                                                    |
 | `lastRelease` | `Object` with `version`, `channel`, `gitTag` and `gitHead` of the last release.                                                                                                                                                                                               |
 | `nextRelease` | `Object` with `version`, `channel`, `gitTag`, `gitHead` and `notes` of the release being done.                                                                                                                                                                                |
@@ -213,3 +214,27 @@ Valid values for this option are `false`, `"top"` or `"bottom"`.
 ##### addReleases example
 
 See [The introducing PR](https://github.com/semantic-release/github/pull/282) for an example on how it will look.
+
+#### removeTitleFromReleaseNotes
+
+Removes the title from the release notes, since it's redundant for GitHub Releases.
+
+Valid values for this option are `true`, or `false`.
+
+##### removeTitleFromReleaseNotes example
+
+The `removeTitleFromReleaseNotes: false` will create a GitHub Release with the release notes like:
+
+```markdown
+### [1.0.1](https://github.com/test_user/test_repo/compare/v1.0.0...v1.0.1) (2020-12-12)
+
+### Features
+[...]
+```
+
+While `removeTitleFromReleaseNotes: true` will produce:
+
+```markdown
+### Features
+[...]
+```
