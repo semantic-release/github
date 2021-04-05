@@ -207,6 +207,25 @@ test.serial('Verify "proxy" is an object with "host" and "port" properties', asy
   t.true(github.isDone());
 });
 
+test.serial('Verify "proxy" is a Boolean set to false', async (t) => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  const env = {GH_TOKEN: 'github_token'};
+  const proxy = false;
+  const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {permissions: {push: true}});
+
+  await t.notThrowsAsync(
+    verify(
+      {proxy},
+      {env, options: {repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`}, logger: t.context.logger}
+    )
+  );
+
+  t.true(github.isDone());
+});
+
 test.serial('Verify "assets" is a String', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
