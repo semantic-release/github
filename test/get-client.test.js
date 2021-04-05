@@ -88,6 +88,33 @@ test.serial('Use a https proxy', async (t) => {
   await promisify(server.destroy).bind(server)();
 });
 
+test.serial('Do not use a proxy if set to false', async (t) => {
+  const server = http.createServer();
+  await promisify(server.listen).bind(server)();
+  const serverPort = server.address().port;
+  serverDestroy(server);
+
+  const serverHandler = spy((request, response) => {
+    response.end();
+  });
+  server.on('request', serverHandler);
+
+  const github = getClient({
+    githubToken: 'github_token',
+    githubUrl: `http://localhost:${serverPort}`,
+    githubApiPathPrefix: '',
+    proxy: false,
+  });
+
+  await github.repos.get({repo: 'repo', owner: 'owner'});
+
+  t.is(serverHandler.args[0][0].headers.accept, 'application/vnd.github.v3+json');
+  t.falsy(serverHandler.args[0][0].headers.via);
+  t.falsy(serverHandler.args[0][0].headers['x-forwarded-for']);
+
+  await promisify(server.destroy).bind(server)();
+});
+
 test('Use the global throttler for all endpoints', async (t) => {
   const rate = 150;
 
