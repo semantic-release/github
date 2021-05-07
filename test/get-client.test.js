@@ -175,7 +175,7 @@ test('Use the same throttler for endpoints in the same rate limit group', async 
   // `issues.createComment` should be called `coreRate` ms after `repos.createRelease`
   t.true(inRange(d - c, coreRate - 50, coreRate + 50));
 
-  // The first search should be called immediatly as it uses a different throttler
+  // The first search should be called immediately as it uses a different throttler
   t.true(inRange(e - d, -50, 50));
   // The second search should be called only after `searchRate` ms
   t.true(inRange(f - e, searchRate - 50, searchRate + 50));
