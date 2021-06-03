@@ -534,7 +534,7 @@ test.serial("Throw SemanticReleaseError if the repository doesn't exist", async 
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
-  const github = authenticate(env).get(`/repos/${owner}/${repo}`).times(4).reply(404);
+  const github = authenticate(env).get(`/repos/${owner}/${repo}`).reply(404);
 
   const [error, ...errors] = await t.throwsAsync(
     verify({}, {env, options: {repositoryUrl: `https://github.com/${owner}/${repo}.git`}, logger: t.context.logger})
