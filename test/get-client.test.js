@@ -4,12 +4,10 @@ const https = require('https');
 const {promisify} = require('util');
 const {readFile} = require('fs-extra');
 const test = require('ava');
-const {inRange} = require('lodash');
-const {stub, spy} = require('sinon');
+const {spy} = require('sinon');
 const proxyquire = require('proxyquire');
 const Proxy = require('proxy');
 const serverDestroy = require('server-destroy');
-const {Octokit} = require('@octokit/rest');
 const rateLimit = require('./helpers/rate-limit');
 
 const getClient = proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit});
