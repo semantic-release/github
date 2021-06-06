@@ -372,6 +372,95 @@ test.serial('Publish a release with an array of missing assets', async (t) => {
   t.true(github.isDone());
 });
 
+test.serial('Publish a draft release', async (t) => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  const env = {GITHUB_TOKEN: 'github_token'};
+  const pluginConfig = {draftRelease: true};
+  const nextRelease = {gitTag: 'v1.0.0', name: 'v1.0.0', notes: 'Test release note body'};
+  const options = {repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
+  const releaseId = 1;
+  const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
+  const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
+  const branch = 'test_branch';
+
+  const github = authenticate(env)
+    .post(`/repos/${owner}/${repo}/releases`, {
+      tag_name: nextRelease.gitTag,
+      target_commitish: branch,
+      name: nextRelease.name,
+      body: nextRelease.notes,
+      draft: true,
+      prerelease: false,
+    })
+    .reply(200, {upload_url: uploadUrl, html_url: releaseUrl});
+
+  const result = await publish(pluginConfig, {
+    cwd,
+    env,
+    options,
+    branch: {name: branch, type: 'release', main: true},
+    nextRelease,
+    logger: t.context.logger,
+  });
+
+  t.is(result.url, releaseUrl);
+  t.deepEqual(t.context.log.args[0], ['Created GitHub draft release: %s', releaseUrl]);
+  t.true(github.isDone());
+});
+
+test.serial('Publish a draft release with one asset', async (t) => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  const env = {GITHUB_TOKEN: 'github_token'};
+  const pluginConfig = {
+    assets: [['**', '!**/*.txt'], {path: '.dotfile', label: 'A dotfile with no ext'}],
+    draftRelease: true,
+  };
+  const nextRelease = {gitTag: 'v1.0.0', name: 'v1.0.0', notes: 'Test release note body'};
+  const options = {repositoryUrl: `https://github.com/${owner}/${repo}.git`};
+  const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
+  const assetUrl = `https://github.com/${owner}/${repo}/releases/download/${nextRelease.version}/.dotfile`;
+  const releaseId = 1;
+  const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
+  const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
+  const branch = 'test_branch';
+
+  const github = authenticate(env)
+    .post(`/repos/${owner}/${repo}/releases`, {
+      tag_name: nextRelease.gitTag,
+      target_commitish: branch,
+      name: nextRelease.name,
+      body: nextRelease.notes,
+      draft: true,
+      prerelease: false,
+    })
+    .reply(200, {upload_url: uploadUrl, html_url: releaseUrl, id: releaseId});
+
+  const githubUpload = upload(env, {
+    uploadUrl: 'https://github.com',
+    contentLength: (await stat(path.resolve(cwd, '.dotfile'))).size,
+  })
+    .post(`${uploadUri}?name=${escape('.dotfile')}&label=${escape('A dotfile with no ext')}`)
+    .reply(200, {browser_download_url: assetUrl});
+
+  const result = await publish(pluginConfig, {
+    cwd,
+    env,
+    options,
+    branch: {name: branch, type: 'release', main: true},
+    nextRelease,
+    logger: t.context.logger,
+  });
+
+  t.is(result.url, releaseUrl);
+  t.true(t.context.log.calledWith('Created GitHub draft release: %s', releaseUrl));
+  t.true(t.context.log.calledWith('Published file %s', assetUrl));
+  t.true(github.isDone());
+  t.true(githubUpload.isDone());
+});
+
 test.serial('Throw error without retries for 400 error', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';

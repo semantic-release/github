@@ -83,6 +83,7 @@ If you have actions that trigger on newly created releases, please use a generat
 | `assignees`           | The [assignees](https://help.github.com/articles/assigning-issues-and-pull-requests-to-other-github-users) to add to the issue created when a release fails.                                           | -                                                                                                                                                    |
 | `releasedLabels`      | The [labels](https://help.github.com/articles/about-labels) to add to each issue and pull request resolved by the release. Set to `false` to not add any label. See [releasedLabels](#releasedlabels). | `['released<%= nextRelease.channel ? \` on @\${nextRelease.channel}\` : "" %>']-                                                                                                                                                    |
 | `addReleases`         | Will add release links to the GitHub Release. Can be `false`, `"bottom"` or `"top"`. See [addReleases](#addReleases). | `false`                                                                     |
+| `draftRelease`        | A boolean indicating if a GitHub Draft Release should be created instead of publishing an actual GitHub Release. | `false` |
 
 #### proxy
 
