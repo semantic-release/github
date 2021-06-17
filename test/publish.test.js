@@ -249,7 +249,7 @@ test.serial('Publish a release with one asset', async (t) => {
       prerelease: false,
     })
     .reply(200, {upload_url: uploadUrl, html_url: untaggedReleaseUrl, id: releaseId})
-    .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {draft: false})
+    .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {draft: false, tag_name: nextRelease.gitTag})
     .reply(200, {upload_url: uploadUrl, html_url: releaseUrl});
 
   const githubUpload = upload(env, {
@@ -302,7 +302,7 @@ test.serial('Publish a release with one asset and custom github url', async (t) 
       prerelease: false,
     })
     .reply(200, {upload_url: uploadUrl, html_url: untaggedReleaseUrl, id: releaseId})
-    .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {draft: false})
+    .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {draft: false, tag_name: nextRelease.gitTag})
     .reply(200, {upload_url: uploadUrl, html_url: releaseUrl});
 
   const githubUpload = upload(env, {
@@ -353,7 +353,7 @@ test.serial('Publish a release with an array of missing assets', async (t) => {
       prerelease: false,
     })
     .reply(200, {upload_url: uploadUrl, html_url: untaggedReleaseUrl, id: releaseId})
-    .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {draft: false})
+    .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {draft: false, tag_name: nextRelease.gitTag})
     .reply(200, {html_url: releaseUrl});
 
   const result = await publish(pluginConfig, {

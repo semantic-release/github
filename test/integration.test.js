@@ -153,7 +153,7 @@ test.serial('Publish a release with an array of assets', async (t) => {
       prerelease: false,
     })
     .reply(200, {upload_url: uploadUrl, html_url: releaseUrl, id: releaseId})
-    .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {draft: false})
+    .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {draft: false, tag_name: nextRelease.gitTag})
     .reply(200, {html_url: releaseUrl});
   const githubUpload1 = upload(env, {
     uploadUrl: 'https://github.com',
@@ -214,6 +214,7 @@ test.serial('Publish a release with release information in assets', async (t) =>
     .reply(200, {upload_url: uploadUrl, html_url: releaseUrl, id: releaseId})
     .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {
       draft: false,
+      tag_name: nextRelease.gitTag,
     })
     .reply(200, {html_url: releaseUrl});
   const githubUpload = upload(env, {
@@ -380,7 +381,7 @@ test.serial('Verify, release and notify success', async (t) => {
       prerelease: false,
     })
     .reply(200, {upload_url: uploadUrl, html_url: releaseUrl, id: releaseId})
-    .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {draft: false})
+    .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {draft: false, tag_name: nextRelease.gitTag})
     .reply(200, {html_url: releaseUrl})
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {full_name: `${owner}/${repo}`})
