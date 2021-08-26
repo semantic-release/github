@@ -13,9 +13,8 @@ jobs:
     strategy:
       matrix:
         node-version:
-          - 10
-          - 12
-          - 14
+          - '14.17'
+          - 16
         os:
           - ubuntu-latest
     runs-on: "${{ matrix.os }}"
@@ -39,5 +38,7 @@ jobs:
           node-version: "${{ matrix.node-version }}"
           cache: npm
       - run: npm ci
+      - name: Ensure dependencies are compatible with the version of node
+        run: npx ls-engines
       - run: npm run lint
       - run: npx lockfile-lint --path package-lock.json
