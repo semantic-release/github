@@ -25,8 +25,6 @@ jobs:
         with:
           node-version: "${{ matrix.node-version }}"
           cache: npm
-      - name: Ensure dependencies are compatible with the version of node
-        run: echo 'engine-strict=true' >> .npmrc
       - run: npm ci
       - run: "npm run test:ci"
   test:
@@ -40,5 +38,7 @@ jobs:
           node-version: "${{ matrix.node-version }}"
           cache: npm
       - run: npm ci
+      - name: Ensure dependencies are compatible with the version of node
+        run: npx ls-engines
       - run: npm run lint
       - run: npx lockfile-lint --path package-lock.json
