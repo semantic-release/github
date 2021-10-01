@@ -1,9 +1,9 @@
-const test = require('ava');
-const nock = require('nock');
-const {stub} = require('sinon');
-const proxyquire = require('proxyquire');
-const {authenticate} = require('./helpers/mock-github');
-const rateLimit = require('./helpers/rate-limit');
+import test, {beforeEach, afterEach, serial} from 'ava';
+import {cleanAll} from 'nock';
+import {stub} from 'sinon';
+import proxyquire from 'proxyquire';
+import {authenticate} from './helpers/mock-github';
+import rateLimit from './helpers/rate-limit';
 
 /* eslint camelcase: ["error", {properties: "never"}] */
 
@@ -11,19 +11,19 @@ const verify = proxyquire('../lib/verify', {
   './get-client': proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit}),
 });
 
-test.beforeEach((t) => {
+beforeEach((t) => {
   // Mock logger
   t.context.log = stub();
   t.context.error = stub();
   t.context.logger = {log: t.context.log, error: t.context.error};
 });
 
-test.afterEach.always(() => {
+afterEach.always(() => {
   // Clear nock
-  nock.cleanAll();
+  cleanAll();
 });
 
-test.serial('Verify package, token and repository access', async (t) => {
+serial('Verify package, token and repository access', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -46,7 +46,7 @@ test.serial('Verify package, token and repository access', async (t) => {
   t.true(github.isDone());
 });
 
-test.serial(
+serial(
   'Verify package, token and repository access with "proxy", "asset", "successComment", "failTitle", "failComment" and "label" set to "null"',
   async (t) => {
     const owner = 'test_user';
@@ -72,7 +72,7 @@ test.serial(
   }
 );
 
-test.serial('Verify package, token and repository access and custom URL with prefix', async (t) => {
+serial('Verify package, token and repository access and custom URL with prefix', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -93,7 +93,7 @@ test.serial('Verify package, token and repository access and custom URL with pre
   t.deepEqual(t.context.log.args[0], ['Verify GitHub authentication (%s)', 'https://othertesturl.com:9090/prefix']);
 });
 
-test.serial('Verify package, token and repository access and custom URL without prefix', async (t) => {
+serial('Verify package, token and repository access and custom URL without prefix', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -113,7 +113,7 @@ test.serial('Verify package, token and repository access and custom URL without 
   t.deepEqual(t.context.log.args[0], ['Verify GitHub authentication (%s)', 'https://othertesturl.com:9090']);
 });
 
-test.serial('Verify package, token and repository access and shorthand repositoryUrl URL', async (t) => {
+serial('Verify package, token and repository access and shorthand repositoryUrl URL', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -130,7 +130,7 @@ test.serial('Verify package, token and repository access and shorthand repositor
   t.deepEqual(t.context.log.args[0], ['Verify GitHub authentication (%s)', 'https://othertesturl.com:9090']);
 });
 
-test.serial('Verify package, token and repository with environment variables', async (t) => {
+serial('Verify package, token and repository with environment variables', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {
@@ -151,7 +151,7 @@ test.serial('Verify package, token and repository with environment variables', a
   t.deepEqual(t.context.log.args[0], ['Verify GitHub authentication (%s)', 'https://othertesturl.com:443/prefix']);
 });
 
-test.serial('Verify package, token and repository access with alternative environment varialbes', async (t) => {
+serial('Verify package, token and repository access with alternative environment varialbes', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {
@@ -169,7 +169,7 @@ test.serial('Verify package, token and repository access with alternative enviro
   t.true(github.isDone());
 });
 
-test.serial('Verify "proxy" is a String', async (t) => {
+serial('Verify "proxy" is a String', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -188,7 +188,7 @@ test.serial('Verify "proxy" is a String', async (t) => {
   t.true(github.isDone());
 });
 
-test.serial('Verify "proxy" is an object with "host" and "port" properties', async (t) => {
+serial('Verify "proxy" is an object with "host" and "port" properties', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -207,7 +207,7 @@ test.serial('Verify "proxy" is an object with "host" and "port" properties', asy
   t.true(github.isDone());
 });
 
-test.serial('Verify "proxy" is a Boolean set to false', async (t) => {
+serial('Verify "proxy" is a Boolean set to false', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -226,7 +226,7 @@ test.serial('Verify "proxy" is a Boolean set to false', async (t) => {
   t.true(github.isDone());
 });
 
-test.serial('Verify "assets" is a String', async (t) => {
+serial('Verify "assets" is a String', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -245,7 +245,7 @@ test.serial('Verify "assets" is a String', async (t) => {
   t.true(github.isDone());
 });
 
-test.serial('Verify "assets" is an Object with a path property', async (t) => {
+serial('Verify "assets" is an Object with a path property', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -264,7 +264,7 @@ test.serial('Verify "assets" is an Object with a path property', async (t) => {
   t.true(github.isDone());
 });
 
-test.serial('Verify "assets" is an Array of Object with a path property', async (t) => {
+serial('Verify "assets" is an Array of Object with a path property', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -283,7 +283,7 @@ test.serial('Verify "assets" is an Array of Object with a path property', async 
   t.true(github.isDone());
 });
 
-test.serial('Verify "assets" is an Array of glob Arrays', async (t) => {
+serial('Verify "assets" is an Array of glob Arrays', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -302,7 +302,7 @@ test.serial('Verify "assets" is an Array of glob Arrays', async (t) => {
   t.true(github.isDone());
 });
 
-test.serial('Verify "assets" is an Array of Object with a glob Arrays in path property', async (t) => {
+serial('Verify "assets" is an Array of Object with a glob Arrays in path property', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -321,7 +321,7 @@ test.serial('Verify "assets" is an Array of Object with a glob Arrays in path pr
   t.true(github.isDone());
 });
 
-test.serial('Verify "labels" is a String', async (t) => {
+serial('Verify "labels" is a String', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -340,7 +340,7 @@ test.serial('Verify "labels" is a String', async (t) => {
   t.true(github.isDone());
 });
 
-test.serial('Verify "assignees" is a String', async (t) => {
+serial('Verify "assignees" is a String', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -359,7 +359,7 @@ test.serial('Verify "assignees" is a String', async (t) => {
   t.true(github.isDone());
 });
 
-test.serial('Verify "addReleases" is a valid string (top)', async (t) => {
+serial('Verify "addReleases" is a valid string (top)', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -378,7 +378,7 @@ test.serial('Verify "addReleases" is a valid string (top)', async (t) => {
   t.true(github.isDone());
 });
 
-test.serial('Verify "addReleases" is a valid string (bottom)', async (t) => {
+serial('Verify "addReleases" is a valid string (bottom)', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -397,7 +397,7 @@ test.serial('Verify "addReleases" is a valid string (bottom)', async (t) => {
   t.true(github.isDone());
 });
 
-test.serial('Verify "addReleases" is valid (false)', async (t) => {
+serial('Verify "addReleases" is valid (false)', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -417,7 +417,7 @@ test.serial('Verify "addReleases" is valid (false)', async (t) => {
 });
 
 // https://github.com/semantic-release/github/issues/182
-test.serial('Verify if run in GitHub Action', async (t) => {
+serial('Verify if run in GitHub Action', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'v1.1234567890123456789012345678901234567890', GITHUB_ACTION: 'Release'};
@@ -449,7 +449,7 @@ test('Throw SemanticReleaseError for missing github token', async (t) => {
   t.is(error.code, 'ENOGHTOKEN');
 });
 
-test.serial('Throw SemanticReleaseError for invalid token', async (t) => {
+serial('Throw SemanticReleaseError for invalid token', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -477,7 +477,7 @@ test('Throw SemanticReleaseError for invalid repositoryUrl', async (t) => {
   t.is(error.code, 'EINVALIDGITHUBURL');
 });
 
-test.serial(
+serial(
   "Throw SemanticReleaseError if token doesn't have the push permission on the repository and it's not a Github installation token",
   async (t) => {
     const owner = 'test_user';
@@ -501,7 +501,7 @@ test.serial(
   }
 );
 
-test.serial(
+serial(
   "Do not throw SemanticReleaseError if token doesn't have the push permission but it is a Github installation token",
   async (t) => {
     const owner = 'test_user';
@@ -522,7 +522,7 @@ test.serial(
   }
 );
 
-test.serial("Throw SemanticReleaseError if the repository doesn't exist", async (t) => {
+serial("Throw SemanticReleaseError if the repository doesn't exist", async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -538,7 +538,7 @@ test.serial("Throw SemanticReleaseError if the repository doesn't exist", async 
   t.true(github.isDone());
 });
 
-test.serial('Throw error if github return any other errors', async (t) => {
+serial('Throw error if github return any other errors', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -584,7 +584,7 @@ test('Throw SemanticReleaseError if "proxy" option is an Object with invalid pro
   t.is(error.code, 'EINVALIDPROXY');
 });
 
-test.serial('Throw SemanticReleaseError if "assets" option is not a String or an Array of Objects', async (t) => {
+serial('Throw SemanticReleaseError if "assets" option is not a String or an Array of Objects', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -606,7 +606,7 @@ test.serial('Throw SemanticReleaseError if "assets" option is not a String or an
   t.true(github.isDone());
 });
 
-test.serial('Throw SemanticReleaseError if "assets" option is an Array with invalid elements', async (t) => {
+serial('Throw SemanticReleaseError if "assets" option is an Array with invalid elements', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -628,7 +628,7 @@ test.serial('Throw SemanticReleaseError if "assets" option is an Array with inva
   t.true(github.isDone());
 });
 
-test.serial('Throw SemanticReleaseError if "assets" option is an Object missing the "path" property', async (t) => {
+serial('Throw SemanticReleaseError if "assets" option is an Object missing the "path" property', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -650,7 +650,7 @@ test.serial('Throw SemanticReleaseError if "assets" option is an Object missing 
   t.true(github.isDone());
 });
 
-test.serial(
+serial(
   'Throw SemanticReleaseError if "assets" option is an Array with objects missing the "path" property',
   async (t) => {
     const owner = 'test_user';
@@ -675,7 +675,7 @@ test.serial(
   }
 );
 
-test.serial('Throw SemanticReleaseError if "successComment" option is not a String', async (t) => {
+serial('Throw SemanticReleaseError if "successComment" option is not a String', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -697,7 +697,7 @@ test.serial('Throw SemanticReleaseError if "successComment" option is not a Stri
   t.true(github.isDone());
 });
 
-test.serial('Throw SemanticReleaseError if "successComment" option is an empty String', async (t) => {
+serial('Throw SemanticReleaseError if "successComment" option is an empty String', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -719,7 +719,7 @@ test.serial('Throw SemanticReleaseError if "successComment" option is an empty S
   t.true(github.isDone());
 });
 
-test.serial('Throw SemanticReleaseError if "successComment" option is a whitespace String', async (t) => {
+serial('Throw SemanticReleaseError if "successComment" option is a whitespace String', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -741,7 +741,7 @@ test.serial('Throw SemanticReleaseError if "successComment" option is a whitespa
   t.true(github.isDone());
 });
 
-test.serial('Throw SemanticReleaseError if "failTitle" option is not a String', async (t) => {
+serial('Throw SemanticReleaseError if "failTitle" option is not a String', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -763,7 +763,7 @@ test.serial('Throw SemanticReleaseError if "failTitle" option is not a String', 
   t.true(github.isDone());
 });
 
-test.serial('Throw SemanticReleaseError if "failTitle" option is an empty String', async (t) => {
+serial('Throw SemanticReleaseError if "failTitle" option is an empty String', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -785,7 +785,7 @@ test.serial('Throw SemanticReleaseError if "failTitle" option is an empty String
   t.true(github.isDone());
 });
 
-test.serial('Throw SemanticReleaseError if "failTitle" option is a whitespace String', async (t) => {
+serial('Throw SemanticReleaseError if "failTitle" option is a whitespace String', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -807,7 +807,7 @@ test.serial('Throw SemanticReleaseError if "failTitle" option is a whitespace St
   t.true(github.isDone());
 });
 
-test.serial('Throw SemanticReleaseError if "failComment" option is not a String', async (t) => {
+serial('Throw SemanticReleaseError if "failComment" option is not a String', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -829,7 +829,7 @@ test.serial('Throw SemanticReleaseError if "failComment" option is not a String'
   t.true(github.isDone());
 });
 
-test.serial('Throw SemanticReleaseError if "failComment" option is an empty String', async (t) => {
+serial('Throw SemanticReleaseError if "failComment" option is an empty String', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -851,7 +851,7 @@ test.serial('Throw SemanticReleaseError if "failComment" option is an empty Stri
   t.true(github.isDone());
 });
 
-test.serial('Throw SemanticReleaseError if "failComment" option is a whitespace String', async (t) => {
+serial('Throw SemanticReleaseError if "failComment" option is a whitespace String', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -873,7 +873,7 @@ test.serial('Throw SemanticReleaseError if "failComment" option is a whitespace 
   t.true(github.isDone());
 });
 
-test.serial('Throw SemanticReleaseError if "labels" option is not a String or an Array of String', async (t) => {
+serial('Throw SemanticReleaseError if "labels" option is not a String or an Array of String', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -895,7 +895,7 @@ test.serial('Throw SemanticReleaseError if "labels" option is not a String or an
   t.true(github.isDone());
 });
 
-test.serial('Throw SemanticReleaseError if "labels" option is an Array with invalid elements', async (t) => {
+serial('Throw SemanticReleaseError if "labels" option is an Array with invalid elements', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -917,7 +917,7 @@ test.serial('Throw SemanticReleaseError if "labels" option is an Array with inva
   t.true(github.isDone());
 });
 
-test.serial('Throw SemanticReleaseError if "labels" option is a whitespace String', async (t) => {
+serial('Throw SemanticReleaseError if "labels" option is a whitespace String', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -939,7 +939,7 @@ test.serial('Throw SemanticReleaseError if "labels" option is a whitespace Strin
   t.true(github.isDone());
 });
 
-test.serial('Throw SemanticReleaseError if "assignees" option is not a String or an Array of String', async (t) => {
+serial('Throw SemanticReleaseError if "assignees" option is not a String or an Array of String', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -961,7 +961,7 @@ test.serial('Throw SemanticReleaseError if "assignees" option is not a String or
   t.true(github.isDone());
 });
 
-test.serial('Throw SemanticReleaseError if "assignees" option is an Array with invalid elements', async (t) => {
+serial('Throw SemanticReleaseError if "assignees" option is an Array with invalid elements', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -983,7 +983,7 @@ test.serial('Throw SemanticReleaseError if "assignees" option is an Array with i
   t.true(github.isDone());
 });
 
-test.serial('Throw SemanticReleaseError if "assignees" option is a whitespace String', async (t) => {
+serial('Throw SemanticReleaseError if "assignees" option is a whitespace String', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -1005,32 +1005,29 @@ test.serial('Throw SemanticReleaseError if "assignees" option is a whitespace St
   t.true(github.isDone());
 });
 
-test.serial(
-  'Throw SemanticReleaseError if "releasedLabels" option is not a String or an Array of String',
-  async (t) => {
-    const owner = 'test_user';
-    const repo = 'test_repo';
-    const env = {GH_TOKEN: 'github_token'};
-    const releasedLabels = 42;
-    const github = authenticate(env)
-      .get(`/repos/${owner}/${repo}`)
-      .reply(200, {permissions: {push: true}});
+serial('Throw SemanticReleaseError if "releasedLabels" option is not a String or an Array of String', async (t) => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  const env = {GH_TOKEN: 'github_token'};
+  const releasedLabels = 42;
+  const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {permissions: {push: true}});
 
-    const [error, ...errors] = await t.throwsAsync(
-      verify(
-        {releasedLabels},
-        {env, options: {repositoryUrl: `https://github.com/${owner}/${repo}.git`}, logger: t.context.logger}
-      )
-    );
+  const [error, ...errors] = await t.throwsAsync(
+    verify(
+      {releasedLabels},
+      {env, options: {repositoryUrl: `https://github.com/${owner}/${repo}.git`}, logger: t.context.logger}
+    )
+  );
 
-    t.is(errors.length, 0);
-    t.is(error.name, 'SemanticReleaseError');
-    t.is(error.code, 'EINVALIDRELEASEDLABELS');
-    t.true(github.isDone());
-  }
-);
+  t.is(errors.length, 0);
+  t.is(error.name, 'SemanticReleaseError');
+  t.is(error.code, 'EINVALIDRELEASEDLABELS');
+  t.true(github.isDone());
+});
 
-test.serial('Throw SemanticReleaseError if "releasedLabels" option is an Array with invalid elements', async (t) => {
+serial('Throw SemanticReleaseError if "releasedLabels" option is an Array with invalid elements', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -1052,7 +1049,7 @@ test.serial('Throw SemanticReleaseError if "releasedLabels" option is an Array w
   t.true(github.isDone());
 });
 
-test.serial('Throw SemanticReleaseError if "releasedLabels" option is a whitespace String', async (t) => {
+serial('Throw SemanticReleaseError if "releasedLabels" option is a whitespace String', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -1074,7 +1071,7 @@ test.serial('Throw SemanticReleaseError if "releasedLabels" option is a whitespa
   t.true(github.isDone());
 });
 
-test.serial('Throw SemanticReleaseError if "addReleases" option is not a valid string (botom)', async (t) => {
+serial('Throw SemanticReleaseError if "addReleases" option is not a valid string (botom)', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -1096,7 +1093,7 @@ test.serial('Throw SemanticReleaseError if "addReleases" option is not a valid s
   t.true(github.isDone());
 });
 
-test.serial('Throw SemanticReleaseError if "addReleases" option is not a valid string (true)', async (t) => {
+serial('Throw SemanticReleaseError if "addReleases" option is not a valid string (true)', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};
@@ -1118,7 +1115,7 @@ test.serial('Throw SemanticReleaseError if "addReleases" option is not a valid s
   t.true(github.isDone());
 });
 
-test.serial('Throw SemanticReleaseError if "addReleases" option is not a valid string (number)', async (t) => {
+serial('Throw SemanticReleaseError if "addReleases" option is not a valid string (number)', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_TOKEN: 'github_token'};

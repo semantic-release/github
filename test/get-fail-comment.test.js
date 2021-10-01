@@ -1,6 +1,7 @@
-const test = require('ava');
-const SemanticReleaseError = require('@semantic-release/error');
-const getfailComment = require('../lib/get-fail-comment');
+import test from 'ava';
+import SemanticReleaseError from '@semantic-release/error';
+
+import getfailComment from '../lib/get-fail-comment';
 
 test('Comment with mutiple errors', (t) => {
   const errors = [

@@ -1,23 +1,24 @@
-const path = require('path');
-const http = require('http');
-const https = require('https');
-const {promisify} = require('util');
-const {readFile} = require('fs-extra');
-const test = require('ava');
-const {inRange} = require('lodash');
-const {stub, spy} = require('sinon');
-const proxyquire = require('proxyquire');
-const Proxy = require('proxy');
-const serverDestroy = require('server-destroy');
-const {Octokit} = require('@octokit/rest');
-const rateLimit = require('./helpers/rate-limit');
+import {join} from 'path';
+import {createServer} from 'http';
+import {createServer as _createServer} from 'https';
+import {promisify} from 'util';
+import {readFile} from 'fs-extra';
+import test, {serial} from 'ava';
+import {inRange} from 'lodash';
+import {stub, spy} from 'sinon';
+import proxyquire from 'proxyquire';
+import Proxy from 'proxy';
+import serverDestroy from 'server-destroy';
+import {Octokit} from '@octokit/rest';
+
+import rateLimit from './helpers/rate-limit';
 
 const getClient = proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit});
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
-test.serial('Use a http proxy', async (t) => {
-  const server = http.createServer();
+serial('Use a http proxy', async (t) => {
+  const server = createServer();
   await promisify(server.listen).bind(server)();
   const serverPort = server.address().port;
   serverDestroy(server);
@@ -51,10 +52,10 @@ test.serial('Use a http proxy', async (t) => {
   await promisify(server.destroy).bind(server)();
 });
 
-test.serial('Use a https proxy', async (t) => {
-  const server = https.createServer({
-    key: await readFile(path.join(__dirname, '/fixtures/ssl/ssl-cert-snakeoil.key')),
-    cert: await readFile(path.join(__dirname, '/fixtures/ssl/ssl-cert-snakeoil.pem')),
+serial('Use a https proxy', async (t) => {
+  const server = _createServer({
+    key: await readFile(join(__dirname, '/fixtures/ssl/ssl-cert-snakeoil.key')),
+    cert: await readFile(join(__dirname, '/fixtures/ssl/ssl-cert-snakeoil.pem')),
   });
   await promisify(server.listen).bind(server)();
   const serverPort = server.address().port;
@@ -88,8 +89,8 @@ test.serial('Use a https proxy', async (t) => {
   await promisify(server.destroy).bind(server)();
 });
 
-test.serial('Do not use a proxy if set to false', async (t) => {
-  const server = http.createServer();
+serial('Do not use a proxy if set to false', async (t) => {
+  const server = createServer();
   await promisify(server.listen).bind(server)();
   const serverPort = server.address().port;
   serverDestroy(server);

@@ -1,19 +1,20 @@
-const path = require('path');
-const {escape} = require('querystring');
-const test = require('ava');
-const {stat} = require('fs-extra');
-const nock = require('nock');
-const {stub} = require('sinon');
-const proxyquire = require('proxyquire');
-const clearModule = require('clear-module');
-const SemanticReleaseError = require('@semantic-release/error');
-const {authenticate, upload} = require('./helpers/mock-github');
-const rateLimit = require('./helpers/rate-limit');
+import {resolve} from 'path';
+import {escape} from 'querystring';
+import {beforeEach, afterEach, serial} from 'ava';
+import {stat} from 'fs-extra';
+import {cleanAll} from 'nock';
+import {stub} from 'sinon';
+import proxyquire from 'proxyquire';
+import clearModule from 'clear-module';
+import SemanticReleaseError from '@semantic-release/error';
+
+import {authenticate, upload} from './helpers/mock-github';
+import rateLimit from './helpers/rate-limit';
 
 const cwd = 'test/fixtures/files';
 const client = proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit});
 
-test.beforeEach((t) => {
+beforeEach((t) => {
   // Clear npm cache to refresh the module state
   clearModule('..');
   t.context.m = proxyquire('..', {
@@ -28,12 +29,12 @@ test.beforeEach((t) => {
   t.context.logger = {log: t.context.log, error: t.context.error};
 });
 
-test.afterEach.always(() => {
+afterEach.always(() => {
   // Clear nock
-  nock.cleanAll();
+  cleanAll();
 });
 
-test.serial('Verify GitHub auth', async (t) => {
+serial('Verify GitHub auth', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -47,7 +48,7 @@ test.serial('Verify GitHub auth', async (t) => {
   t.true(github.isDone());
 });
 
-test.serial('Verify GitHub auth with publish options', async (t) => {
+serial('Verify GitHub auth with publish options', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -64,7 +65,7 @@ test.serial('Verify GitHub auth with publish options', async (t) => {
   t.true(github.isDone());
 });
 
-test.serial('Verify GitHub auth and assets config', async (t) => {
+serial('Verify GitHub auth and assets config', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -88,7 +89,7 @@ test.serial('Verify GitHub auth and assets config', async (t) => {
   t.true(github.isDone());
 });
 
-test.serial('Throw SemanticReleaseError if invalid config', async (t) => {
+serial('Throw SemanticReleaseError if invalid config', async (t) => {
   const env = {};
   const assets = [{wrongProperty: 'lib/file.js'}];
   const successComment = 42;
@@ -126,7 +127,7 @@ test.serial('Throw SemanticReleaseError if invalid config', async (t) => {
   t.is(errors[7].code, 'ENOGHTOKEN');
 });
 
-test.serial('Publish a release with an array of assets', async (t) => {
+serial('Publish a release with an array of assets', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -157,13 +158,13 @@ test.serial('Publish a release with an array of assets', async (t) => {
     .reply(200, {html_url: releaseUrl});
   const githubUpload1 = upload(env, {
     uploadUrl: 'https://github.com',
-    contentLength: (await stat(path.resolve(cwd, 'upload.txt'))).size,
+    contentLength: (await stat(resolve(cwd, 'upload.txt'))).size,
   })
     .post(`${uploadUri}?name=${escape('upload_file_name.txt')}`)
     .reply(200, {browser_download_url: assetUrl});
   const githubUpload2 = upload(env, {
     uploadUrl: 'https://github.com',
-    contentLength: (await stat(path.resolve(cwd, 'upload_other.txt'))).size,
+    contentLength: (await stat(resolve(cwd, 'upload_other.txt'))).size,
   })
     .post(`${uploadUri}?name=${escape('other_file.txt')}&label=${escape('Other File')}`)
     .reply(200, {browser_download_url: otherAssetUrl});
@@ -183,7 +184,7 @@ test.serial('Publish a release with an array of assets', async (t) => {
   t.true(githubUpload2.isDone());
 });
 
-test.serial('Publish a release with release information in assets', async (t) => {
+serial('Publish a release with release information in assets', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -218,7 +219,7 @@ test.serial('Publish a release with release information in assets', async (t) =>
     .reply(200, {html_url: releaseUrl});
   const githubUpload = upload(env, {
     uploadUrl: 'https://github.com',
-    contentLength: (await stat(path.resolve(cwd, 'upload.txt'))).size,
+    contentLength: (await stat(resolve(cwd, 'upload.txt'))).size,
   })
     .post(
       `${uploadUri}?name=${escape('file_with_release_v1.0.0_in_filename.txt')}&label=${escape(
@@ -240,7 +241,7 @@ test.serial('Publish a release with release information in assets', async (t) =>
   t.true(githubUpload.isDone());
 });
 
-test.serial('Update a release', async (t) => {
+serial('Update a release', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -272,7 +273,7 @@ test.serial('Update a release', async (t) => {
   t.true(github.isDone());
 });
 
-test.serial('Comment and add labels on PR included in the releases', async (t) => {
+serial('Comment and add labels on PR included in the releases', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -314,7 +315,7 @@ test.serial('Comment and add labels on PR included in the releases', async (t) =
   t.true(github.isDone());
 });
 
-test.serial('Open a new issue with the list of errors', async (t) => {
+serial('Open a new issue with the list of errors', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -350,7 +351,7 @@ test.serial('Open a new issue with the list of errors', async (t) => {
   t.true(github.isDone());
 });
 
-test.serial('Verify, release and notify success', async (t) => {
+serial('Verify, release and notify success', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -404,13 +405,13 @@ test.serial('Verify, release and notify success', async (t) => {
     .reply(200, {items: []});
   const githubUpload1 = upload(env, {
     uploadUrl: 'https://github.com',
-    contentLength: (await stat(path.resolve(cwd, 'upload.txt'))).size,
+    contentLength: (await stat(resolve(cwd, 'upload.txt'))).size,
   })
     .post(`${uploadUri}?name=${escape('upload.txt')}`)
     .reply(200, {browser_download_url: assetUrl});
   const githubUpload2 = upload(env, {
     uploadUrl: 'https://github.com',
-    contentLength: (await stat(path.resolve(cwd, 'upload_other.txt'))).size,
+    contentLength: (await stat(resolve(cwd, 'upload_other.txt'))).size,
   })
     .post(`${uploadUri}?name=${escape('other_file.txt')}&label=${escape('Other File')}`)
     .reply(200, {browser_download_url: otherAssetUrl});
@@ -434,7 +435,7 @@ test.serial('Verify, release and notify success', async (t) => {
   t.true(githubUpload2.isDone());
 });
 
-test.serial('Verify, update release and notify success', async (t) => {
+serial('Verify, update release and notify success', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -495,7 +496,7 @@ test.serial('Verify, update release and notify success', async (t) => {
   t.true(github.isDone());
 });
 
-test.serial('Verify and notify failure', async (t) => {
+serial('Verify and notify failure', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};

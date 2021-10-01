@@ -1,12 +1,13 @@
-const {escape} = require('querystring');
-const test = require('ava');
-const nock = require('nock');
-const {stub} = require('sinon');
-const proxyquire = require('proxyquire');
-const SemanticReleaseError = require('@semantic-release/error');
-const {ISSUE_ID} = require('../lib/definitions/constants');
-const {authenticate} = require('./helpers/mock-github');
-const rateLimit = require('./helpers/rate-limit');
+import {escape} from 'querystring';
+import {beforeEach, afterEach, serial} from 'ava';
+import {cleanAll} from 'nock';
+import {stub} from 'sinon';
+import proxyquire from 'proxyquire';
+import SemanticReleaseError from '@semantic-release/error';
+
+import {ISSUE_ID} from '../lib/definitions/constants';
+import {authenticate} from './helpers/mock-github';
+import rateLimit from './helpers/rate-limit';
 
 /* eslint camelcase: ["error", {properties: "never"}] */
 
@@ -14,19 +15,19 @@ const fail = proxyquire('../lib/fail', {
   './get-client': proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit}),
 });
 
-test.beforeEach((t) => {
+beforeEach((t) => {
   // Mock logger
   t.context.log = stub();
   t.context.error = stub();
   t.context.logger = {log: t.context.log, error: t.context.error};
 });
 
-test.afterEach.always(() => {
+afterEach.always(() => {
   // Clear nock
-  nock.cleanAll();
+  cleanAll();
 });
 
-test.serial('Open a new issue with the list of errors', async (t) => {
+serial('Open a new issue with the list of errors', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const redirectedOwner = 'test_user_2';
@@ -62,7 +63,7 @@ test.serial('Open a new issue with the list of errors', async (t) => {
   t.true(github.isDone());
 });
 
-test.serial('Open a new issue with the list of errors, retrying 4 times', async (t) => {
+serial('Open a new issue with the list of errors, retrying 4 times', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -110,7 +111,7 @@ test.serial('Open a new issue with the list of errors, retrying 4 times', async 
   t.true(github.isDone());
 });
 
-test.serial('Open a new issue with the list of errors and custom title and comment', async (t) => {
+serial('Open a new issue with the list of errors and custom title and comment', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -145,7 +146,7 @@ test.serial('Open a new issue with the list of errors and custom title and comme
   t.true(github.isDone());
 });
 
-test.serial('Open a new issue with assignees and the list of errors', async (t) => {
+serial('Open a new issue with assignees and the list of errors', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -180,7 +181,7 @@ test.serial('Open a new issue with assignees and the list of errors', async (t) 
   t.true(github.isDone());
 });
 
-test.serial('Open a new issue without labels and the list of errors', async (t) => {
+serial('Open a new issue without labels and the list of errors', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -214,7 +215,7 @@ test.serial('Open a new issue without labels and the list of errors', async (t) 
   t.true(github.isDone());
 });
 
-test.serial('Update the first existing issue with the list of errors', async (t) => {
+serial('Update the first existing issue with the list of errors', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -252,7 +253,7 @@ test.serial('Update the first existing issue with the list of errors', async (t)
   t.true(github.isDone());
 });
 
-test.serial('Skip if "failComment" is "false"', async (t) => {
+serial('Skip if "failComment" is "false"', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -269,7 +270,7 @@ test.serial('Skip if "failComment" is "false"', async (t) => {
   t.true(t.context.log.calledWith('Skip issue creation.'));
 });
 
-test.serial('Skip if "failTitle" is "false"', async (t) => {
+serial('Skip if "failTitle" is "false"', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};

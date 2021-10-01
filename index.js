@@ -1,11 +1,12 @@
 /* eslint require-atomic-updates: off */
 
-const {defaultTo, castArray} = require('lodash');
-const verifyGitHub = require('./lib/verify');
-const addChannelGitHub = require('./lib/add-channel');
-const publishGitHub = require('./lib/publish');
-const successGitHub = require('./lib/success');
-const failGitHub = require('./lib/fail');
+import {defaultTo, castArray} from 'lodash';
+
+import verifyGitHub from './lib/verify';
+import addChannelGitHub from './lib/add-channel';
+import publishGitHub from './lib/publish';
+import successGitHub from './lib/success';
+import failGitHub from './lib/fail';
 
 let verified;
 
@@ -64,4 +65,4 @@ async function fail(pluginConfig, context) {
   await failGitHub(pluginConfig, context);
 }
 
-module.exports = {verifyConditions, addChannel, publish, success, fail};
+export default {verifyConditions, addChannel, publish, success, fail};

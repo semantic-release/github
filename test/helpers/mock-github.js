@@ -1,4 +1,4 @@
-const nock = require('nock');
+import nock from 'nock';
 
 /**
  * Return a `nock` object setup to respond to a github authentication request. Other expectation and responses can be chained.
@@ -42,4 +42,4 @@ function upload(
   });
 }
 
-module.exports = {authenticate, upload};
+export default {authenticate, upload};
