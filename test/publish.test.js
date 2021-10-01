@@ -1,8 +1,8 @@
+import {stat} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {escape} from 'node:querystring';
 
 import test from 'ava';
-import {stat} from 'fs-extra';
 import {cleanAll} from 'nock';
 import {stub} from 'sinon';
 import proxyquire from 'proxyquire';

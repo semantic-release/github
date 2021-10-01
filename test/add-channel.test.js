@@ -9,7 +9,7 @@ import * as RATE_LIMIT from './helpers/rate-limit.js';
 /* eslint camelcase: ["error", {properties: "never"}] */
 
 // mock rate limit imported via lib/get-client.js
-await quibble.esm('../lib/definitions/rate-limit.js', RATE_LIMIT)
+await quibble.esm('../lib/definitions/rate-limit.js', RATE_LIMIT) // eslint-disable-line
 const addChannel = (await import('../lib/add-channel.js')).default
 
 test.beforeEach((t) => {

@@ -1,38 +1,33 @@
 import {resolve} from 'node:path';
 import {escape} from 'node:querystring';
+import {stat} from 'node:fs/promises';
 
 import test from 'ava';
-import {stat} from 'fs-extra';
-import {cleanAll} from 'nock';
-import {stub} from 'sinon';
-import proxyquire from 'proxyquire';
-import clearModule from 'clear-module';
+import nock from 'nock';
+import sinon from 'sinon';
+import quibble from 'quibble';
 import SemanticReleaseError from '@semantic-release/error';
 
 import {authenticate, upload} from './helpers/mock-github.js';
-import rateLimit from './helpers/rate-limit.js';
+import * as RATE_LIMIT_MOCK from './helpers/rate-limit.js';
 
 const cwd = 'test/fixtures/files';
-const client = proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit});
 
-test.beforeEach((t) => {
-  // Clear npm cache to refresh the module state
-  clearModule('..');
-  t.context.m = proxyquire('..', {
-    './lib/verify': proxyquire('../lib/verify', {'./get-client': client}),
-    './lib/publish': proxyquire('../lib/publish', {'./get-client': client}),
-    './lib/success': proxyquire('../lib/success', {'./get-client': client}),
-    './lib/fail': proxyquire('../lib/fail', {'./get-client': client}),
-  });
+test.beforeEach(async (t) => {
+  // Mock rate limit imported via lib/get-client.js
+  await quibble.reset();
+  await quibble.esm('../lib/definitions/rate-limit.js', RATE_LIMIT_MOCK);
+
+  t.context.m = await import('../index.js');
   // Stub the logger
-  t.context.log = stub();
-  t.context.error = stub();
+  t.context.log = sinon.stub();
+  t.context.error = sinon.stub();
   t.context.logger = {log: t.context.log, error: t.context.error};
 });
 
 test.afterEach.always(() => {
   // Clear nock
-  cleanAll();
+  nock.cleanAll();
 });
 
 test.serial('Verify GitHub auth', async (t) => {

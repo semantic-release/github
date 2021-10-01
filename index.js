@@ -64,4 +64,3 @@ export async function fail(pluginConfig, context) {
 
   await failGitHub(pluginConfig, context);
 }
-
