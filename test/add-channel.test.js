@@ -1,27 +1,27 @@
 import test from 'ava';
-import {cleanAll} from 'nock';
-import {stub} from 'sinon';
-import proxyquire from 'proxyquire';
+import nock from 'nock';
+import sinon from 'sinon';
+import quibble from "quibble"
 
 import {authenticate} from './helpers/mock-github.js';
-import rateLimit from './helpers/rate-limit.js';
+import * as RATE_LIMIT from './helpers/rate-limit.js';
 
 /* eslint camelcase: ["error", {properties: "never"}] */
 
-const addChannel = proxyquire('../lib/add-channel', {
-  './get-client': proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit}),
-});
+// mock rate limit imported via lib/get-client.js
+await quibble.esm('../lib/definitions/rate-limit.js', RATE_LIMIT)
+const addChannel = (await import('../lib/add-channel.js')).default
 
 test.beforeEach((t) => {
   // Mock logger
-  t.context.log = stub();
-  t.context.error = stub();
+  t.context.log = sinon.stub();
+  t.context.error = sinon.stub();
   t.context.logger = {log: t.context.log, error: t.context.error};
 });
 
 test.afterEach.always(() => {
   // Clear nock
-  cleanAll();
+  nock.cleanAll();
 });
 
 test.serial('Update a release', async (t) => {

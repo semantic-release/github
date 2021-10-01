@@ -9,7 +9,7 @@ import nock from 'nock';
  * @param {String} [githubApiPathPrefix=env.GH_PREFIX || env.GITHUB_PREFIX || ''] The GitHub Enterprise API prefix.
  * @return {Object} A `nock` object ready to respond to a github authentication request.
  */
-function authenticate(
+export function authenticate(
   env = {},
   {
     githubToken = env.GH_TOKEN || env.GITHUB_TOKEN || 'GH_TOKEN',
@@ -28,7 +28,7 @@ function authenticate(
  * @param {String} [uploadUrl] The url on which to intercept http requests.
  * @return {Object} A `nock` object ready to respond to a github file upload request.
  */
-function upload(
+export function upload(
   env = {},
   {
     githubToken = env.GH_TOKEN || env.GITHUB_TOKEN || 'GH_TOKEN',
@@ -41,6 +41,3 @@ function upload(
     reqheaders: {Authorization: `token ${githubToken}`, 'content-type': contentType, 'content-length': contentLength},
   });
 }
-
-const mockGithub = {authenticate, upload};
-export default mockGithub;

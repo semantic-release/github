@@ -10,7 +10,7 @@ import failGitHub from './lib/fail.js';
 
 let verified;
 
-async function verifyConditions(pluginConfig, context) {
+export async function verifyConditions(pluginConfig, context) {
   const {options} = context;
   // If the GitHub publish plugin is used and has `assets`, `successComment`, `failComment`, `failTitle`, `labels` or `assignees` configured, validate it now in order to prevent any release if the configuration is wrong
   if (options.publish) {
@@ -29,7 +29,7 @@ async function verifyConditions(pluginConfig, context) {
   verified = true;
 }
 
-async function publish(pluginConfig, context) {
+export async function publish(pluginConfig, context) {
   if (!verified) {
     await verifyGitHub(pluginConfig, context);
     verified = true;
@@ -38,7 +38,7 @@ async function publish(pluginConfig, context) {
   return publishGitHub(pluginConfig, context);
 }
 
-async function addChannel(pluginConfig, context) {
+export async function addChannel(pluginConfig, context) {
   if (!verified) {
     await verifyGitHub(pluginConfig, context);
     verified = true;
@@ -47,7 +47,7 @@ async function addChannel(pluginConfig, context) {
   return addChannelGitHub(pluginConfig, context);
 }
 
-async function success(pluginConfig, context) {
+export async function success(pluginConfig, context) {
   if (!verified) {
     await verifyGitHub(pluginConfig, context);
     verified = true;
@@ -56,7 +56,7 @@ async function success(pluginConfig, context) {
   await successGitHub(pluginConfig, context);
 }
 
-async function fail(pluginConfig, context) {
+export async function fail(pluginConfig, context) {
   if (!verified) {
     await verifyGitHub(pluginConfig, context);
     verified = true;
@@ -65,6 +65,3 @@ async function fail(pluginConfig, context) {
   await failGitHub(pluginConfig, context);
 }
 
-const plugin = {verifyConditions, addChannel, publish, success, fail};
-
-export default plugin;
