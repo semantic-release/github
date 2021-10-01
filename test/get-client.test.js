@@ -1,26 +1,28 @@
-import {join, dirname} from 'node:path';
-import {createServer} from 'node:http';
-import {createServer as _createServer} from 'node:https';
-import {promisify} from 'node:util';
-import {fileURLToPath} from 'node:url';
+import { join, dirname } from "node:path";
+import { createServer } from "node:http";
+import { createServer as _createServer } from "node:https";
+import { promisify } from "node:util";
+import { fileURLToPath } from "node:url";
+import { readFile } from "node:fs/promises";
 
-import {readFile} from 'fs-extra';
-import test, {serial} from 'ava';
-import {inRange} from 'lodash-es';
-import {stub, spy} from 'sinon';
-import proxyquire from 'proxyquire';
-import Proxy from 'proxy';
-import serverDestroy from 'server-destroy';
-import {Octokit} from '@octokit/rest';
+import { inRange } from "lodash-es";
+import { Octokit } from "@octokit/rest";
+import Proxy from "proxy";
+import quibble from "quibble";
+import serverDestroy from "server-destroy";
+import sinon from "sinon";
+import test from "ava";
 
-import rateLimit from './helpers/rate-limit.js';
+import * as RATE_LIMIT_MOCK from "./helpers/rate-limit.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const getClient = proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit});
+
+await quibble.esm("../lib/definitions/rate-limit.js", RATE_LIMIT_MOCK);
+const getClient = (await import("../lib/get-client.js")).default;
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
-serial('Use a http proxy', async (t) => {
+test.serial("Use a http proxy", async (t) => {
   const server = createServer();
   await promisify(server.listen).bind(server)();
   const serverPort = server.address().port;
@@ -30,35 +32,35 @@ serial('Use a http proxy', async (t) => {
   const proxyPort = proxy.address().port;
   serverDestroy(proxy);
 
-  const proxyHandler = spy();
-  const serverHandler = spy((request, response) => {
+  const proxyHandler = sinon.spy();
+  const serverHandler = sinon.spy((request, response) => {
     response.end();
   });
-  proxy.on('request', proxyHandler);
-  server.on('request', serverHandler);
+  proxy.on("request", proxyHandler);
+  server.on("request", serverHandler);
 
   const github = getClient({
-    githubToken: 'github_token',
+    githubToken: "github_token",
     githubUrl: `http://localhost:${serverPort}`,
-    githubApiPathPrefix: '',
+    githubApiPathPrefix: "",
     proxy: `http://localhost:${proxyPort}`,
   });
 
-  await github.repos.get({repo: 'repo', owner: 'owner'});
+  await github.repos.get({ repo: "repo", owner: "owner" });
 
-  t.is(proxyHandler.args[0][0].headers.accept, 'application/vnd.github.v3+json');
-  t.is(serverHandler.args[0][0].headers.accept, 'application/vnd.github.v3+json');
+  t.is(proxyHandler.args[0][0].headers.accept, "application/vnd.github.v3+json");
+  t.is(serverHandler.args[0][0].headers.accept, "application/vnd.github.v3+json");
   t.regex(serverHandler.args[0][0].headers.via, /proxy/);
-  t.truthy(serverHandler.args[0][0].headers['x-forwarded-for']);
+  t.truthy(serverHandler.args[0][0].headers["x-forwarded-for"]);
 
   await promisify(proxy.destroy).bind(proxy)();
   await promisify(server.destroy).bind(server)();
 });
 
-serial('Use a https proxy', async (t) => {
+test.serial("Use a https proxy", async (t) => {
   const server = _createServer({
-    key: await readFile(join(__dirname, '/fixtures/ssl/ssl-cert-snakeoil.key')),
-    cert: await readFile(join(__dirname, '/fixtures/ssl/ssl-cert-snakeoil.pem')),
+    key: await readFile(join(__dirname, "/fixtures/ssl/ssl-cert-snakeoil.key")),
+    cert: await readFile(join(__dirname, "/fixtures/ssl/ssl-cert-snakeoil.pem")),
   });
   await promisify(server.listen).bind(server)();
   const serverPort = server.address().port;
@@ -68,66 +70,73 @@ serial('Use a https proxy', async (t) => {
   const proxyPort = proxy.address().port;
   serverDestroy(proxy);
 
-  const proxyHandler = spy();
-  const serverHandler = spy((request, response) => {
+  const proxyHandler = sinon.spy();
+  const serverHandler = sinon.spy((request, response) => {
     response.end();
   });
-  proxy.on('connect', proxyHandler);
-  server.on('request', serverHandler);
+  proxy.on("connect", proxyHandler);
+  server.on("request", serverHandler);
 
   const github = getClient({
-    githubToken: 'github_token',
+    githubToken: "github_token",
     githubUrl: `https://localhost:${serverPort}`,
-    githubApiPathPrefix: '',
-    proxy: {host: 'localhost', port: proxyPort, headers: {foo: 'bar'}},
+    githubApiPathPrefix: "",
+    proxy: { host: "localhost", port: proxyPort, headers: { foo: "bar" } },
   });
 
-  await github.repos.get({repo: 'repo', owner: 'owner'});
+  await github.repos.get({ repo: "repo", owner: "owner" });
 
   t.is(proxyHandler.args[0][0].url, `localhost:${serverPort}`);
-  t.is(proxyHandler.args[0][0].headers.foo, 'bar');
-  t.is(serverHandler.args[0][0].headers.accept, 'application/vnd.github.v3+json');
+  t.is(proxyHandler.args[0][0].headers.foo, "bar");
+  t.is(serverHandler.args[0][0].headers.accept, "application/vnd.github.v3+json");
 
   await promisify(proxy.destroy).bind(proxy)();
   await promisify(server.destroy).bind(server)();
 });
 
-serial('Do not use a proxy if set to false', async (t) => {
+test.serial("Do not use a proxy if set to false", async (t) => {
   const server = createServer();
   await promisify(server.listen).bind(server)();
   const serverPort = server.address().port;
   serverDestroy(server);
 
-  const serverHandler = spy((request, response) => {
+  const serverHandler = sinon.spy((request, response) => {
     response.end();
   });
-  server.on('request', serverHandler);
+  server.on("request", serverHandler);
 
   const github = getClient({
-    githubToken: 'github_token',
+    githubToken: "github_token",
     githubUrl: `http://localhost:${serverPort}`,
-    githubApiPathPrefix: '',
+    githubApiPathPrefix: "",
     proxy: false,
   });
 
-  await github.repos.get({repo: 'repo', owner: 'owner'});
+  await github.repos.get({ repo: "repo", owner: "owner" });
 
-  t.is(serverHandler.args[0][0].headers.accept, 'application/vnd.github.v3+json');
+  t.is(serverHandler.args[0][0].headers.accept, "application/vnd.github.v3+json");
   t.falsy(serverHandler.args[0][0].headers.via);
-  t.falsy(serverHandler.args[0][0].headers['x-forwarded-for']);
+  t.falsy(serverHandler.args[0][0].headers["x-forwarded-for"]);
 
   await promisify(server.destroy).bind(server)();
 });
 
-test('Use the global throttler for all endpoints', async (t) => {
+test.serial("Use the global throttler for all endpoints", async (t) => {
   const rate = 150;
 
   const octokit = new Octokit();
-  octokit.hook.wrap('request', () => Date.now());
-  const github = proxyquire('../lib/get-client', {
-    '@octokit/rest': {Octokit: stub().returns(octokit)},
-    './definitions/rate-limit': {RATE_LIMITS: {search: 1, core: 1}, GLOBAL_RATE_LIMIT: rate},
-  })({githubToken: 'token'});
+  octokit.hook.wrap("request", () => Date.now());
+
+  await quibble.reset()
+  await quibble.esm("../lib/definitions/rate-limit.js", {
+    RATE_LIMITS: { search: 1, core: 1 },
+    GLOBAL_RATE_LIMIT: rate,
+    RETRY_CONF: {retries: 3, factor: 1, minTimeout: 1, maxTimeout: 1}
+  });
+  await quibble.esm("@octokit/rest", { Octokit: sinon.stub().returns(octokit) });
+  const getClient = (await import("../lib/get-client.js")).default;
+
+  const github = getClient({ githubToken: "token" });
 
   /* eslint-disable unicorn/prevent-abbreviations */
 
@@ -152,16 +161,23 @@ test('Use the global throttler for all endpoints', async (t) => {
   /* eslint-enable unicorn/prevent-abbreviations */
 });
 
-test('Use the same throttler for endpoints in the same rate limit group', async (t) => {
+test.serial("Use the same throttler for endpoints in the same rate limit group", async (t) => {
   const searchRate = 300;
   const coreRate = 150;
 
   const octokit = new Octokit();
-  octokit.hook.wrap('request', () => Date.now());
-  const github = proxyquire('../lib/get-client', {
-    '@octokit/rest': {Octokit: stub().returns(octokit)},
-    './definitions/rate-limit': {RATE_LIMITS: {search: searchRate, core: coreRate}, GLOBAL_RATE_LIMIT: 1},
-  })({githubToken: 'token'});
+  octokit.hook.wrap("request", () => Date.now());
+
+  await quibble.reset()
+  await quibble.esm("../lib/definitions/rate-limit.js", {
+    RATE_LIMITS: { search: searchRate, core: coreRate },
+    GLOBAL_RATE_LIMIT: 1,
+    RETRY_CONF: {retries: 3, factor: 1, minTimeout: 1, maxTimeout: 1}
+  });
+  await quibble.esm("@octokit/rest", { Octokit: sinon.stub().returns(octokit) });
+  const getClient = (await import("../lib/get-client.js")).default;
+
+  const github = getClient({ githubToken: "token" });
 
   /* eslint-disable unicorn/prevent-abbreviations */
 
@@ -187,16 +203,23 @@ test('Use the same throttler for endpoints in the same rate limit group', async 
   /* eslint-enable unicorn/prevent-abbreviations */
 });
 
-test('Use different throttler for read and write endpoints', async (t) => {
+test.serial("Use different throttler for read and write endpoints", async (t) => {
   const writeRate = 300;
   const readRate = 150;
 
   const octokit = new Octokit();
-  octokit.hook.wrap('request', () => Date.now());
-  const github = proxyquire('../lib/get-client', {
-    '@octokit/rest': {Octokit: stub().returns(octokit)},
-    './definitions/rate-limit': {RATE_LIMITS: {core: {write: writeRate, read: readRate}}, GLOBAL_RATE_LIMIT: 1},
-  })({githubToken: 'token'});
+  octokit.hook.wrap("request", () => Date.now());
+
+  await quibble.reset()
+  await quibble.esm("../lib/definitions/rate-limit.js", {
+    RATE_LIMITS: { core: { write: writeRate, read: readRate } },
+    GLOBAL_RATE_LIMIT: 1,
+    RETRY_CONF: {retries: 3, factor: 1, minTimeout: 1, maxTimeout: 1}
+  });
+  await quibble.esm("@octokit/rest", { Octokit: sinon.stub().returns(octokit) });
+  const getClient = (await import("../lib/get-client.js")).default;
+
+  const github = getClient({ githubToken: "token" });
 
   const a = await github.repos.get();
   const b = await github.repos.get();
@@ -209,30 +232,33 @@ test('Use different throttler for read and write endpoints', async (t) => {
   t.true(inRange(d - c, writeRate - 50, writeRate + 50));
 });
 
-test('Use the same throttler when retrying', async (t) => {
+test.serial("Use the same throttler when retrying", async (t) => {
   const coreRate = 200;
-  const request = stub().callsFake(async () => {
+  const request = sinon.stub().callsFake(async () => {
     const error = new Error();
     error.time = Date.now();
     error.status = 404;
     throw error;
   });
   const octokit = new Octokit();
-  octokit.hook.wrap('request', request);
-  const github = proxyquire('../lib/get-client', {
-    '@octokit/rest': {Octokit: stub().returns(octokit)},
-    './definitions/rate-limit': {
-      RETRY_CONF: {retries: 3, factor: 1, minTimeout: 1},
-      RATE_LIMITS: {core: coreRate},
-      GLOBAL_RATE_LIMIT: 1,
-    },
-  })({githubToken: 'token'});
+  octokit.hook.wrap("request", request);
+
+  await quibble.reset()
+  await quibble.esm("../lib/definitions/rate-limit.js", {
+    RATE_LIMITS: { core: coreRate },
+    GLOBAL_RATE_LIMIT: 1,
+    RETRY_CONF: { retries: 3, factor: 1, minTimeout: 1 },
+  });
+  await quibble.esm("@octokit/rest", { Octokit: sinon.stub().returns(octokit) });
+  const getClient = (await import("../lib/get-client.js")).default;
+
+  const github = getClient({ githubToken: "token" });
 
   await t.throwsAsync(github.repos.createRelease());
-  const {time: a} = await t.throwsAsync(request.getCall(0).returnValue);
-  const {time: b} = await t.throwsAsync(request.getCall(1).returnValue);
-  const {time: c} = await t.throwsAsync(request.getCall(2).returnValue);
-  const {time: d} = await t.throwsAsync(request.getCall(3).returnValue);
+  const { time: a } = await t.throwsAsync(request.getCall(0).returnValue);
+  const { time: b } = await t.throwsAsync(request.getCall(1).returnValue);
+  const { time: c } = await t.throwsAsync(request.getCall(2).returnValue);
+  const { time: d } = await t.throwsAsync(request.getCall(3).returnValue);
 
   // Each retry should be done after `coreRate` ms
   t.true(inRange(b - a, coreRate - 50, coreRate + 50));
