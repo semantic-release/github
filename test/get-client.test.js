@@ -6,7 +6,7 @@ import {fileURLToPath} from 'node:url';
 
 import {readFile} from 'fs-extra';
 import test, {serial} from 'ava';
-import {inRange} from 'lodash';
+import {inRange} from 'lodash-es';
 import {stub, spy} from 'sinon';
 import proxyquire from 'proxyquire';
 import Proxy from 'proxy';

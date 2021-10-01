@@ -2,7 +2,7 @@ import {resolve} from 'node:path';
 
 import test from 'ava';
 import {copy, ensureDir} from 'fs-extra';
-import {isPlainObject, sortBy} from 'lodash';
+import {isPlainObject, sortBy} from 'lodash-es';
 import {directory} from 'tempy';
 
 import globAssets from '../lib/glob-assets.js';

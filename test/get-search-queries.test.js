@@ -1,5 +1,5 @@
 import test from 'ava';
-import {repeat} from 'lodash';
+import {repeat} from 'lodash-es';
 
 import getSearchQueries from '../lib/get-search-queries.js';
 

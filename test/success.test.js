@@ -1,5 +1,5 @@
 import {escape} from 'node:querystring';
-import test from 'ava';
+import {beforeEach, afterEach, serial} from 'ava';
 import {repeat} from 'lodash-es';
 import {cleanAll} from 'nock';
 import {stub} from 'sinon';

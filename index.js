@@ -1,6 +1,6 @@
 /* eslint require-atomic-updates: off */
 
-import {defaultTo, castArray} from 'lodash';
+import {defaultTo, castArray} from 'lodash-es';
 
 import verifyGitHub from './lib/verify.js';
 import addChannelGitHub from './lib/add-channel.js';
