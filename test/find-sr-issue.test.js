@@ -1,28 +1,32 @@
 import {escape} from 'node:querystring';
 
+import nock from 'nock';
+import quibble from 'quibble';
+import sinon from 'sinon';
 import test from 'ava';
-import {cleanAll} from 'nock';
-import {stub} from 'sinon';
-import proxyquire from 'proxyquire';
 
 import {ISSUE_ID} from '../lib/definitions/constants.js';
 import findSRIssues from '../lib/find-sr-issues.js';
 import {authenticate} from './helpers/mock-github.js';
-import rateLimit from './helpers/rate-limit.js';
+import * as RATE_LIMIT_MOCK from './helpers/rate-limit.js';
+
+// mock rate limit imported via lib/get-client.js
+await quibble.esm('../lib/definitions/rate-limit.js', RATE_LIMIT_MOCK)
+const getClient = (await import('../lib/get-client.js')).default
 
 const githubToken = 'github_token';
-const client = proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit})({githubToken});
+const client =getClient({githubToken});
 
 test.beforeEach((t) => {
   // Mock logger
-  t.context.log = stub();
-  t.context.error = stub();
+  t.context.log = sinon.stub();
+  t.context.error = sinon.stub();
   t.context.logger = {log: t.context.log, error: t.context.error};
 });
 
 test.afterEach.always(() => {
   // Clear nock
-  cleanAll();
+  nock.cleanAll();
 });
 
 test.serial('Filter out issues without ID', async (t) => {
