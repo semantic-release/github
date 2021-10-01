@@ -2,32 +2,33 @@ import {stat} from 'node:fs/promises';
 import {resolve} from 'node:path';
 import {escape} from 'node:querystring';
 
+import nock from 'nock';
+import quibble from "quibble"
+import sinon from 'sinon';
+import tempy from 'tempy';
 import test from 'ava';
-import {cleanAll} from 'nock';
-import {stub} from 'sinon';
-import proxyquire from 'proxyquire';
-import {directory} from 'tempy';
 
 import {authenticate, upload} from './helpers/mock-github.js';
-import rateLimit from './helpers/rate-limit.js';
+import * as RATE_LIMIT_MOCK from './helpers/rate-limit.js';
 
 /* eslint camelcase: ["error", {properties: "never"}] */
 
+// mock rate limit imported via lib/get-client.js
+await quibble.esm('../lib/definitions/rate-limit.js', RATE_LIMIT_MOCK) // eslint-disable-line
+const publish = (await import('../lib/publish.js')).default
+
 const cwd = 'test/fixtures/files';
-const publish = proxyquire('../lib/publish', {
-  './get-client': proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit}),
-});
 
 test.beforeEach((t) => {
   // Mock logger
-  t.context.log = stub();
-  t.context.error = stub();
+  t.context.log = sinon.stub();
+  t.context.error = sinon.stub();
   t.context.logger = {log: t.context.log, error: t.context.error};
 });
 
 test.afterEach.always(() => {
   // Clear nock
-  cleanAll();
+  nock.cleanAll();
 });
 
 test.serial('Publish a release', async (t) => {
@@ -334,7 +335,7 @@ test.serial('Publish a release with an array of missing assets', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
-  const emptyDirectory = directory();
+  const emptyDirectory = tempy.directory();
   const pluginConfig = {assets: [emptyDirectory, {path: 'missing.txt', name: 'missing.txt'}]};
   const nextRelease = {gitTag: 'v1.0.0', name: 'v1.0.0', notes: 'Test release note body'};
   const options = {repositoryUrl: `https://github.com/${owner}/${repo}.git`};
