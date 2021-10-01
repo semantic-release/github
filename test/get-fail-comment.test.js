@@ -1,7 +1,7 @@
 import test from 'ava';
 import SemanticReleaseError from '@semantic-release/error';
 
-import getfailComment from '../lib/get-fail-comment';
+import getfailComment from '../lib/get-fail-comment.js';
 
 test('Comment with mutiple errors', (t) => {
   const errors = [

@@ -1,13 +1,14 @@
-import {escape} from 'querystring';
-import {beforeEach, afterEach, serial} from 'ava';
+import {escape} from 'node:querystring';
+
+import test from 'ava';
 import {cleanAll} from 'nock';
 import {stub} from 'sinon';
 import proxyquire from 'proxyquire';
 import SemanticReleaseError from '@semantic-release/error';
 
-import {ISSUE_ID} from '../lib/definitions/constants';
-import {authenticate} from './helpers/mock-github';
-import rateLimit from './helpers/rate-limit';
+import {ISSUE_ID} from '../lib/definitions/constants.js';
+import {authenticate} from './helpers/mock-github.js';
+import rateLimit from './helpers/rate-limit.js';
 
 /* eslint camelcase: ["error", {properties: "never"}] */
 
@@ -15,19 +16,19 @@ const fail = proxyquire('../lib/fail', {
   './get-client': proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit}),
 });
 
-beforeEach((t) => {
+test.beforeEach((t) => {
   // Mock logger
   t.context.log = stub();
   t.context.error = stub();
   t.context.logger = {log: t.context.log, error: t.context.error};
 });
 
-afterEach.always(() => {
+test.afterEach.always(() => {
   // Clear nock
   cleanAll();
 });
 
-serial('Open a new issue with the list of errors', async (t) => {
+test.serial('Open a new issue with the list of errors', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const redirectedOwner = 'test_user_2';
@@ -63,7 +64,7 @@ serial('Open a new issue with the list of errors', async (t) => {
   t.true(github.isDone());
 });
 
-serial('Open a new issue with the list of errors, retrying 4 times', async (t) => {
+test.serial('Open a new issue with the list of errors, retrying 4 times', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -111,7 +112,7 @@ serial('Open a new issue with the list of errors, retrying 4 times', async (t) =
   t.true(github.isDone());
 });
 
-serial('Open a new issue with the list of errors and custom title and comment', async (t) => {
+test.serial('Open a new issue with the list of errors and custom title and comment', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -146,7 +147,7 @@ serial('Open a new issue with the list of errors and custom title and comment', 
   t.true(github.isDone());
 });
 
-serial('Open a new issue with assignees and the list of errors', async (t) => {
+test.serial('Open a new issue with assignees and the list of errors', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -181,7 +182,7 @@ serial('Open a new issue with assignees and the list of errors', async (t) => {
   t.true(github.isDone());
 });
 
-serial('Open a new issue without labels and the list of errors', async (t) => {
+test.serial('Open a new issue without labels and the list of errors', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -215,7 +216,7 @@ serial('Open a new issue without labels and the list of errors', async (t) => {
   t.true(github.isDone());
 });
 
-serial('Update the first existing issue with the list of errors', async (t) => {
+test.serial('Update the first existing issue with the list of errors', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -253,7 +254,7 @@ serial('Update the first existing issue with the list of errors', async (t) => {
   t.true(github.isDone());
 });
 
-serial('Skip if "failComment" is "false"', async (t) => {
+test.serial('Skip if "failComment" is "false"', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -270,7 +271,7 @@ serial('Skip if "failComment" is "false"', async (t) => {
   t.true(t.context.log.calledWith('Skip issue creation.'));
 });
 
-serial('Skip if "failTitle" is "false"', async (t) => {
+test.serial('Skip if "failTitle" is "false"', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};

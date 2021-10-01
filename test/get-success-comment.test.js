@@ -1,5 +1,6 @@
 import test from 'ava';
-import getSuccessComment from '../lib/get-success-comment';
+
+import getSuccessComment from '../lib/get-success-comment.js';
 
 const HOME_URL = 'https://github.com/semantic-release/semantic-release';
 

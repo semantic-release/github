@@ -1,6 +1,7 @@
 import test from 'ava';
 import {repeat} from 'lodash';
-import getSearchQueries from '../lib/get-search-queries';
+
+import getSearchQueries from '../lib/get-search-queries.js';
 
 test('Generate queries of 256 characters maximum', (t) => {
   const commits = [

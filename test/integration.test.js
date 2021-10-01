@@ -1,6 +1,7 @@
-import {resolve} from 'path';
-import {escape} from 'querystring';
-import {beforeEach, afterEach, serial} from 'ava';
+import {resolve} from 'node:path';
+import {escape} from 'node:querystring';
+
+import test from 'ava';
 import {stat} from 'fs-extra';
 import {cleanAll} from 'nock';
 import {stub} from 'sinon';
@@ -8,13 +9,13 @@ import proxyquire from 'proxyquire';
 import clearModule from 'clear-module';
 import SemanticReleaseError from '@semantic-release/error';
 
-import {authenticate, upload} from './helpers/mock-github';
-import rateLimit from './helpers/rate-limit';
+import {authenticate, upload} from './helpers/mock-github.js';
+import rateLimit from './helpers/rate-limit.js';
 
 const cwd = 'test/fixtures/files';
 const client = proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit});
 
-beforeEach((t) => {
+test.beforeEach((t) => {
   // Clear npm cache to refresh the module state
   clearModule('..');
   t.context.m = proxyquire('..', {
@@ -29,12 +30,12 @@ beforeEach((t) => {
   t.context.logger = {log: t.context.log, error: t.context.error};
 });
 
-afterEach.always(() => {
+test.afterEach.always(() => {
   // Clear nock
   cleanAll();
 });
 
-serial('Verify GitHub auth', async (t) => {
+test.serial('Verify GitHub auth', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -48,7 +49,7 @@ serial('Verify GitHub auth', async (t) => {
   t.true(github.isDone());
 });
 
-serial('Verify GitHub auth with publish options', async (t) => {
+test.serial('Verify GitHub auth with publish options', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -65,7 +66,7 @@ serial('Verify GitHub auth with publish options', async (t) => {
   t.true(github.isDone());
 });
 
-serial('Verify GitHub auth and assets config', async (t) => {
+test.serial('Verify GitHub auth and assets config', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -89,7 +90,7 @@ serial('Verify GitHub auth and assets config', async (t) => {
   t.true(github.isDone());
 });
 
-serial('Throw SemanticReleaseError if invalid config', async (t) => {
+test.serial('Throw SemanticReleaseError if invalid config', async (t) => {
   const env = {};
   const assets = [{wrongProperty: 'lib/file.js'}];
   const successComment = 42;
@@ -127,7 +128,7 @@ serial('Throw SemanticReleaseError if invalid config', async (t) => {
   t.is(errors[7].code, 'ENOGHTOKEN');
 });
 
-serial('Publish a release with an array of assets', async (t) => {
+test.serial('Publish a release with an array of assets', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -184,7 +185,7 @@ serial('Publish a release with an array of assets', async (t) => {
   t.true(githubUpload2.isDone());
 });
 
-serial('Publish a release with release information in assets', async (t) => {
+test.serial('Publish a release with release information in assets', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -241,7 +242,7 @@ serial('Publish a release with release information in assets', async (t) => {
   t.true(githubUpload.isDone());
 });
 
-serial('Update a release', async (t) => {
+test.serial('Update a release', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -273,7 +274,7 @@ serial('Update a release', async (t) => {
   t.true(github.isDone());
 });
 
-serial('Comment and add labels on PR included in the releases', async (t) => {
+test.serial('Comment and add labels on PR included in the releases', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -315,7 +316,7 @@ serial('Comment and add labels on PR included in the releases', async (t) => {
   t.true(github.isDone());
 });
 
-serial('Open a new issue with the list of errors', async (t) => {
+test.serial('Open a new issue with the list of errors', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -351,7 +352,7 @@ serial('Open a new issue with the list of errors', async (t) => {
   t.true(github.isDone());
 });
 
-serial('Verify, release and notify success', async (t) => {
+test.serial('Verify, release and notify success', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -435,7 +436,7 @@ serial('Verify, release and notify success', async (t) => {
   t.true(githubUpload2.isDone());
 });
 
-serial('Verify, update release and notify success', async (t) => {
+test.serial('Verify, update release and notify success', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -496,7 +497,7 @@ serial('Verify, update release and notify success', async (t) => {
   t.true(github.isDone());
 });
 
-serial('Verify and notify failure', async (t) => {
+test.serial('Verify and notify failure', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};

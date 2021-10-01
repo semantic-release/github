@@ -2,11 +2,11 @@
 
 import {defaultTo, castArray} from 'lodash';
 
-import verifyGitHub from './lib/verify';
-import addChannelGitHub from './lib/add-channel';
-import publishGitHub from './lib/publish';
-import successGitHub from './lib/success';
-import failGitHub from './lib/fail';
+import verifyGitHub from './lib/verify.js';
+import addChannelGitHub from './lib/add-channel.js';
+import publishGitHub from './lib/publish.js';
+import successGitHub from './lib/success.js';
+import failGitHub from './lib/fail.js';
 
 let verified;
 
@@ -65,4 +65,6 @@ async function fail(pluginConfig, context) {
   await failGitHub(pluginConfig, context);
 }
 
-export default {verifyConditions, addChannel, publish, success, fail};
+const plugin = {verifyConditions, addChannel, publish, success, fail};
+
+export default plugin;

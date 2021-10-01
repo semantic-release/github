@@ -1,7 +1,7 @@
 import test from 'ava';
 
-import getReleaseLinks from '../lib/get-release-links';
-import {RELEASE_NAME} from '../lib/definitions/constants';
+import getReleaseLinks from '../lib/get-release-links.js';
+import {RELEASE_NAME} from '../lib/definitions/constants.js';
 
 test('Comment for release with multiple releases', (t) => {
   const releaseInfos = [

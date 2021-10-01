@@ -1,10 +1,11 @@
-import {resolve} from 'path';
+import {resolve} from 'node:path';
+
 import test from 'ava';
 import {copy, ensureDir} from 'fs-extra';
 import {isPlainObject, sortBy} from 'lodash';
 import {directory} from 'tempy';
 
-import globAssets from '../lib/glob-assets';
+import globAssets from '../lib/glob-assets.js';
 
 const sortAssets = (assets) => sortBy(assets, (asset) => (isPlainObject(asset) ? asset.path : asset));
 

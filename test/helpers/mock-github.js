@@ -42,4 +42,5 @@ function upload(
   });
 }
 
-export default {authenticate, upload};
+const mockGithub = {authenticate, upload};
+export default mockGithub;

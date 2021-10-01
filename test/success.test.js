@@ -1,14 +1,14 @@
-import {escape} from 'querystring';
-import {beforeEach, afterEach, serial} from 'ava';
-import {repeat} from 'lodash';
+import {escape} from 'node:querystring';
+import test from 'ava';
+import {repeat} from 'lodash-es';
 import {cleanAll} from 'nock';
 import {stub} from 'sinon';
 import proxyquire from 'proxyquire';
 
-import {ISSUE_ID} from '../lib/definitions/constants';
-import {authenticate} from './helpers/mock-github';
-import rateLimit from './helpers/rate-limit';
-import getReleaseLinks from '../lib/get-release-links';
+import {ISSUE_ID} from '../lib/definitions/constants.js';
+import getReleaseLinks from '../lib/get-release-links.js';
+import {authenticate} from './helpers/mock-github.js';
+import rateLimit from './helpers/rate-limit.js';
 
 /* eslint camelcase: ["error", {properties: "never"}] */
 
@@ -16,19 +16,19 @@ const success = proxyquire('../lib/success', {
   './get-client': proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit}),
 });
 
-beforeEach((t) => {
+test.beforeEach((t) => {
   // Mock logger
   t.context.log = stub();
   t.context.error = stub();
   t.context.logger = {log: t.context.log, error: t.context.error};
 });
 
-afterEach.always(() => {
+test.afterEach.always(() => {
   // Clear nock
   cleanAll();
 });
 
-serial(
+test.serial(
   'Add comment and labels to PRs associated with release commits and issues solved by PR/commits comments',
   async (t) => {
     const owner = 'test_user';
@@ -104,7 +104,7 @@ serial(
   }
 );
 
-serial(
+test.serial(
   'Add comment and labels to PRs associated with release commits and issues closed by PR/commits comments with custom URL',
   async (t) => {
     const owner = 'test_user';
@@ -174,7 +174,7 @@ serial(
   }
 );
 
-serial('Make multiple search queries if necessary', async (t) => {
+test.serial('Make multiple search queries if necessary', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -275,7 +275,7 @@ serial('Make multiple search queries if necessary', async (t) => {
   t.true(github.isDone());
 });
 
-serial(
+test.serial(
   'Do not add comment and labels for unrelated PR returned by search (compare sha and merge_commit_sha)',
   async (t) => {
     const owner = 'test_user';
@@ -330,7 +330,7 @@ serial(
   }
 );
 
-serial('Do not add comment and labels if no PR is associated with release commits', async (t) => {
+test.serial('Do not add comment and labels if no PR is associated with release commits', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -361,7 +361,7 @@ serial('Do not add comment and labels if no PR is associated with release commit
   t.true(github.isDone());
 });
 
-serial('Do not add comment and labels to PR/issues from other repo', async (t) => {
+test.serial('Do not add comment and labels to PR/issues from other repo', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -402,7 +402,7 @@ serial('Do not add comment and labels to PR/issues from other repo', async (t) =
   t.true(github.isDone());
 });
 
-serial('Ignore missing and forbidden issues/PRs', async (t) => {
+test.serial('Ignore missing and forbidden issues/PRs', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -473,7 +473,7 @@ serial('Ignore missing and forbidden issues/PRs', async (t) => {
   t.true(github.isDone());
 });
 
-serial('Add custom comment and labels', async (t) => {
+test.serial('Add custom comment and labels', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -529,7 +529,7 @@ serial('Add custom comment and labels', async (t) => {
   t.true(github.isDone());
 });
 
-serial('Add custom label', async (t) => {
+test.serial('Add custom label', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -579,7 +579,7 @@ serial('Add custom label', async (t) => {
   t.true(github.isDone());
 });
 
-serial('Comment on issue/PR without ading a label', async (t) => {
+test.serial('Comment on issue/PR without ading a label', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -626,7 +626,7 @@ serial('Comment on issue/PR without ading a label', async (t) => {
   t.true(github.isDone());
 });
 
-serial('Editing the release to include all release links at the bottom', async (t) => {
+test.serial('Editing the release to include all release links at the bottom', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -683,7 +683,7 @@ serial('Editing the release to include all release links at the bottom', async (
   t.true(github.isDone());
 });
 
-serial('Editing the release to include all release links at the top', async (t) => {
+test.serial('Editing the release to include all release links at the top', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -721,7 +721,7 @@ serial('Editing the release to include all release links at the top', async (t) 
     )
     .reply(200, {items: []})
     .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {
-      body: getReleaseLinks(releases).concat('\n---\n', nextRelease.notes),
+      body: [...getReleaseLinks(releases), '\n---\n', nextRelease.notes],
     })
     .reply(200, {html_url: releaseUrl});
 
@@ -740,7 +740,7 @@ serial('Editing the release to include all release links at the top', async (t) 
   t.true(github.isDone());
 });
 
-serial('Editing the release to include all release links with no additional releases (top)', async (t) => {
+test.serial('Editing the release to include all release links with no additional releases (top)', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -788,7 +788,7 @@ serial('Editing the release to include all release links with no additional rele
   t.true(github.isDone());
 });
 
-serial('Editing the release to include all release links with no additional releases (bottom)', async (t) => {
+test.serial('Editing the release to include all release links with no additional releases (bottom)', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -836,7 +836,7 @@ serial('Editing the release to include all release links with no additional rele
   t.true(github.isDone());
 });
 
-serial('Editing the release to include all release links with no releases', async (t) => {
+test.serial('Editing the release to include all release links with no releases', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -883,7 +883,7 @@ serial('Editing the release to include all release links with no releases', asyn
   t.true(github.isDone());
 });
 
-serial('Editing the release with no ID in the release', async (t) => {
+test.serial('Editing the release with no ID in the release', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -934,7 +934,7 @@ serial('Editing the release with no ID in the release', async (t) => {
   t.true(github.isDone());
 });
 
-serial('Ignore errors when adding comments and closing issues', async (t) => {
+test.serial('Ignore errors when adding comments and closing issues', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -1006,7 +1006,7 @@ serial('Ignore errors when adding comments and closing issues', async (t) => {
   t.true(github.isDone());
 });
 
-serial('Close open issues when a release is successful', async (t) => {
+test.serial('Close open issues when a release is successful', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -1056,7 +1056,7 @@ serial('Close open issues when a release is successful', async (t) => {
   t.true(github.isDone());
 });
 
-serial('Skip commention on issues/PR if "successComment" is "false"', async (t) => {
+test.serial('Skip commention on issues/PR if "successComment" is "false"', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -1090,7 +1090,7 @@ serial('Skip commention on issues/PR if "successComment" is "false"', async (t) 
   t.true(github.isDone());
 });
 
-serial('Skip closing issues if "failComment" is "false"', async (t) => {
+test.serial('Skip closing issues if "failComment" is "false"', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -1122,7 +1122,7 @@ serial('Skip closing issues if "failComment" is "false"', async (t) => {
   t.true(github.isDone());
 });
 
-serial('Skip closing issues if "failTitle" is "false"', async (t) => {
+test.serial('Skip closing issues if "failTitle" is "false"', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};

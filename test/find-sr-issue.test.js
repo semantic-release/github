@@ -1,30 +1,31 @@
-import {escape} from 'querystring';
-import {beforeEach, afterEach, serial} from 'ava';
+import {escape} from 'node:querystring';
+
+import test from 'ava';
 import {cleanAll} from 'nock';
 import {stub} from 'sinon';
 import proxyquire from 'proxyquire';
 
-import {ISSUE_ID} from '../lib/definitions/constants';
-import findSRIssues from '../lib/find-sr-issues';
-import {authenticate} from './helpers/mock-github';
-import rateLimit from './helpers/rate-limit';
+import {ISSUE_ID} from '../lib/definitions/constants.js';
+import findSRIssues from '../lib/find-sr-issues.js';
+import {authenticate} from './helpers/mock-github.js';
+import rateLimit from './helpers/rate-limit.js';
 
 const githubToken = 'github_token';
 const client = proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit})({githubToken});
 
-beforeEach((t) => {
+test.beforeEach((t) => {
   // Mock logger
   t.context.log = stub();
   t.context.error = stub();
   t.context.logger = {log: t.context.log, error: t.context.error};
 });
 
-afterEach.always(() => {
+test.afterEach.always(() => {
   // Clear nock
   cleanAll();
 });
 
-serial('Filter out issues without ID', async (t) => {
+test.serial('Filter out issues without ID', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const githubToken = 'github_token';
@@ -52,7 +53,7 @@ serial('Filter out issues without ID', async (t) => {
   t.true(github.isDone());
 });
 
-serial('Return empty array if not issues found', async (t) => {
+test.serial('Return empty array if not issues found', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const githubToken = 'github_token';
@@ -73,7 +74,7 @@ serial('Return empty array if not issues found', async (t) => {
   t.true(github.isDone());
 });
 
-serial('Return empty array if not issues has matching ID', async (t) => {
+test.serial('Return empty array if not issues has matching ID', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const githubToken = 'github_token';
@@ -96,7 +97,7 @@ serial('Return empty array if not issues has matching ID', async (t) => {
   t.true(github.isDone());
 });
 
-serial('Retries 4 times', async (t) => {
+test.serial('Retries 4 times', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const title = 'The automated release is failing :rotating_light:';
@@ -115,7 +116,7 @@ serial('Retries 4 times', async (t) => {
   t.true(github.isDone());
 });
 
-serial('Do not retry on 401 error', async (t) => {
+test.serial('Do not retry on 401 error', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const title = 'The automated release is failing :rotating_light:';

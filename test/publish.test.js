@@ -1,14 +1,15 @@
-import {resolve} from 'path';
-import {escape} from 'querystring';
-import {beforeEach, afterEach, serial} from 'ava';
+import {resolve} from 'node:path';
+import {escape} from 'node:querystring';
+
+import test from 'ava';
 import {stat} from 'fs-extra';
 import {cleanAll} from 'nock';
 import {stub} from 'sinon';
 import proxyquire from 'proxyquire';
 import {directory} from 'tempy';
 
-import {authenticate, upload} from './helpers/mock-github';
-import rateLimit from './helpers/rate-limit';
+import {authenticate, upload} from './helpers/mock-github.js';
+import rateLimit from './helpers/rate-limit.js';
 
 /* eslint camelcase: ["error", {properties: "never"}] */
 
@@ -17,19 +18,19 @@ const publish = proxyquire('../lib/publish', {
   './get-client': proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit}),
 });
 
-beforeEach((t) => {
+test.beforeEach((t) => {
   // Mock logger
   t.context.log = stub();
   t.context.error = stub();
   t.context.logger = {log: t.context.log, error: t.context.error};
 });
 
-afterEach.always(() => {
+test.afterEach.always(() => {
   // Clear nock
   cleanAll();
 });
 
-serial('Publish a release', async (t) => {
+test.serial('Publish a release', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -66,7 +67,7 @@ serial('Publish a release', async (t) => {
   t.true(github.isDone());
 });
 
-serial('Publish a release on a channel', async (t) => {
+test.serial('Publish a release on a channel', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -103,7 +104,7 @@ serial('Publish a release on a channel', async (t) => {
   t.true(github.isDone());
 });
 
-serial('Publish a prerelease', async (t) => {
+test.serial('Publish a prerelease', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -140,7 +141,7 @@ serial('Publish a prerelease', async (t) => {
   t.true(github.isDone());
 });
 
-serial('Publish a maintenance release', async (t) => {
+test.serial('Publish a maintenance release', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -177,7 +178,7 @@ serial('Publish a maintenance release', async (t) => {
   t.true(github.isDone());
 });
 
-serial('Publish a release, retrying 4 times', async (t) => {
+test.serial('Publish a release, retrying 4 times', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -223,7 +224,7 @@ serial('Publish a release, retrying 4 times', async (t) => {
   t.true(github.isDone());
 });
 
-serial('Publish a release with one asset', async (t) => {
+test.serial('Publish a release with one asset', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -276,7 +277,7 @@ serial('Publish a release with one asset', async (t) => {
   t.true(githubUpload.isDone());
 });
 
-serial('Publish a release with one asset and custom github url', async (t) => {
+test.serial('Publish a release with one asset and custom github url', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GH_URL: 'https://othertesturl.com:443', GH_TOKEN: 'github_token', GH_PREFIX: 'prefix'};
@@ -329,7 +330,7 @@ serial('Publish a release with one asset and custom github url', async (t) => {
   t.true(githubUpload.isDone());
 });
 
-serial('Publish a release with an array of missing assets', async (t) => {
+test.serial('Publish a release with an array of missing assets', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -373,7 +374,7 @@ serial('Publish a release with an array of missing assets', async (t) => {
   t.true(github.isDone());
 });
 
-serial('Throw error without retries for 400 error', async (t) => {
+test.serial('Throw error without retries for 400 error', async (t) => {
   const owner = 'test_user';
   const repo = 'test_repo';
   const env = {GITHUB_TOKEN: 'github_token'};
@@ -415,7 +416,7 @@ serial('Throw error without retries for 400 error', async (t) => {
   t.true(github.isDone());
 });
 
-serial(
+test.serial(
   'Publish a release when env.GITHUB_URL is set to https://github.com (Default in GitHub Actions, #268)',
   async (t) => {
     const owner = 'test_user';

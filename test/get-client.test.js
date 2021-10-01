@@ -1,7 +1,9 @@
-import {join} from 'path';
-import {createServer} from 'http';
-import {createServer as _createServer} from 'https';
-import {promisify} from 'util';
+import {join, dirname} from 'node:path';
+import {createServer} from 'node:http';
+import {createServer as _createServer} from 'node:https';
+import {promisify} from 'node:util';
+import {fileURLToPath} from 'node:url';
+
 import {readFile} from 'fs-extra';
 import test, {serial} from 'ava';
 import {inRange} from 'lodash';
@@ -11,8 +13,9 @@ import Proxy from 'proxy';
 import serverDestroy from 'server-destroy';
 import {Octokit} from '@octokit/rest';
 
-import rateLimit from './helpers/rate-limit';
+import rateLimit from './helpers/rate-limit.js';
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
 const getClient = proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit});
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
@@ -209,10 +212,10 @@ test('Use different throttler for read and write endpoints', async (t) => {
 test('Use the same throttler when retrying', async (t) => {
   const coreRate = 200;
   const request = stub().callsFake(async () => {
-    const err = new Error();
-    err.time = Date.now();
-    err.status = 404;
-    throw err;
+    const error = new Error();
+    error.time = Date.now();
+    error.status = 404;
+    throw error;
   });
   const octokit = new Octokit();
   octokit.hook.wrap('request', request);

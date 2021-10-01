@@ -2,8 +2,9 @@ import test, {beforeEach, afterEach, serial} from 'ava';
 import {cleanAll} from 'nock';
 import {stub} from 'sinon';
 import proxyquire from 'proxyquire';
-import {authenticate} from './helpers/mock-github';
-import rateLimit from './helpers/rate-limit';
+
+import {authenticate} from './helpers/mock-github.js';
+import rateLimit from './helpers/rate-limit.js';
 
 /* eslint camelcase: ["error", {properties: "never"}] */
 
