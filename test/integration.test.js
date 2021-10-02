@@ -101,9 +101,7 @@ test.serial('Throw SemanticReleaseError if invalid config', async (t) => {
     repositoryUrl: 'invalid_url',
   };
 
-  const errors = [
-    ...(await t.throwsAsync(t.context.m.verifyConditions({}, {cwd, env, options, logger: t.context.logger}))),
-  ];
+  const {errors} = await t.throwsAsync(t.context.m.verifyConditions({}, {cwd, env, options, logger: t.context.logger}));
 
   t.is(errors[0].name, 'SemanticReleaseError');
   t.is(errors[0].code, 'EINVALIDASSETS');
