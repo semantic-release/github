@@ -9,7 +9,8 @@
       "test/**/*.test.js"
     ],
     "nodeArguments": [
-      "--loader=quibble"
+      "--loader=quibble",
+      "--no-warnings"
     ]
   },
   "bugs": {
@@ -101,7 +102,6 @@
   "scripts": {
     "codecov": "codecov -f coverage/coverage-final.json",
     "lint": "xo",
-    "pretest": "npm run lint",
     "semantic-release": "semantic-release",
     "test": "c8 ava -v",
     "test:ci": "c8 ava -v"
