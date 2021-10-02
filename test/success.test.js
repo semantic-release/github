@@ -1,31 +1,32 @@
 import {escape} from 'node:querystring';
-import {beforeEach, afterEach, serial} from 'ava';
+
+import nock from 'nock';
 import {repeat} from 'lodash-es';
-import {cleanAll} from 'nock';
-import {stub} from 'sinon';
-import proxyquire from 'proxyquire';
+import sinon from 'sinon';
+import test from 'ava';
+import quibble from 'quibble';
 
 import {ISSUE_ID} from '../lib/definitions/constants.js';
 import getReleaseLinks from '../lib/get-release-links.js';
 import {authenticate} from './helpers/mock-github.js';
-import rateLimit from './helpers/rate-limit.js';
+import * as RATE_LIMIT_MOCK from './helpers/rate-limit.js';
 
 /* eslint camelcase: ["error", {properties: "never"}] */
 
-const success = proxyquire('../lib/success', {
-  './get-client': proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit}),
-});
+// mock rate limit imported via lib/get-client.js
+await quibble.esm('../lib/definitions/rate-limit.js', RATE_LIMIT_MOCK)
+const success = (await import('../lib/success.js')).default
 
 test.beforeEach((t) => {
   // Mock logger
-  t.context.log = stub();
-  t.context.error = stub();
+  t.context.log = sinon.stub();
+  t.context.error = sinon.stub();
   t.context.logger = {log: t.context.log, error: t.context.error};
 });
 
 test.afterEach.always(() => {
   // Clear nock
-  cleanAll();
+  nock.cleanAll();
 });
 
 test.serial(
@@ -701,6 +702,7 @@ test.serial('Editing the release to include all release links at the top', async
     {name: 'S3', url: 's3://my-bucket/release-asset'},
     {name: 'Docker: docker.io/python:slim'},
   ];
+  
   const github = authenticate(env)
     .get(`/repos/${owner}/${repo}`)
     .reply(200, {full_name: `${owner}/${repo}`})
@@ -721,7 +723,7 @@ test.serial('Editing the release to include all release links at the top', async
     )
     .reply(200, {items: []})
     .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {
-      body: [...getReleaseLinks(releases), '\n---\n', nextRelease.notes],
+      body: getReleaseLinks(releases) + '\n---\n' + nextRelease.notes,
     })
     .reply(200, {html_url: releaseUrl});
 
@@ -985,7 +987,7 @@ test.serial('Ignore errors when adding comments and closing issues', async (t) =
     .patch(`/repos/${owner}/${repo}/issues/3`, {state: 'closed'})
     .reply(200, {html_url: 'https://github.com/issues/3'});
 
-  const [error1, error2] = await t.throwsAsync(
+  const { errors: [error1, error2] } = await t.throwsAsync(
     success(pluginConfig, {
       env,
       options,
