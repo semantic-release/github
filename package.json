@@ -103,8 +103,7 @@
     "codecov": "codecov -f coverage/coverage-final.json",
     "lint": "xo",
     "semantic-release": "semantic-release",
-    "test": "c8 ava -v",
-    "test:ci": "c8 ava -v"
+    "test": "c8 ava -v"
   },
   "xo": {
     "prettier": true,

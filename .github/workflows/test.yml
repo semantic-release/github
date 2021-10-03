@@ -26,7 +26,7 @@ jobs:
           node-version: "${{ matrix.node-version }}"
           cache: npm
       - run: npm ci
-      - run: "npm run test:ci"
+      - run: npm test
   test:
     runs-on: ubuntu-latest
     needs: test_matrix
@@ -39,5 +39,6 @@ jobs:
       - run: npm ci
       - name: Ensure dependencies are compatible with the version of node
         run: npx ls-engines
-      - run: npm run lint
+      # enable once we replace `xo` with `prettier`
+      # - run: npm run lint
       - run: npx lockfile-lint --path package-lock.json
