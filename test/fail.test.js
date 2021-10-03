@@ -1,7 +1,7 @@
 import {escape} from 'node:querystring';
 
 import nock from 'nock';
-import quibble from "quibble"
+import quibble from 'quibble';
 import SemanticReleaseError from '@semantic-release/error';
 import sinon from 'sinon';
 import test from 'ava';

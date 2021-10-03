@@ -8,7 +8,7 @@ import { readFile } from "node:fs/promises";
 import { inRange } from "lodash-es";
 import { Octokit } from "@octokit/rest";
 import Proxy from "proxy";
-import quibble from "quibble";
+import quibble from 'quibble';;
 import serverDestroy from "server-destroy";
 import sinon from "sinon";
 import test from "ava";

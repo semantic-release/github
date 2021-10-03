@@ -1,7 +1,7 @@
 import test from 'ava';
 import nock from 'nock';
 import sinon from 'sinon';
-import quibble from "quibble"
+import quibble from 'quibble';
 
 import {authenticate} from './helpers/mock-github.js';
 import * as RATE_LIMIT from './helpers/rate-limit.js';

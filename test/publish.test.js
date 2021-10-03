@@ -3,7 +3,7 @@ import {resolve} from 'node:path';
 import {escape} from 'node:querystring';
 
 import nock from 'nock';
-import quibble from "quibble"
+import quibble from 'quibble';
 import sinon from 'sinon';
 import tempy from 'tempy';
 import test from 'ava';
