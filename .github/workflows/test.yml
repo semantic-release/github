@@ -40,6 +40,5 @@ jobs:
       # Blocked by https://github.com/ljharb/ls-engines/pull/23
       # - name: Ensure dependencies are compatible with the version of node
       #   run: npx ls-engines
-      # enable once we replace `xo` with `prettier`
-      # - run: npm run lint
+      - run: npm run lint
       - run: npx lockfile-lint --path package-lock.json
