@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         node-version:
-          - '14.17'
+          - "14.17"
           - 16
         os:
           - ubuntu-latest

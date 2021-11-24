@@ -88,10 +88,6 @@
   "peerDependencies": {
     "semantic-release": ">=18.0.0-beta.1"
   },
-  "prettier": {
-    "printWidth": 120,
-    "trailingComma": "es5"
-  },
   "publishConfig": {
     "access": "public"
   },
@@ -101,7 +97,8 @@
   },
   "scripts": {
     "codecov": "codecov -f coverage/coverage-final.json",
-    "lint": "prettier",
+    "lint": "prettier --check \"{lib,test}/**/*.{js,json,ts}\" \"*.{md,json}\" \".github/**/*.yml\"",
+    "lint:fix": "prettier --write \"{lib,test}/**/*.{js,json,ts}\" \"*.{md,json}\" \".github/**/*.yml\"",
     "semantic-release": "semantic-release",
     "test": "c8 ava -v"
   },

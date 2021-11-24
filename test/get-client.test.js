@@ -8,7 +8,7 @@ import { readFile } from "node:fs/promises";
 import { inRange } from "lodash-es";
 import { Octokit } from "@octokit/rest";
 import Proxy from "proxy";
-import quibble from 'quibble';;
+import quibble from "quibble";
 import serverDestroy from "server-destroy";
 import sinon from "sinon";
 import test from "ava";
@@ -48,8 +48,14 @@ test.serial("Use a http proxy", async (t) => {
 
   await github.repos.get({ repo: "repo", owner: "owner" });
 
-  t.is(proxyHandler.args[0][0].headers.accept, "application/vnd.github.v3+json");
-  t.is(serverHandler.args[0][0].headers.accept, "application/vnd.github.v3+json");
+  t.is(
+    proxyHandler.args[0][0].headers.accept,
+    "application/vnd.github.v3+json"
+  );
+  t.is(
+    serverHandler.args[0][0].headers.accept,
+    "application/vnd.github.v3+json"
+  );
   t.regex(serverHandler.args[0][0].headers.via, /proxy/);
   t.truthy(serverHandler.args[0][0].headers["x-forwarded-for"]);
 
@@ -60,7 +66,9 @@ test.serial("Use a http proxy", async (t) => {
 test.serial("Use a https proxy", async (t) => {
   const server = _createServer({
     key: await readFile(join(__dirname, "/fixtures/ssl/ssl-cert-snakeoil.key")),
-    cert: await readFile(join(__dirname, "/fixtures/ssl/ssl-cert-snakeoil.pem")),
+    cert: await readFile(
+      join(__dirname, "/fixtures/ssl/ssl-cert-snakeoil.pem")
+    ),
   });
   await promisify(server.listen).bind(server)();
   const serverPort = server.address().port;
@@ -88,7 +96,10 @@ test.serial("Use a https proxy", async (t) => {
 
   t.is(proxyHandler.args[0][0].url, `localhost:${serverPort}`);
   t.is(proxyHandler.args[0][0].headers.foo, "bar");
-  t.is(serverHandler.args[0][0].headers.accept, "application/vnd.github.v3+json");
+  t.is(
+    serverHandler.args[0][0].headers.accept,
+    "application/vnd.github.v3+json"
+  );
 
   await promisify(proxy.destroy).bind(proxy)();
   await promisify(server.destroy).bind(server)();
@@ -114,7 +125,10 @@ test.serial("Do not use a proxy if set to false", async (t) => {
 
   await github.repos.get({ repo: "repo", owner: "owner" });
 
-  t.is(serverHandler.args[0][0].headers.accept, "application/vnd.github.v3+json");
+  t.is(
+    serverHandler.args[0][0].headers.accept,
+    "application/vnd.github.v3+json"
+  );
   t.falsy(serverHandler.args[0][0].headers.via);
   t.falsy(serverHandler.args[0][0].headers["x-forwarded-for"]);
 
@@ -127,13 +141,15 @@ test.serial("Use the global throttler for all endpoints", async (t) => {
   const octokit = new Octokit();
   octokit.hook.wrap("request", () => Date.now());
 
-  await quibble.reset()
+  await quibble.reset();
   await quibble.esm("../lib/definitions/rate-limit.js", {
     RATE_LIMITS: { search: 1, core: 1 },
     GLOBAL_RATE_LIMIT: rate,
-    RETRY_CONF: {retries: 3, factor: 1, minTimeout: 1, maxTimeout: 1}
+    RETRY_CONF: { retries: 3, factor: 1, minTimeout: 1, maxTimeout: 1 },
   });
-  await quibble.esm("@octokit/rest", { Octokit: sinon.stub().returns(octokit) });
+  await quibble.esm("@octokit/rest", {
+    Octokit: sinon.stub().returns(octokit),
+  });
   const getClient = (await import("../lib/get-client.js")).default;
 
   const github = getClient({ githubToken: "token" });
@@ -161,76 +177,86 @@ test.serial("Use the global throttler for all endpoints", async (t) => {
   /* eslint-enable unicorn/prevent-abbreviations */
 });
 
-test.serial("Use the same throttler for endpoints in the same rate limit group", async (t) => {
-  const searchRate = 300;
-  const coreRate = 150;
+test.serial(
+  "Use the same throttler for endpoints in the same rate limit group",
+  async (t) => {
+    const searchRate = 300;
+    const coreRate = 150;
 
-  const octokit = new Octokit();
-  octokit.hook.wrap("request", () => Date.now());
+    const octokit = new Octokit();
+    octokit.hook.wrap("request", () => Date.now());
 
-  await quibble.reset()
-  await quibble.esm("../lib/definitions/rate-limit.js", {
-    RATE_LIMITS: { search: searchRate, core: coreRate },
-    GLOBAL_RATE_LIMIT: 1,
-    RETRY_CONF: {retries: 3, factor: 1, minTimeout: 1, maxTimeout: 1}
-  });
-  await quibble.esm("@octokit/rest", { Octokit: sinon.stub().returns(octokit) });
-  const getClient = (await import("../lib/get-client.js")).default;
+    await quibble.reset();
+    await quibble.esm("../lib/definitions/rate-limit.js", {
+      RATE_LIMITS: { search: searchRate, core: coreRate },
+      GLOBAL_RATE_LIMIT: 1,
+      RETRY_CONF: { retries: 3, factor: 1, minTimeout: 1, maxTimeout: 1 },
+    });
+    await quibble.esm("@octokit/rest", {
+      Octokit: sinon.stub().returns(octokit),
+    });
+    const getClient = (await import("../lib/get-client.js")).default;
 
-  const github = getClient({ githubToken: "token" });
+    const github = getClient({ githubToken: "token" });
 
-  /* eslint-disable unicorn/prevent-abbreviations */
+    /* eslint-disable unicorn/prevent-abbreviations */
 
-  const a = await github.repos.createRelease();
-  const b = await github.issues.createComment();
-  const c = await github.repos.createRelease();
-  const d = await github.issues.createComment();
-  const e = await github.search.issuesAndPullRequests();
-  const f = await github.search.issuesAndPullRequests();
+    const a = await github.repos.createRelease();
+    const b = await github.issues.createComment();
+    const c = await github.repos.createRelease();
+    const d = await github.issues.createComment();
+    const e = await github.search.issuesAndPullRequests();
+    const f = await github.search.issuesAndPullRequests();
 
-  // `issues.createComment` should be called `coreRate` ms after `repos.createRelease`
-  t.true(inRange(b - a, coreRate - 50, coreRate + 50));
-  // `repos.createRelease` should be called `coreRate` ms after `issues.createComment`
-  t.true(inRange(c - b, coreRate - 50, coreRate + 50));
-  // `issues.createComment` should be called `coreRate` ms after `repos.createRelease`
-  t.true(inRange(d - c, coreRate - 50, coreRate + 50));
+    // `issues.createComment` should be called `coreRate` ms after `repos.createRelease`
+    t.true(inRange(b - a, coreRate - 50, coreRate + 50));
+    // `repos.createRelease` should be called `coreRate` ms after `issues.createComment`
+    t.true(inRange(c - b, coreRate - 50, coreRate + 50));
+    // `issues.createComment` should be called `coreRate` ms after `repos.createRelease`
+    t.true(inRange(d - c, coreRate - 50, coreRate + 50));
 
-  // The first search should be called immediately as it uses a different throttler
-  t.true(inRange(e - d, -50, 50));
-  // The second search should be called only after `searchRate` ms
-  t.true(inRange(f - e, searchRate - 50, searchRate + 50));
+    // The first search should be called immediately as it uses a different throttler
+    t.true(inRange(e - d, -50, 50));
+    // The second search should be called only after `searchRate` ms
+    t.true(inRange(f - e, searchRate - 50, searchRate + 50));
 
-  /* eslint-enable unicorn/prevent-abbreviations */
-});
+    /* eslint-enable unicorn/prevent-abbreviations */
+  }
+);
 
-test.serial("Use different throttler for read and write endpoints", async (t) => {
-  const writeRate = 300;
-  const readRate = 150;
+test.serial(
+  "Use different throttler for read and write endpoints",
+  async (t) => {
+    const writeRate = 300;
+    const readRate = 150;
 
-  const octokit = new Octokit();
-  octokit.hook.wrap("request", () => Date.now());
+    const octokit = new Octokit();
+    octokit.hook.wrap("request", () => Date.now());
 
-  await quibble.reset()
-  await quibble.esm("../lib/definitions/rate-limit.js", {
-    RATE_LIMITS: { core: { write: writeRate, read: readRate } },
-    GLOBAL_RATE_LIMIT: 1,
-    RETRY_CONF: {retries: 3, factor: 1, minTimeout: 1, maxTimeout: 1}
-  });
-  await quibble.esm("@octokit/rest", { Octokit: sinon.stub().returns(octokit) });
-  const getClient = (await import("../lib/get-client.js")).default;
+    await quibble.reset();
+    await quibble.esm("../lib/definitions/rate-limit.js", {
+      RATE_LIMITS: { core: { write: writeRate, read: readRate } },
+      GLOBAL_RATE_LIMIT: 1,
+      RETRY_CONF: { retries: 3, factor: 1, minTimeout: 1, maxTimeout: 1 },
+    });
+    await quibble.esm("@octokit/rest", {
+      Octokit: sinon.stub().returns(octokit),
+    });
+    const getClient = (await import("../lib/get-client.js")).default;
 
-  const github = getClient({ githubToken: "token" });
+    const github = getClient({ githubToken: "token" });
 
-  const a = await github.repos.get();
-  const b = await github.repos.get();
-  const c = await github.repos.createRelease();
-  const d = await github.repos.createRelease();
+    const a = await github.repos.get();
+    const b = await github.repos.get();
+    const c = await github.repos.createRelease();
+    const d = await github.repos.createRelease();
 
-  // `repos.get` should be called `readRate` ms after `repos.get`
-  t.true(inRange(b - a, readRate - 50, readRate + 50));
-  // `repos.createRelease` should be called `coreRate` ms after `repos.createRelease`
-  t.true(inRange(d - c, writeRate - 50, writeRate + 50));
-});
+    // `repos.get` should be called `readRate` ms after `repos.get`
+    t.true(inRange(b - a, readRate - 50, readRate + 50));
+    // `repos.createRelease` should be called `coreRate` ms after `repos.createRelease`
+    t.true(inRange(d - c, writeRate - 50, writeRate + 50));
+  }
+);
 
 test.serial("Use the same throttler when retrying", async (t) => {
   const coreRate = 200;
@@ -243,13 +269,15 @@ test.serial("Use the same throttler when retrying", async (t) => {
   const octokit = new Octokit();
   octokit.hook.wrap("request", request);
 
-  await quibble.reset()
+  await quibble.reset();
   await quibble.esm("../lib/definitions/rate-limit.js", {
     RATE_LIMITS: { core: coreRate },
     GLOBAL_RATE_LIMIT: 1,
     RETRY_CONF: { retries: 3, factor: 1, minTimeout: 1 },
   });
-  await quibble.esm("@octokit/rest", { Octokit: sinon.stub().returns(octokit) });
+  await quibble.esm("@octokit/rest", {
+    Octokit: sinon.stub().returns(octokit),
+  });
   const getClient = (await import("../lib/get-client.js")).default;
 
   const github = getClient({ githubToken: "token" });

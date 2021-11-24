@@ -1,15 +1,15 @@
-import test from 'ava';
-import SemanticReleaseError from '@semantic-release/error';
+import test from "ava";
+import SemanticReleaseError from "@semantic-release/error";
 
-import getfailComment from '../lib/get-fail-comment.js';
+import getfailComment from "../lib/get-fail-comment.js";
 
-test('Comment with mutiple errors', (t) => {
+test("Comment with mutiple errors", (t) => {
   const errors = [
-    new SemanticReleaseError('Error message 1', 'ERR1', 'Error 1 details'),
-    new SemanticReleaseError('Error message 2', 'ERR2', 'Error 2 details'),
-    new SemanticReleaseError('Error message 3', 'ERR3', 'Error 3 details'),
+    new SemanticReleaseError("Error message 1", "ERR1", "Error 1 details"),
+    new SemanticReleaseError("Error message 2", "ERR2", "Error 2 details"),
+    new SemanticReleaseError("Error message 3", "ERR3", "Error 3 details"),
   ];
-  const comment = getfailComment({name: 'master'}, errors);
+  const comment = getfailComment({ name: "master" }, errors);
 
   t.regex(comment, /the `master` branch/);
   t.regex(
@@ -18,19 +18,21 @@ test('Comment with mutiple errors', (t) => {
   );
 });
 
-test('Comment with one error', (t) => {
-  const errors = [new SemanticReleaseError('Error message 1', 'ERR1', 'Error 1 details')];
-  const comment = getfailComment({name: 'master'}, errors);
+test("Comment with one error", (t) => {
+  const errors = [
+    new SemanticReleaseError("Error message 1", "ERR1", "Error 1 details"),
+  ];
+  const comment = getfailComment({ name: "master" }, errors);
 
   t.regex(comment, /the `master` branch/);
   t.regex(comment, /---\n\n### Error message 1\n\nError 1 details\n\n---/);
 });
 
-test('Comment with missing error details and pluginName', (t) => {
-  const error = new SemanticReleaseError('Error message 1', 'ERR1');
-  error.pluginName = 'some-plugin';
+test("Comment with missing error details and pluginName", (t) => {
+  const error = new SemanticReleaseError("Error message 1", "ERR1");
+  error.pluginName = "some-plugin";
   const errors = [error];
-  const comment = getfailComment({name: 'master'}, errors);
+  const comment = getfailComment({ name: "master" }, errors);
 
   t.regex(comment, /the `master` branch/);
   t.regex(
@@ -39,10 +41,10 @@ test('Comment with missing error details and pluginName', (t) => {
   );
 });
 
-test('Comment with missing error details and no pluginName', (t) => {
-  const error = new SemanticReleaseError('Error message 1', 'ERR1');
+test("Comment with missing error details and no pluginName", (t) => {
+  const error = new SemanticReleaseError("Error message 1", "ERR1");
   const errors = [error];
-  const comment = getfailComment({name: 'master'}, errors);
+  const comment = getfailComment({ name: "master" }, errors);
 
   t.regex(comment, /the `master` branch/);
   t.regex(

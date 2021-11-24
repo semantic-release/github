@@ -1,4 +1,4 @@
-import nock from 'nock';
+import nock from "nock";
 
 /**
  * Return a `nock` object setup to respond to a github authentication request. Other expectation and responses can be chained.
@@ -12,12 +12,17 @@ import nock from 'nock';
 export function authenticate(
   env = {},
   {
-    githubToken = env.GH_TOKEN || env.GITHUB_TOKEN || 'GH_TOKEN',
-    githubUrl = env.GITHUB_API_URL || env.GH_URL || env.GITHUB_URL || 'https://api.github.com',
-    githubApiPathPrefix = env.GH_PREFIX || env.GITHUB_PREFIX || '',
+    githubToken = env.GH_TOKEN || env.GITHUB_TOKEN || "GH_TOKEN",
+    githubUrl = env.GITHUB_API_URL ||
+      env.GH_URL ||
+      env.GITHUB_URL ||
+      "https://api.github.com",
+    githubApiPathPrefix = env.GH_PREFIX || env.GITHUB_PREFIX || "",
   } = {}
 ) {
-  return nock(`${githubUrl}/${githubApiPathPrefix}`, {reqheaders: {Authorization: `token ${githubToken}`}});
+  return nock(`${githubUrl}/${githubApiPathPrefix}`, {
+    reqheaders: { Authorization: `token ${githubToken}` },
+  });
 }
 
 /**
@@ -31,13 +36,17 @@ export function authenticate(
 export function upload(
   env = {},
   {
-    githubToken = env.GH_TOKEN || env.GITHUB_TOKEN || 'GH_TOKEN',
+    githubToken = env.GH_TOKEN || env.GITHUB_TOKEN || "GH_TOKEN",
     uploadUrl,
-    contentType = 'text/plain',
+    contentType = "text/plain",
     contentLength,
   } = {}
 ) {
   return nock(uploadUrl, {
-    reqheaders: {Authorization: `token ${githubToken}`, 'content-type': contentType, 'content-length': contentLength},
+    reqheaders: {
+      Authorization: `token ${githubToken}`,
+      "content-type": contentType,
+      "content-length": contentLength,
+    },
   });
 }
