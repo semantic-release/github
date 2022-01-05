@@ -57,8 +57,14 @@ When creating the token, the **minimum required scopes** are:
 - [`repo`](https://github.com/settings/tokens/new?scopes=repo) for a private repository
 - [`public_repo`](https://github.com/settings/tokens/new?scopes=public_repo) for a public repository
 
-_Note on GitHub Actions:_ You can use the default token which is provided in  the secret _GITHUB_TOKEN_. However releases done with this token will NOT trigger release events to start other workflows.
+_Notes on GitHub Actions:_ You can use the default token which is provided in  the secret _GITHUB_TOKEN_. However releases done with this token will NOT trigger release events to start other workflows.
 If you have actions that trigger on newly created releases, please use a generated token for that and store it in your repository's secrets (any other name than GITHUB_TOKEN is fine).
+
+When using the _GITHUB_TOKEN_, the **minimum required permissions** are:
+
+- `content: write` to be able to publish a GitHub release
+- `issues: write` to be able to comment on released issues
+- `pulls: write` to be able to comment on released pull requests
 
 ### Environment variables
 
