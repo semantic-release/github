@@ -62,9 +62,9 @@ If you have actions that trigger on newly created releases, please use a generat
 
 When using the _GITHUB_TOKEN_, the **minimum required permissions** are:
 
-- `content: write` to be able to publish a GitHub release
+- `contents: write` to be able to publish a GitHub release
 - `issues: write` to be able to comment on released issues
-- `pulls: write` to be able to comment on released pull requests
+- `pull-requests: write` to be able to comment on released pull requests
 
 ### Environment variables
 
