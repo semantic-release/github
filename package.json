@@ -16,6 +16,7 @@
     "Gregor Martynus (https://twitter.com/gr2m)"
   ],
   "dependencies": {
+    "@octokit/plugin-throttling": "^3.6.2",
     "@octokit/rest": "^19.0.0",
     "@semantic-release/error": "^3.0.0",
     "aggregate-error": "^3.0.0",
