@@ -1,5 +1,5 @@
 {
-  "name": "@semantic-release/github",
+  "name": "@semantic-release/github-prerelease",
   "description": "semantic-release plugin to publish a GitHub release and comment on released Pull Requests/Issues",
   "version": "0.0.0-development",
   "type": "module",
