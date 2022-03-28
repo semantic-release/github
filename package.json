@@ -34,7 +34,7 @@
     "url-join": "^4.0.0"
   },
   "devDependencies": {
-    "ava": "4.0.1",
+    "ava": "4.1.0",
     "clear-module": "4.1.2",
     "codecov": "3.8.3",
     "nock": "13.2.4",
