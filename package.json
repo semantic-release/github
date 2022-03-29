@@ -31,7 +31,7 @@
     "mime": "^3.0.0",
     "p-filter": "^2.0.0",
     "p-retry": "^4.0.0",
-    "url-join": "^4.0.0"
+    "url-join": "^5.0.0"
   },
   "devDependencies": {
     "ava": "4.1.0",
