@@ -1,4 +1,7 @@
-# @semantic-release/github
+# @d2l/github-prerelease
+
+> Note: this is a fork of the [**@semantic-release/github**](https://github.com/semantic-release/github) plugin that always
+> creates **pre-releases**. Do not use if you need a standard **@semantic-release/github** functionality.
 
 [**semantic-release**](https://github.com/semantic-release/semantic-release) plugin to publish a
 [GitHub release](https://help.github.com/articles/about-releases) and comment on released Pull Requests/Issues.
