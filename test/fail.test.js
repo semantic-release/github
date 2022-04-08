@@ -6,12 +6,13 @@ const proxyquire = require('proxyquire');
 const SemanticReleaseError = require('@semantic-release/error');
 const {ISSUE_ID} = require('../lib/definitions/constants');
 const {authenticate} = require('./helpers/mock-github');
-const rateLimit = require('./helpers/rate-limit');
+const retry = require('./helpers/retry');
+const throttle = require('./helpers/throttle');
 
 /* eslint camelcase: ["error", {properties: "never"}] */
 
 const fail = proxyquire('../lib/fail', {
-  './get-client': proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit}),
+  './get-client': proxyquire('../lib/get-client', {'./definitions/retry': retry, './definitions/throttle': throttle}),
 });
 
 test.beforeEach((t) => {
@@ -83,7 +84,17 @@ test.serial('Open a new issue with the list of errors, retrying 4 times', async 
       )}+${escape(failTitle)}`
     )
     .times(3)
-    .reply(404)
+    .reply(
+      403,
+      {},
+      {
+        'x-ratelimit-limit': '10',
+        'x-ratelimit-remaining': '0',
+        'x-ratelimit-reset': '1649398524',
+        'x-ratelimit-resource': 'search',
+        'x-ratelimit-used': '10',
+      }
+    )
     .get(
       `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
         'state:open'

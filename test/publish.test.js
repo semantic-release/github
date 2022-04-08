@@ -7,13 +7,14 @@ const {stub} = require('sinon');
 const proxyquire = require('proxyquire');
 const tempy = require('tempy');
 const {authenticate, upload} = require('./helpers/mock-github');
-const rateLimit = require('./helpers/rate-limit');
+const retry = require('./helpers/retry');
+const throttle = require('./helpers/throttle');
 
 /* eslint camelcase: ["error", {properties: "never"}] */
 
 const cwd = 'test/fixtures/files';
 const publish = proxyquire('../lib/publish', {
-  './get-client': proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit}),
+  './get-client': proxyquire('../lib/get-client', {'./definitions/retry': retry, './definitions/throttle': throttle}),
 });
 
 test.beforeEach((t) => {

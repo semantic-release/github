@@ -8,10 +8,11 @@ const proxyquire = require('proxyquire');
 const clearModule = require('clear-module');
 const SemanticReleaseError = require('@semantic-release/error');
 const {authenticate, upload} = require('./helpers/mock-github');
-const rateLimit = require('./helpers/rate-limit');
+const retry = require('./helpers/retry');
+const throttle = require('./helpers/throttle');
 
 const cwd = 'test/fixtures/files';
-const client = proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit});
+const client = proxyquire('../lib/get-client', {'./definitions/retry': retry, './definitions/throttle': throttle});
 
 test.beforeEach((t) => {
   // Clear npm cache to refresh the module state

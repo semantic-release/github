@@ -16,10 +16,11 @@
     "Gregor Martynus (https://twitter.com/gr2m)"
   ],
   "dependencies": {
+    "@octokit/plugin-retry": "^3.0.9",
+    "@octokit/plugin-throttling": "^3.6.2",
     "@octokit/rest": "^18.0.0",
     "@semantic-release/error": "^2.2.0",
     "aggregate-error": "^3.0.0",
-    "bottleneck": "^2.18.1",
     "debug": "^4.0.0",
     "dir-glob": "^3.0.0",
     "fs-extra": "^10.0.0",
@@ -30,7 +31,6 @@
     "lodash": "^4.17.4",
     "mime": "^3.0.0",
     "p-filter": "^2.0.0",
-    "p-retry": "^4.0.0",
     "url-join": "^4.0.0"
   },
   "devDependencies": {

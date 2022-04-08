@@ -6,10 +6,13 @@ const proxyquire = require('proxyquire');
 const {ISSUE_ID} = require('../lib/definitions/constants');
 const findSRIssues = require('../lib/find-sr-issues');
 const {authenticate} = require('./helpers/mock-github');
-const rateLimit = require('./helpers/rate-limit');
+const retry = require('./helpers/retry');
+const throttle = require('./helpers/throttle');
 
 const githubToken = 'github_token';
-const client = proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit})({githubToken});
+const client = proxyquire('../lib/get-client', {'./definitions/retry': retry, './definitions/throttle': throttle})({
+  githubToken,
+});
 
 test.beforeEach((t) => {
   // Mock logger

@@ -3,12 +3,13 @@ const nock = require('nock');
 const {stub} = require('sinon');
 const proxyquire = require('proxyquire');
 const {authenticate} = require('./helpers/mock-github');
-const rateLimit = require('./helpers/rate-limit');
+const retry = require('./helpers/retry');
+const throttle = require('./helpers/throttle');
 
 /* eslint camelcase: ["error", {properties: "never"}] */
 
 const verify = proxyquire('../lib/verify', {
-  './get-client': proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit}),
+  './get-client': proxyquire('../lib/get-client', {'./definitions/retry': retry, './definitions/throttle': throttle}),
 });
 
 test.beforeEach((t) => {
