@@ -44,7 +44,7 @@
     "semantic-release": "19.0.2",
     "server-destroy": "1.0.1",
     "sinon": "13.0.2",
-    "tempy": "1.0.1",
+    "tempy": "2.0.0",
     "xo": "0.36.1"
   },
   "engines": {
