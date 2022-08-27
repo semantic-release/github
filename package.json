@@ -17,7 +17,7 @@
   ],
   "dependencies": {
     "@octokit/rest": "^19.0.0",
-    "@semantic-release/error": "^2.2.0",
+    "@semantic-release/error": "^3.0.0",
     "aggregate-error": "^3.0.0",
     "bottleneck": "^2.18.1",
     "debug": "^4.0.0",
