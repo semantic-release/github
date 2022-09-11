@@ -1,6 +1,6 @@
 {
-  "name": "@semantic-release/github",
-  "description": "semantic-release plugin to publish a GitHub release and comment on released Pull Requests/Issues",
+  "name": "@june21x/semantic-release-github-no-comment",
+  "description": "Fork from semantic-release plugin to label without comment",
   "version": "0.0.0-development",
   "author": "Pierre Vanduynslager (https://twitter.com/@pvdlg_)",
   "ava": {
