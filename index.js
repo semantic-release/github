@@ -18,6 +18,7 @@ async function verifyConditions(pluginConfig, context) {
 
     pluginConfig.assets = defaultTo(pluginConfig.assets, publishPlugin.assets);
     pluginConfig.successComment = defaultTo(pluginConfig.successComment, publishPlugin.successComment);
+    pluginConfig.successSearchQuery = defaultTo(pluginConfig.successSearchQuery, publishPlugin.successSearchQuery);
     pluginConfig.failComment = defaultTo(pluginConfig.failComment, publishPlugin.failComment);
     pluginConfig.failTitle = defaultTo(pluginConfig.failTitle, publishPlugin.failTitle);
     pluginConfig.labels = defaultTo(pluginConfig.labels, publishPlugin.labels);
