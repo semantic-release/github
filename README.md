@@ -74,6 +74,12 @@ When using the _GITHUB_TOKEN_, the **minimum required permissions** are:
 | `GITHUB_API_URL` or `GH_URL` or `GITHUB_URL`       | The GitHub Enterprise endpoint.                           |
 | `GH_PREFIX` or `GITHUB_PREFIX`                     | The GitHub Enterprise API prefix.                         |
 
+#### Using GitHub App Installation tokens
+
+If the token you are using is from a GitHub App Installation instead of a Personal Access Token,
+then you must use `GITHUB_TOKEN` instead of `GH_TOKEN` and set `GITHUB_ACTION=true` in your environment prior to running.
+[See `get-git-auth-url` for details](https://github.com/semantic-release/semantic-release/blob/fa241a2a06b593d1a04cb0af07ee31acd5b3cae8/lib/get-git-auth-url.js#L65-L67]).
+
 ### Options
 
 | Option                | Description                                                                                                                                                                                            | Default                                                                                                                                              |
