@@ -37,7 +37,7 @@
     "ava": "5.1.0",
     "clear-module": "4.1.2",
     "codecov": "3.8.3",
-    "nock": "13.2.9",
+    "nock": "13.3.0",
     "nyc": "15.1.0",
     "proxy": "1.0.2",
     "proxyquire": "2.1.3",
