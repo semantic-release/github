@@ -6,6 +6,8 @@ name: Release
       - next
       - beta
       - "*.x"
+permissions:
+  contents: read # for checkout
 jobs:
   release:
     permissions:
