@@ -4,15 +4,15 @@ const nock = require('nock');
 const {stub} = require('sinon');
 const proxyquire = require('proxyquire');
 const SemanticReleaseError = require('@semantic-release/error');
+
 const {ISSUE_ID} = require('../lib/definitions/constants');
 const {authenticate} = require('./helpers/mock-github');
-const retry = require('./helpers/retry');
-const throttle = require('./helpers/throttle');
+const {TestOctokit} = require('./helpers/test-octokit');
 
 /* eslint camelcase: ["error", {properties: "never"}] */
 
 const fail = proxyquire('../lib/fail', {
-  './get-client': proxyquire('../lib/get-client', {'./definitions/retry': retry, './definitions/throttle': throttle}),
+  './get-client': proxyquire('../lib/get-client', {'./semantic-release-octokit': TestOctokit}),
 });
 
 test.beforeEach((t) => {
@@ -51,64 +51,6 @@ test.serial('Open a new issue with the list of errors', async (t) => {
     )
     .reply(200, {items: []})
     .post(`/repos/${redirectedOwner}/${redirectedRepo}/issues`, {
-      title: failTitle,
-      body: /---\n\n### Error message 1\n\nError 1 details\n\n---\n\n### Error message 2\n\nError 2 details\n\n---\n\n### Error message 3\n\nError 3 details\n\n---/,
-      labels: ['semantic-release'],
-    })
-    .reply(200, {html_url: 'https://github.com/issues/1', number: 1});
-
-  await fail(pluginConfig, {env, options, branch: {name: 'master'}, errors, logger: t.context.logger});
-
-  t.true(t.context.log.calledWith('Created issue #%d: %s.', 1, 'https://github.com/issues/1'));
-  t.true(github.isDone());
-});
-
-test.serial('Open a new issue with the list of errors, retrying 4 times', async (t) => {
-  const owner = 'test_user';
-  const repo = 'test_repo';
-  const env = {GITHUB_TOKEN: 'github_token'};
-  const failTitle = 'The automated release is failing 🚨';
-  const pluginConfig = {failTitle};
-  const options = {repositoryUrl: `https://github.com/${owner}/${repo}.git`};
-  const errors = [
-    new SemanticReleaseError('Error message 1', 'ERR1', 'Error 1 details'),
-    new SemanticReleaseError('Error message 2', 'ERR2', 'Error 2 details'),
-    new SemanticReleaseError('Error message 3', 'ERR3', 'Error 3 details'),
-  ];
-  const github = authenticate(env)
-    .get(`/repos/${owner}/${repo}`)
-    .reply(200, {full_name: `${owner}/${repo}`})
-    .get(
-      `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
-        'state:open'
-      )}+${escape(failTitle)}`
-    )
-    .times(3)
-    .reply(
-      403,
-      {},
-      {
-        'x-ratelimit-limit': '10',
-        'x-ratelimit-remaining': '0',
-        'x-ratelimit-reset': '1649398524',
-        'x-ratelimit-resource': 'search',
-        'x-ratelimit-used': '10',
-      }
-    )
-    .get(
-      `/search/issues?q=${escape('in:title')}+${escape(`repo:${owner}/${repo}`)}+${escape('type:issue')}+${escape(
-        'state:open'
-      )}+${escape(failTitle)}`
-    )
-    .reply(200, {items: []})
-    .post(`/repos/${owner}/${repo}/issues`, {
-      title: failTitle,
-      body: /---\n\n### Error message 1\n\nError 1 details\n\n---\n\n### Error message 2\n\nError 2 details\n\n---\n\n### Error message 3\n\nError 3 details\n\n---/,
-      labels: ['semantic-release'],
-    })
-    .times(3)
-    .reply(500)
-    .post(`/repos/${owner}/${repo}/issues`, {
       title: failTitle,
       body: /---\n\n### Error message 1\n\nError 1 details\n\n---\n\n### Error message 2\n\nError 2 details\n\n---\n\n### Error message 3\n\nError 3 details\n\n---/,
       labels: ['semantic-release'],

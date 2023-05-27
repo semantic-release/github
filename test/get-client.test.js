@@ -5,13 +5,10 @@ const {promisify} = require('util');
 const {readFile} = require('fs-extra');
 const test = require('ava');
 const {spy} = require('sinon');
-const proxyquire = require('proxyquire');
 const Proxy = require('proxy');
 const serverDestroy = require('server-destroy');
-const retry = require('./helpers/retry');
-const throttle = require('./helpers/throttle');
 
-const getClient = proxyquire('../lib/get-client', {'./definitions/retry': retry, './definitions/throttle': throttle});
+const getClient = require('../lib/get-client');
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
@@ -39,7 +36,7 @@ test.serial('Use a http proxy', async (t) => {
     proxy: `http://localhost:${proxyPort}`,
   });
 
-  await github.repos.get({repo: 'repo', owner: 'owner'});
+  await github.request('GET /repos/{owner}/{repo}', {repo: 'repo', owner: 'owner'});
 
   t.is(proxyHandler.args[0][0].headers.accept, 'application/vnd.github.v3+json');
   t.is(serverHandler.args[0][0].headers.accept, 'application/vnd.github.v3+json');
@@ -77,7 +74,7 @@ test.serial('Use a https proxy', async (t) => {
     proxy: {host: 'localhost', port: proxyPort, headers: {foo: 'bar'}},
   });
 
-  await github.repos.get({repo: 'repo', owner: 'owner'});
+  await github.request('GET /repos/{owner}/{repo}', {repo: 'repo', owner: 'owner'});
 
   t.is(proxyHandler.args[0][0].url, `localhost:${serverPort}`);
   t.is(proxyHandler.args[0][0].headers.foo, 'bar');
@@ -105,7 +102,7 @@ test.serial('Do not use a proxy if set to false', async (t) => {
     proxy: false,
   });
 
-  await github.repos.get({repo: 'repo', owner: 'owner'});
+  await github.request('GET /repos/{owner}/{repo}', {repo: 'repo', owner: 'owner'});
 
   t.is(serverHandler.args[0][0].headers.accept, 'application/vnd.github.v3+json');
   t.falsy(serverHandler.args[0][0].headers.via);
