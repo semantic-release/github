@@ -4,15 +4,16 @@ const {repeat} = require('lodash');
 const nock = require('nock');
 const {stub} = require('sinon');
 const proxyquire = require('proxyquire');
+
 const {ISSUE_ID} = require('../lib/definitions/constants');
 const {authenticate} = require('./helpers/mock-github');
-const rateLimit = require('./helpers/rate-limit');
 const getReleaseLinks = require('../lib/get-release-links');
+const {TestOctokit} = require('./helpers/test-octokit');
 
 /* eslint camelcase: ["error", {properties: "never"}] */
 
 const success = proxyquire('../lib/success', {
-  './get-client': proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit}),
+  './get-client': proxyquire('../lib/get-client', {'./semantic-release-octokit': TestOctokit}),
 });
 
 test.beforeEach((t) => {
@@ -440,7 +441,7 @@ test.serial('Ignore missing and forbidden issues/PRs', async (t) => {
     .post(`/repos/${owner}/${repo}/issues/1/labels`, '["released"]')
     .reply(200, {})
     .post(`/repos/${owner}/${repo}/issues/2/comments`, {body: /This PR is included/})
-    .times(3)
+
     .reply(404)
     .post(`/repos/${owner}/${repo}/issues/3/comments`, {body: /This PR is included/})
     .reply(403)
@@ -979,7 +980,7 @@ test.serial('Ignore errors when adding comments and closing issues', async (t) =
     )
     .reply(200, {items: issues})
     .patch(`/repos/${owner}/${repo}/issues/2`, {state: 'closed'})
-    .times(4)
+
     .reply(500)
     .patch(`/repos/${owner}/${repo}/issues/3`, {state: 'closed'})
     .reply(200, {html_url: 'https://github.com/issues/3'});
