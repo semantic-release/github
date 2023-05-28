@@ -3,7 +3,6 @@ import { resolve } from "node:path";
 import { escape } from "node:querystring";
 
 import nock from "nock";
-import quibble from "quibble";
 import sinon from "sinon";
 import tempy from "tempy";
 import test from "ava";
@@ -13,9 +12,7 @@ import { TestOctokit } from "./helpers/test-octokit.js";
 
 /* eslint camelcase: ["error", {properties: "never"}] */
 
-// mock rate limit imported via lib/get-client.js
-await quibble.esm("../lib/semantic-release-octokit.js", {}, TestOctokit); // eslint-disable-line
-const publish = (await import("../lib/publish.js")).default;
+import publish from "../lib/publish.js";
 
 const cwd = "test/fixtures/files";
 
@@ -58,14 +55,18 @@ test.serial("Publish a release", async (t) => {
     })
     .reply(200, { upload_url: uploadUrl, html_url: releaseUrl });
 
-  const result = await publish(pluginConfig, {
-    cwd,
-    env,
-    options,
-    branch: { name: branch, type: "release", main: true },
-    nextRelease,
-    logger: t.context.logger,
-  });
+  const result = await publish(
+    pluginConfig,
+    {
+      cwd,
+      env,
+      options,
+      branch: { name: branch, type: "release", main: true },
+      nextRelease,
+      logger: t.context.logger,
+    },
+    { Octokit: TestOctokit }
+  );
 
   t.is(result.url, releaseUrl);
   t.deepEqual(t.context.log.args[0], [
@@ -102,14 +103,18 @@ test.serial("Publish a release on a channel", async (t) => {
     })
     .reply(200, { upload_url: uploadUrl, html_url: releaseUrl });
 
-  const result = await publish(pluginConfig, {
-    cwd,
-    env,
-    options,
-    branch: { name: branch, type: "release", channel: "next", main: false },
-    nextRelease,
-    logger: t.context.logger,
-  });
+  const result = await publish(
+    pluginConfig,
+    {
+      cwd,
+      env,
+      options,
+      branch: { name: branch, type: "release", channel: "next", main: false },
+      nextRelease,
+      logger: t.context.logger,
+    },
+    { Octokit: TestOctokit }
+  );
 
   t.is(result.url, releaseUrl);
   t.deepEqual(t.context.log.args[0], [
@@ -146,14 +151,18 @@ test.serial("Publish a prerelease", async (t) => {
     })
     .reply(200, { upload_url: uploadUrl, html_url: releaseUrl });
 
-  const result = await publish(pluginConfig, {
-    cwd,
-    env,
-    options,
-    branch: { name: branch, type: "prerelease", channel: "beta" },
-    nextRelease,
-    logger: t.context.logger,
-  });
+  const result = await publish(
+    pluginConfig,
+    {
+      cwd,
+      env,
+      options,
+      branch: { name: branch, type: "prerelease", channel: "beta" },
+      nextRelease,
+      logger: t.context.logger,
+    },
+    { Octokit: TestOctokit }
+  );
 
   t.is(result.url, releaseUrl);
   t.deepEqual(t.context.log.args[0], [
@@ -190,19 +199,23 @@ test.serial("Publish a maintenance release", async (t) => {
     })
     .reply(200, { upload_url: uploadUrl, html_url: releaseUrl, id: releaseId });
 
-  const result = await publish(pluginConfig, {
-    cwd,
-    env,
-    options,
-    branch: {
-      name: "test_branch",
-      type: "maintenance",
-      channel: "1.x",
-      main: false,
+  const result = await publish(
+    pluginConfig,
+    {
+      cwd,
+      env,
+      options,
+      branch: {
+        name: "test_branch",
+        type: "maintenance",
+        channel: "1.x",
+        main: false,
+      },
+      nextRelease,
+      logger: t.context.logger,
     },
-    nextRelease,
-    logger: t.context.logger,
-  });
+    { Octokit: TestOctokit }
+  );
 
   t.is(result.url, releaseUrl);
   t.deepEqual(t.context.log.args[0], [
@@ -264,14 +277,18 @@ test.serial("Publish a release with one asset", async (t) => {
     )
     .reply(200, { browser_download_url: assetUrl });
 
-  const result = await publish(pluginConfig, {
-    cwd,
-    env,
-    options,
-    branch: { name: branch, type: "release", main: true },
-    nextRelease,
-    logger: t.context.logger,
-  });
+  const result = await publish(
+    pluginConfig,
+    {
+      cwd,
+      env,
+      options,
+      branch: { name: branch, type: "release", main: true },
+      nextRelease,
+      logger: t.context.logger,
+    },
+    { Octokit: TestOctokit }
+  );
 
   t.is(result.url, releaseUrl);
   t.true(t.context.log.calledWith("Published GitHub release: %s", releaseUrl));
@@ -341,14 +358,18 @@ test.serial(
       )
       .reply(200, { browser_download_url: assetUrl });
 
-    const result = await publish(pluginConfig, {
-      cwd,
-      env,
-      options,
-      branch: { name: branch, type: "release", main: true },
-      nextRelease,
-      logger: t.context.logger,
-    });
+    const result = await publish(
+      pluginConfig,
+      {
+        cwd,
+        env,
+        options,
+        branch: { name: branch, type: "release", main: true },
+        nextRelease,
+        logger: t.context.logger,
+      },
+      { Octokit: TestOctokit }
+    );
 
     t.is(result.url, releaseUrl);
     t.true(
@@ -398,14 +419,18 @@ test.serial("Publish a release with an array of missing assets", async (t) => {
     .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, { draft: false })
     .reply(200, { html_url: releaseUrl });
 
-  const result = await publish(pluginConfig, {
-    cwd,
-    env,
-    options,
-    branch: { name: branch, type: "release", main: true },
-    nextRelease,
-    logger: t.context.logger,
-  });
+  const result = await publish(
+    pluginConfig,
+    {
+      cwd,
+      env,
+      options,
+      branch: { name: branch, type: "release", main: true },
+      nextRelease,
+      logger: t.context.logger,
+    },
+    { Octokit: TestOctokit }
+  );
 
   t.is(result.url, releaseUrl);
   t.true(t.context.log.calledWith("Published GitHub release: %s", releaseUrl));
@@ -452,14 +477,18 @@ test.serial("Publish a draft release", async (t) => {
     })
     .reply(200, { upload_url: uploadUrl, html_url: releaseUrl });
 
-  const result = await publish(pluginConfig, {
-    cwd,
-    env,
-    options,
-    branch: { name: branch, type: "release", main: true },
-    nextRelease,
-    logger: t.context.logger,
-  });
+  const result = await publish(
+    pluginConfig,
+    {
+      cwd,
+      env,
+      options,
+      branch: { name: branch, type: "release", main: true },
+      nextRelease,
+      logger: t.context.logger,
+    },
+    { Octokit: TestOctokit }
+  );
 
   t.is(result.url, releaseUrl);
   t.deepEqual(t.context.log.args[0], [
@@ -515,14 +544,18 @@ test.serial("Publish a draft release with one asset", async (t) => {
     )
     .reply(200, { browser_download_url: assetUrl });
 
-  const result = await publish(pluginConfig, {
-    cwd,
-    env,
-    options,
-    branch: { name: branch, type: "release", main: true },
-    nextRelease,
-    logger: t.context.logger,
-  });
+  const result = await publish(
+    pluginConfig,
+    {
+      cwd,
+      env,
+      options,
+      branch: { name: branch, type: "release", main: true },
+      nextRelease,
+      logger: t.context.logger,
+    },
+    { Octokit: TestOctokit }
+  );
 
   t.is(result.url, releaseUrl);
   t.true(
@@ -568,14 +601,18 @@ test.serial(
       })
       .reply(200, { upload_url: uploadUrl, html_url: releaseUrl });
 
-    const result = await publish(pluginConfig, {
-      cwd,
-      env,
-      options,
-      branch: { name: branch, type: "release", main: true },
-      nextRelease,
-      logger: t.context.logger,
-    });
+    const result = await publish(
+      pluginConfig,
+      {
+        cwd,
+        env,
+        options,
+        branch: { name: branch, type: "release", main: true },
+        nextRelease,
+        logger: t.context.logger,
+      },
+      { Octokit: TestOctokit }
+    );
 
     t.is(result.url, releaseUrl);
     t.deepEqual(t.context.log.args[0], [

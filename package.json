@@ -9,7 +9,6 @@
       "test/**/*.test.js"
     ],
     "nodeArguments": [
-      "--loader=quibble",
       "--no-warnings"
     ]
   },
@@ -48,7 +47,6 @@
     "prettier": "2.4.1",
     "proxy": "1.0.2",
     "proxyquire": "2.1.3",
-    "quibble": "0.7.0",
     "semantic-release": "21.0.2",
     "server-destroy": "1.0.1",
     "sinon": "11.1.2",
@@ -100,8 +98,8 @@
   },
   "scripts": {
     "codecov": "codecov -f coverage/coverage-final.json",
-    "lint": "prettier --check \"{lib,test}/**/*.{js,json,ts}\" \"*.{md,json}\" \".github/**/*.yml\"",
-    "lint:fix": "prettier --write \"{lib,test}/**/*.{js,json,ts}\" \"*.{md,json}\" \".github/**/*.yml\"",
+    "lint": "prettier --check \"{lib,test}/**/*.{js,json,ts}\" \"*.{js,md,json}\" \".github/**/*.yml\"",
+    "lint:fix": "prettier --write \"{lib,test}/**/*.{js,json,ts}\" \"*.{js,md,json}\" \".github/**/*.yml\"",
     "semantic-release": "semantic-release",
     "test": "c8 ava -v"
   },

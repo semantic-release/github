@@ -1,5 +1,4 @@
 import nock from "nock";
-import quibble from "quibble";
 import sinon from "sinon";
 import test from "ava";
 
@@ -8,9 +7,7 @@ import { TestOctokit } from "./helpers/test-octokit.js";
 
 /* eslint camelcase: ["error", {properties: "never"}] */
 
-// mock rate limit imported via lib/get-client.js
-await quibble.esm("../lib/semantic-release-octokit.js", {}, TestOctokit); // eslint-disable-line
-const verify = (await import("../lib/verify.js")).default;
+import verify from "../lib/verify.js";
 
 test.beforeEach((t) => {
   // Mock logger
@@ -47,7 +44,8 @@ test.serial("Verify package, token and repository access", async (t) => {
           repositoryUrl: `git+https://othertesturl.com/${owner}/${repo}.git`,
         },
         logger: t.context.logger,
-      }
+      },
+      { Octokit: TestOctokit }
     )
   );
   t.true(github.isDone());
@@ -78,7 +76,8 @@ test.serial(
             repositoryUrl: `git+https://othertesturl.com/${owner}/${repo}.git`,
           },
           logger: t.context.logger,
-        }
+        },
+        { Octokit: TestOctokit }
       )
     );
     t.true(github.isDone());
@@ -106,7 +105,8 @@ test.serial(
             repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`,
           },
           logger: t.context.logger,
-        }
+        },
+        { Octokit: TestOctokit }
       )
     );
 
@@ -138,7 +138,8 @@ test.serial(
             repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`,
           },
           logger: t.context.logger,
-        }
+        },
+        { Octokit: TestOctokit }
       )
     );
 
@@ -168,7 +169,8 @@ test.serial(
           env,
           options: { repositoryUrl: `github:${owner}/${repo}` },
           logger: t.context.logger,
-        }
+        },
+        { Octokit: TestOctokit }
       )
     );
 
@@ -204,7 +206,8 @@ test.serial(
             repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`,
           },
           logger: t.context.logger,
-        }
+        },
+        { Octokit: TestOctokit }
       )
     );
 
@@ -239,7 +242,8 @@ test.serial(
             repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`,
           },
           logger: t.context.logger,
-        }
+        },
+        { Octokit: TestOctokit }
       )
     );
     t.true(github.isDone());
@@ -262,7 +266,8 @@ test.serial('Verify "proxy" is a String', async (t) => {
         env,
         options: { repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git` },
         logger: t.context.logger,
-      }
+      },
+      { Octokit: TestOctokit }
     )
   );
 
@@ -289,7 +294,8 @@ test.serial(
             repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`,
           },
           logger: t.context.logger,
-        }
+        },
+        { Octokit: TestOctokit }
       )
     );
 
@@ -313,7 +319,8 @@ test.serial('Verify "proxy" is a Boolean set to false', async (t) => {
         env,
         options: { repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git` },
         logger: t.context.logger,
-      }
+      },
+      { Octokit: TestOctokit }
     )
   );
 
@@ -336,7 +343,8 @@ test.serial('Verify "assets" is a String', async (t) => {
         env,
         options: { repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git` },
         logger: t.context.logger,
-      }
+      },
+      { Octokit: TestOctokit }
     )
   );
 
@@ -359,7 +367,8 @@ test.serial('Verify "assets" is an Object with a path property', async (t) => {
         env,
         options: { repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git` },
         logger: t.context.logger,
-      }
+      },
+      { Octokit: TestOctokit }
     )
   );
 
@@ -386,7 +395,8 @@ test.serial(
             repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`,
           },
           logger: t.context.logger,
-        }
+        },
+        { Octokit: TestOctokit }
       )
     );
 
@@ -410,7 +420,8 @@ test.serial('Verify "assets" is an Array of glob Arrays', async (t) => {
         env,
         options: { repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git` },
         logger: t.context.logger,
-      }
+      },
+      { Octokit: TestOctokit }
     )
   );
 
@@ -437,7 +448,8 @@ test.serial(
             repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`,
           },
           logger: t.context.logger,
-        }
+        },
+        { Octokit: TestOctokit }
       )
     );
 
@@ -461,7 +473,8 @@ test.serial('Verify "labels" is a String', async (t) => {
         env,
         options: { repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git` },
         logger: t.context.logger,
-      }
+      },
+      { Octokit: TestOctokit }
     )
   );
 
@@ -484,7 +497,8 @@ test.serial('Verify "assignees" is a String', async (t) => {
         env,
         options: { repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git` },
         logger: t.context.logger,
-      }
+      },
+      { Octokit: TestOctokit }
     )
   );
 
@@ -507,7 +521,8 @@ test.serial('Verify "addReleases" is a valid string (top)', async (t) => {
         env,
         options: { repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git` },
         logger: t.context.logger,
-      }
+      },
+      { Octokit: TestOctokit }
     )
   );
 
@@ -530,7 +545,8 @@ test.serial('Verify "addReleases" is a valid string (bottom)', async (t) => {
         env,
         options: { repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git` },
         logger: t.context.logger,
-      }
+      },
+      { Octokit: TestOctokit }
     )
   );
 
@@ -553,7 +569,8 @@ test.serial('Verify "addReleases" is valid (false)', async (t) => {
         env,
         options: { repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git` },
         logger: t.context.logger,
-      }
+      },
+      { Octokit: TestOctokit }
     )
   );
 
@@ -576,7 +593,8 @@ test.serial('Verify "draftRelease" is valid (true)', async (t) => {
         env,
         options: { repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git` },
         logger: t.context.logger,
-      }
+      },
+      { Octokit: TestOctokit }
     )
   );
 
@@ -599,7 +617,8 @@ test.serial('Verify "draftRelease" is valid (false)', async (t) => {
         env,
         options: { repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git` },
         logger: t.context.logger,
-      }
+      },
+      { Octokit: TestOctokit }
     )
   );
 
@@ -630,7 +649,8 @@ test.serial("Verify if run in GitHub Action", async (t) => {
           repositoryUrl: `git+https://othertesturl.com/${owner}/${repo}.git`,
         },
         logger: t.context.logger,
-      }
+      },
+      { Octokit: TestOctokit }
     )
   );
 });
@@ -647,7 +667,8 @@ test("Throw SemanticReleaseError for missing github token", async (t) => {
           repositoryUrl: "https://github.com/semantic-release/github.git",
         },
         logger: t.context.logger,
-      }
+      },
+      { Octokit: TestOctokit }
     )
   );
 
@@ -671,7 +692,8 @@ test.serial("Throw SemanticReleaseError for invalid token", async (t) => {
         env,
         options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
         logger: t.context.logger,
-      }
+      },
+      { Octokit: TestOctokit }
     )
   );
 
@@ -693,7 +715,8 @@ test("Throw SemanticReleaseError for invalid repositoryUrl", async (t) => {
         env,
         options: { repositoryUrl: "invalid_url" },
         logger: t.context.logger,
-      }
+      },
+      { Octokit: TestOctokit }
     )
   );
 
@@ -724,7 +747,8 @@ test.serial(
           env,
           options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
           logger: t.context.logger,
-        }
+        },
+        { Octokit: TestOctokit }
       )
     );
 
@@ -755,7 +779,8 @@ test.serial(
           env,
           options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
           logger: t.context.logger,
-        }
+        },
+        { Octokit: TestOctokit }
       )
     );
 
@@ -780,7 +805,8 @@ test.serial(
           env,
           options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
           logger: t.context.logger,
-        }
+        },
+        { Octokit: TestOctokit }
       )
     );
 
@@ -804,7 +830,8 @@ test.serial("Throw error if github return any other errors", async (t) => {
         env,
         options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
         logger: t.context.logger,
-      }
+      },
+      { Octokit: TestOctokit }
     )
   );
 
@@ -827,7 +854,8 @@ test('Throw SemanticReleaseError if "proxy" option is not a String or an Object'
           repositoryUrl: "https://github.com/semantic-release/github.git",
         },
         logger: t.context.logger,
-      }
+      },
+      { Octokit: TestOctokit }
     )
   );
 
@@ -851,7 +879,8 @@ test('Throw SemanticReleaseError if "proxy" option is an Object with invalid pro
           repositoryUrl: "https://github.com/semantic-release/github.git",
         },
         logger: t.context.logger,
-      }
+      },
+      { Octokit: TestOctokit }
     )
   );
 
@@ -880,7 +909,8 @@ test.serial(
           env,
           options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
           logger: t.context.logger,
-        }
+        },
+        { Octokit: TestOctokit }
       )
     );
 
@@ -911,7 +941,8 @@ test.serial(
           env,
           options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
           logger: t.context.logger,
-        }
+        },
+        { Octokit: TestOctokit }
       )
     );
 
@@ -942,7 +973,8 @@ test.serial(
           env,
           options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
           logger: t.context.logger,
-        }
+        },
+        { Octokit: TestOctokit }
       )
     );
 
@@ -973,7 +1005,8 @@ test.serial(
           env,
           options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
           logger: t.context.logger,
-        }
+        },
+        { Octokit: TestOctokit }
       )
     );
 
@@ -1004,7 +1037,8 @@ test.serial(
           env,
           options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
           logger: t.context.logger,
-        }
+        },
+        { Octokit: TestOctokit }
       )
     );
 
@@ -1035,7 +1069,8 @@ test.serial(
           env,
           options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
           logger: t.context.logger,
-        }
+        },
+        { Octokit: TestOctokit }
       )
     );
 
@@ -1066,7 +1101,8 @@ test.serial(
           env,
           options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
           logger: t.context.logger,
-        }
+        },
+        { Octokit: TestOctokit }
       )
     );
 
@@ -1097,7 +1133,8 @@ test.serial(
           env,
           options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
           logger: t.context.logger,
-        }
+        },
+        { Octokit: TestOctokit }
       )
     );
 
@@ -1128,7 +1165,8 @@ test.serial(
           env,
           options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
           logger: t.context.logger,
-        }
+        },
+        { Octokit: TestOctokit }
       )
     );
 
@@ -1159,7 +1197,8 @@ test.serial(
           env,
           options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
           logger: t.context.logger,
-        }
+        },
+        { Octokit: TestOctokit }
       )
     );
 
@@ -1190,7 +1229,8 @@ test.serial(
           env,
           options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
           logger: t.context.logger,
-        }
+        },
+        { Octokit: TestOctokit }
       )
     );
 
@@ -1221,7 +1261,8 @@ test.serial(
           env,
           options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
           logger: t.context.logger,
-        }
+        },
+        { Octokit: TestOctokit }
       )
     );
 
@@ -1252,7 +1293,8 @@ test.serial(
           env,
           options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
           logger: t.context.logger,
-        }
+        },
+        { Octokit: TestOctokit }
       )
     );
 
@@ -1283,7 +1325,8 @@ test.serial(
           env,
           options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
           logger: t.context.logger,
-        }
+        },
+        { Octokit: TestOctokit }
       )
     );
 
@@ -1314,7 +1357,8 @@ test.serial(
           env,
           options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
           logger: t.context.logger,
-        }
+        },
+        { Octokit: TestOctokit }
       )
     );
 
@@ -1345,7 +1389,8 @@ test.serial(
           env,
           options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
           logger: t.context.logger,
-        }
+        },
+        { Octokit: TestOctokit }
       )
     );
 
@@ -1376,7 +1421,8 @@ test.serial(
           env,
           options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
           logger: t.context.logger,
-        }
+        },
+        { Octokit: TestOctokit }
       )
     );
 
@@ -1407,7 +1453,8 @@ test.serial(
           env,
           options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
           logger: t.context.logger,
-        }
+        },
+        { Octokit: TestOctokit }
       )
     );
 
@@ -1438,7 +1485,8 @@ test.serial(
           env,
           options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
           logger: t.context.logger,
-        }
+        },
+        { Octokit: TestOctokit }
       )
     );
 
@@ -1469,7 +1517,8 @@ test.serial(
           env,
           options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
           logger: t.context.logger,
-        }
+        },
+        { Octokit: TestOctokit }
       )
     );
 
@@ -1500,7 +1549,8 @@ test.serial(
           env,
           options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
           logger: t.context.logger,
-        }
+        },
+        { Octokit: TestOctokit }
       )
     );
 
@@ -1531,7 +1581,8 @@ test.serial(
           env,
           options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
           logger: t.context.logger,
-        }
+        },
+        { Octokit: TestOctokit }
       )
     );
 
@@ -1562,7 +1613,8 @@ test.serial(
           env,
           options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
           logger: t.context.logger,
-        }
+        },
+        { Octokit: TestOctokit }
       )
     );
 
@@ -1593,7 +1645,8 @@ test.serial(
           env,
           options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
           logger: t.context.logger,
-        }
+        },
+        { Octokit: TestOctokit }
       )
     );
 
@@ -1624,7 +1677,8 @@ test.serial(
           env,
           options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
           logger: t.context.logger,
-        }
+        },
+        { Octokit: TestOctokit }
       )
     );
 
@@ -1655,7 +1709,8 @@ test.serial(
           env,
           options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
           logger: t.context.logger,
-        }
+        },
+        { Octokit: TestOctokit }
       )
     );
 

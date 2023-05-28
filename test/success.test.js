@@ -4,7 +4,6 @@ import nock from "nock";
 import { repeat } from "lodash-es";
 import sinon from "sinon";
 import test from "ava";
-import quibble from "quibble";
 
 import { ISSUE_ID } from "../lib/definitions/constants.js";
 import getReleaseLinks from "../lib/get-release-links.js";
@@ -13,9 +12,7 @@ import { TestOctokit } from "./helpers/test-octokit.js";
 
 /* eslint camelcase: ["error", {properties: "never"}] */
 
-// mock rate limit imported via lib/get-client.js
-await quibble.esm("../lib/semantic-release-octokit.js", {}, TestOctokit); // eslint-disable-line
-const success = (await import("../lib/success.js")).default;
+import success from "../lib/success.js";
 
 test.beforeEach((t) => {
   // Mock logger
@@ -122,14 +119,18 @@ test.serial(
       )
       .reply(200, { items: [] });
 
-    await success(pluginConfig, {
-      env,
-      options,
-      commits,
-      nextRelease,
-      releases,
-      logger: t.context.logger,
-    });
+    await success(
+      pluginConfig,
+      {
+        env,
+        options,
+        commits,
+        nextRelease,
+        releases,
+        logger: t.context.logger,
+      },
+      { Octokit: TestOctokit }
+    );
 
     t.true(
       t.context.log.calledWith(
@@ -253,14 +254,18 @@ test.serial(
       )
       .reply(200, { items: [] });
 
-    await success(pluginConfig, {
-      env,
-      options,
-      commits,
-      nextRelease,
-      releases,
-      logger: t.context.logger,
-    });
+    await success(
+      pluginConfig,
+      {
+        env,
+        options,
+        commits,
+        nextRelease,
+        releases,
+        logger: t.context.logger,
+      },
+      { Octokit: TestOctokit }
+    );
 
     t.true(
       t.context.log.calledWith(
@@ -425,14 +430,18 @@ test.serial("Make multiple search queries if necessary", async (t) => {
     )
     .reply(200, { items: [] });
 
-  await success(pluginConfig, {
-    env,
-    options,
-    commits,
-    nextRelease,
-    releases,
-    logger: t.context.logger,
-  });
+  await success(
+    pluginConfig,
+    {
+      env,
+      options,
+      commits,
+      nextRelease,
+      releases,
+      logger: t.context.logger,
+    },
+    { Octokit: TestOctokit }
+  );
 
   t.true(
     t.context.log.calledWith(
@@ -553,14 +562,18 @@ test.serial(
       )
       .reply(200, { items: [] });
 
-    await success(pluginConfig, {
-      env,
-      options,
-      commits,
-      nextRelease,
-      releases,
-      logger: t.context.logger,
-    });
+    await success(
+      pluginConfig,
+      {
+        env,
+        options,
+        commits,
+        nextRelease,
+        releases,
+        logger: t.context.logger,
+      },
+      { Octokit: TestOctokit }
+    );
 
     t.true(
       t.context.log.calledWith(
@@ -611,14 +624,18 @@ test.serial(
       )
       .reply(200, { items: [] });
 
-    await success(pluginConfig, {
-      env,
-      options,
-      commits,
-      nextRelease,
-      releases,
-      logger: t.context.logger,
-    });
+    await success(
+      pluginConfig,
+      {
+        env,
+        options,
+        commits,
+        nextRelease,
+        releases,
+        logger: t.context.logger,
+      },
+      { Octokit: TestOctokit }
+    );
 
     t.true(github.isDone());
   }
@@ -669,14 +686,18 @@ test.serial(
       )
       .reply(200, { items: [] });
 
-    await success(pluginConfig, {
-      env,
-      options,
-      commits,
-      nextRelease,
-      releases,
-      logger: t.context.logger,
-    });
+    await success(
+      pluginConfig,
+      {
+        env,
+        options,
+        commits,
+        nextRelease,
+        releases,
+        logger: t.context.logger,
+      },
+      { Octokit: TestOctokit }
+    );
 
     t.true(
       t.context.log.calledWith(
@@ -767,14 +788,18 @@ test.serial("Ignore missing and forbidden issues/PRs", async (t) => {
     )
     .reply(200, { items: [] });
 
-  await success(pluginConfig, {
-    env,
-    options,
-    commits,
-    nextRelease,
-    releases,
-    logger: t.context.logger,
-  });
+  await success(
+    pluginConfig,
+    {
+      env,
+      options,
+      commits,
+      nextRelease,
+      releases,
+      logger: t.context.logger,
+    },
+    { Octokit: TestOctokit }
+  );
 
   t.true(
     t.context.log.calledWith(
@@ -873,16 +898,20 @@ test.serial("Add custom comment and labels", async (t) => {
     )
     .reply(200, { items: [] });
 
-  await success(pluginConfig, {
-    env,
-    branch: { name: "master" },
-    options,
-    lastRelease,
-    commits,
-    nextRelease,
-    releases,
-    logger: t.context.logger,
-  });
+  await success(
+    pluginConfig,
+    {
+      env,
+      branch: { name: "master" },
+      options,
+      lastRelease,
+      commits,
+      nextRelease,
+      releases,
+      logger: t.context.logger,
+    },
+    { Octokit: TestOctokit }
+  );
 
   t.true(
     t.context.log.calledWith(
@@ -941,16 +970,20 @@ test.serial("Add custom label", async (t) => {
     )
     .reply(200, { items: [] });
 
-  await success(pluginConfig, {
-    env,
-    options,
-    branch: { name: "master" },
-    lastRelease,
-    commits,
-    nextRelease,
-    releases,
-    logger: t.context.logger,
-  });
+  await success(
+    pluginConfig,
+    {
+      env,
+      options,
+      branch: { name: "master" },
+      lastRelease,
+      commits,
+      nextRelease,
+      releases,
+      logger: t.context.logger,
+    },
+    { Octokit: TestOctokit }
+  );
 
   t.true(
     t.context.log.calledWith(
@@ -1007,16 +1040,20 @@ test.serial("Comment on issue/PR without ading a label", async (t) => {
     )
     .reply(200, { items: [] });
 
-  await success(pluginConfig, {
-    env,
-    options,
-    branch: { name: "master" },
-    lastRelease,
-    commits,
-    nextRelease,
-    releases,
-    logger: t.context.logger,
-  });
+  await success(
+    pluginConfig,
+    {
+      env,
+      options,
+      branch: { name: "master" },
+      lastRelease,
+      commits,
+      nextRelease,
+      releases,
+      logger: t.context.logger,
+    },
+    { Octokit: TestOctokit }
+  );
 
   t.true(
     t.context.log.calledWith(
@@ -1087,16 +1124,20 @@ test.serial(
       })
       .reply(200, { html_url: releaseUrl });
 
-    await success(pluginConfig, {
-      env,
-      options,
-      branch: { name: "master" },
-      lastRelease,
-      commits,
-      nextRelease,
-      releases,
-      logger: t.context.logger,
-    });
+    await success(
+      pluginConfig,
+      {
+        env,
+        options,
+        branch: { name: "master" },
+        lastRelease,
+        commits,
+        nextRelease,
+        releases,
+        logger: t.context.logger,
+      },
+      { Octokit: TestOctokit }
+    );
 
     t.true(
       t.context.log.calledWith(
@@ -1169,16 +1210,20 @@ test.serial(
       })
       .reply(200, { html_url: releaseUrl });
 
-    await success(pluginConfig, {
-      env,
-      options,
-      branch: { name: "master" },
-      lastRelease,
-      commits,
-      nextRelease,
-      releases,
-      logger: t.context.logger,
-    });
+    await success(
+      pluginConfig,
+      {
+        env,
+        options,
+        branch: { name: "master" },
+        lastRelease,
+        commits,
+        nextRelease,
+        releases,
+        logger: t.context.logger,
+      },
+      { Octokit: TestOctokit }
+    );
 
     t.true(
       t.context.log.calledWith(
@@ -1243,16 +1288,20 @@ test.serial(
       )
       .reply(200, { items: [] });
 
-    await success(pluginConfig, {
-      env,
-      options,
-      branch: { name: "master" },
-      lastRelease,
-      commits,
-      nextRelease,
-      releases,
-      logger: t.context.logger,
-    });
+    await success(
+      pluginConfig,
+      {
+        env,
+        options,
+        branch: { name: "master" },
+        lastRelease,
+        commits,
+        nextRelease,
+        releases,
+        logger: t.context.logger,
+      },
+      { Octokit: TestOctokit }
+    );
 
     t.true(
       t.context.log.calledWith(
@@ -1317,16 +1366,20 @@ test.serial(
       )
       .reply(200, { items: [] });
 
-    await success(pluginConfig, {
-      env,
-      options,
-      branch: { name: "master" },
-      lastRelease,
-      commits,
-      nextRelease,
-      releases,
-      logger: t.context.logger,
-    });
+    await success(
+      pluginConfig,
+      {
+        env,
+        options,
+        branch: { name: "master" },
+        lastRelease,
+        commits,
+        nextRelease,
+        releases,
+        logger: t.context.logger,
+      },
+      { Octokit: TestOctokit }
+    );
 
     t.true(
       t.context.log.calledWith(
@@ -1384,16 +1437,20 @@ test.serial(
       )
       .reply(200, { items: [] });
 
-    await success(pluginConfig, {
-      env,
-      options,
-      branch: { name: "master" },
-      lastRelease,
-      commits,
-      nextRelease,
-      releases,
-      logger: t.context.logger,
-    });
+    await success(
+      pluginConfig,
+      {
+        env,
+        options,
+        branch: { name: "master" },
+        lastRelease,
+        commits,
+        nextRelease,
+        releases,
+        logger: t.context.logger,
+      },
+      { Octokit: TestOctokit }
+    );
 
     t.true(
       t.context.log.calledWith(
@@ -1451,16 +1508,20 @@ test.serial("Editing the release with no ID in the release", async (t) => {
     )
     .reply(200, { items: [] });
 
-  await success(pluginConfig, {
-    env,
-    options,
-    branch: { name: "master" },
-    lastRelease,
-    commits,
-    nextRelease,
-    releases,
-    logger: t.context.logger,
-  });
+  await success(
+    pluginConfig,
+    {
+      env,
+      options,
+      branch: { name: "master" },
+      lastRelease,
+      commits,
+      nextRelease,
+      releases,
+      logger: t.context.logger,
+    },
+    { Octokit: TestOctokit }
+  );
 
   t.true(
     t.context.log.calledWith(
@@ -1538,15 +1599,19 @@ test.serial(
     const {
       errors: [error1, error2],
     } = await t.throwsAsync(
-      success(pluginConfig, {
-        env,
-        options,
-        branch: { name: "master" },
-        commits,
-        nextRelease,
-        releases,
-        logger: t.context.logger,
-      })
+      success(
+        pluginConfig,
+        {
+          env,
+          options,
+          branch: { name: "master" },
+          commits,
+          nextRelease,
+          releases,
+          logger: t.context.logger,
+        },
+        { Octokit: TestOctokit }
+      )
     );
 
     t.is(error1.status, 400);
@@ -1612,15 +1677,19 @@ test.serial("Close open issues when a release is successful", async (t) => {
     .patch(`/repos/${owner}/${repo}/issues/3`, { state: "closed" })
     .reply(200, { html_url: "https://github.com/issues/3" });
 
-  await success(pluginConfig, {
-    env,
-    options,
-    branch: { name: "master" },
-    commits,
-    nextRelease,
-    releases,
-    logger: t.context.logger,
-  });
+  await success(
+    pluginConfig,
+    {
+      env,
+      options,
+      branch: { name: "master" },
+      commits,
+      nextRelease,
+      releases,
+      logger: t.context.logger,
+    },
+    { Octokit: TestOctokit }
+  );
 
   t.true(
     t.context.log.calledWith(
@@ -1671,15 +1740,19 @@ test.serial(
       )
       .reply(200, { items: [] });
 
-    await success(pluginConfig, {
-      env,
-      options,
-      branch: { name: "master" },
-      commits,
-      nextRelease,
-      releases,
-      logger: t.context.logger,
-    });
+    await success(
+      pluginConfig,
+      {
+        env,
+        options,
+        branch: { name: "master" },
+        commits,
+        nextRelease,
+        releases,
+        logger: t.context.logger,
+      },
+      { Octokit: TestOctokit }
+    );
 
     t.true(
       t.context.log.calledWith("Skip commenting on issues and pull requests.")
@@ -1711,15 +1784,19 @@ test.serial('Skip closing issues if "failComment" is "false"', async (t) => {
     )
     .reply(200, { items: [] });
 
-  await success(pluginConfig, {
-    env,
-    options,
-    branch: { name: "master" },
-    commits,
-    nextRelease,
-    releases,
-    logger: t.context.logger,
-  });
+  await success(
+    pluginConfig,
+    {
+      env,
+      options,
+      branch: { name: "master" },
+      commits,
+      nextRelease,
+      releases,
+      logger: t.context.logger,
+    },
+    { Octokit: TestOctokit }
+  );
   t.true(t.context.log.calledWith("Skip closing issue."));
   t.true(github.isDone());
 });
@@ -1747,15 +1824,19 @@ test.serial('Skip closing issues if "failTitle" is "false"', async (t) => {
     )
     .reply(200, { items: [] });
 
-  await success(pluginConfig, {
-    env,
-    options,
-    branch: { name: "master" },
-    commits,
-    nextRelease,
-    releases,
-    logger: t.context.logger,
-  });
+  await success(
+    pluginConfig,
+    {
+      env,
+      options,
+      branch: { name: "master" },
+      commits,
+      nextRelease,
+      releases,
+      logger: t.context.logger,
+    },
+    { Octokit: TestOctokit }
+  );
   t.true(t.context.log.calledWith("Skip closing issue."));
   t.true(github.isDone());
 });

@@ -5,20 +5,16 @@ import { stat } from "node:fs/promises";
 import test from "ava";
 import nock from "nock";
 import sinon from "sinon";
-import quibble from "quibble";
 import SemanticReleaseError from "@semantic-release/error";
 
 import { authenticate, upload } from "./helpers/mock-github.js";
 import { TestOctokit } from "./helpers/test-octokit.js";
 
 const cwd = "test/fixtures/files";
+let cacheBuster = 0;
 
 test.beforeEach(async (t) => {
-  // Mock rate limit imported via lib/get-client.js
-  await quibble.reset();
-  await quibble.esm("../lib/semantic-release-octokit.js", {}, TestOctokit); // eslint-disable-line
-
-  t.context.m = await import("../index.js");
+  t.context.m = await import(`../index.js?${++cacheBuster}`);
   // Stub the logger
   t.context.log = sinon.stub();
   t.context.error = sinon.stub();
@@ -44,7 +40,8 @@ test.serial("Verify GitHub auth", async (t) => {
   await t.notThrowsAsync(
     t.context.m.verifyConditions(
       {},
-      { cwd, env, options, logger: t.context.logger }
+      { cwd, env, options, logger: t.context.logger },
+      { Octokit: TestOctokit }
     )
   );
 
@@ -66,7 +63,8 @@ test.serial("Verify GitHub auth with publish options", async (t) => {
   await t.notThrowsAsync(
     t.context.m.verifyConditions(
       {},
-      { cwd, env, options, logger: t.context.logger }
+      { cwd, env, options, logger: t.context.logger },
+      { Octokit: TestOctokit }
     )
   );
 
@@ -95,7 +93,8 @@ test.serial("Verify GitHub auth and assets config", async (t) => {
   await t.notThrowsAsync(
     t.context.m.verifyConditions(
       { assets },
-      { cwd, env, options, logger: t.context.logger }
+      { cwd, env, options, logger: t.context.logger },
+      { Octokit: TestOctokit }
     )
   );
 
@@ -129,7 +128,8 @@ test.serial("Throw SemanticReleaseError if invalid config", async (t) => {
   const { errors } = await t.throwsAsync(
     t.context.m.verifyConditions(
       {},
-      { cwd, env, options, logger: t.context.logger }
+      { cwd, env, options, logger: t.context.logger },
+      { Octokit: TestOctokit }
     )
   );
 
@@ -210,7 +210,8 @@ test.serial("Publish a release with an array of assets", async (t) => {
       branch: { type: "release", main: true },
       nextRelease,
       logger: t.context.logger,
-    }
+    },
+    { Octokit: TestOctokit }
   );
 
   t.is(result.url, releaseUrl);
@@ -288,7 +289,8 @@ test.serial(
         branch: { type: "release" },
         nextRelease,
         logger: t.context.logger,
-      }
+      },
+      { Octokit: TestOctokit }
     );
 
     t.is(result.url, releaseUrl);
@@ -336,7 +338,8 @@ test.serial("Update a release", async (t) => {
       branch: { type: "release", main: true },
       nextRelease,
       logger: t.context.logger,
-    }
+    },
+    { Octokit: TestOctokit }
   );
 
   t.is(result.url, releaseUrl);
@@ -402,7 +405,8 @@ test.serial(
         nextRelease,
         releases,
         logger: t.context.logger,
-      }
+      },
+      { Octokit: TestOctokit }
     );
 
     t.deepEqual(t.context.log.args[0], ["Verify GitHub authentication"]);
@@ -458,7 +462,8 @@ test.serial("Open a new issue with the list of errors", async (t) => {
       branch: { name: "master" },
       errors,
       logger: t.context.logger,
-    }
+    },
+    { Octokit: TestOctokit }
   );
 
   t.deepEqual(t.context.log.args[0], ["Verify GitHub authentication"]);
@@ -558,7 +563,8 @@ test.serial("Verify, release and notify success", async (t) => {
   await t.notThrowsAsync(
     t.context.m.verifyConditions(
       {},
-      { cwd, env, options, logger: t.context.logger }
+      { cwd, env, options, logger: t.context.logger },
+      { Octokit: TestOctokit }
     )
   );
   await t.context.m.publish(
@@ -570,7 +576,8 @@ test.serial("Verify, release and notify success", async (t) => {
       branch: { type: "release", main: true },
       nextRelease,
       logger: t.context.logger,
-    }
+    },
+    { Octokit: TestOctokit }
   );
   await t.context.m.success(
     { assets, failTitle },
@@ -582,7 +589,8 @@ test.serial("Verify, release and notify success", async (t) => {
       commits,
       releases: [],
       logger: t.context.logger,
-    }
+    },
+    { Octokit: TestOctokit }
   );
 
   t.deepEqual(t.context.log.args[0], ["Verify GitHub authentication"]);
@@ -656,7 +664,8 @@ test.serial("Verify, update release and notify success", async (t) => {
   await t.notThrowsAsync(
     t.context.m.verifyConditions(
       {},
-      { cwd, env, options, logger: t.context.logger }
+      { cwd, env, options, logger: t.context.logger },
+      { Octokit: TestOctokit }
     )
   );
   await t.context.m.addChannel(
@@ -668,7 +677,8 @@ test.serial("Verify, update release and notify success", async (t) => {
       nextRelease,
       options,
       logger: t.context.logger,
-    }
+    },
+    { Octokit: TestOctokit }
   );
   await t.context.m.success(
     { failTitle },
@@ -680,7 +690,8 @@ test.serial("Verify, update release and notify success", async (t) => {
       commits,
       releases: [],
       logger: t.context.logger,
-    }
+    },
+    { Octokit: TestOctokit }
   );
 
   t.deepEqual(t.context.log.args[0], ["Verify GitHub authentication"]);
@@ -723,7 +734,8 @@ test.serial("Verify and notify failure", async (t) => {
   await t.notThrowsAsync(
     t.context.m.verifyConditions(
       {},
-      { cwd, env, options, logger: t.context.logger }
+      { cwd, env, options, logger: t.context.logger },
+      { Octokit: TestOctokit }
     )
   );
   await t.context.m.fail(
@@ -735,7 +747,8 @@ test.serial("Verify and notify failure", async (t) => {
       branch: { name: "master" },
       errors,
       logger: t.context.logger,
-    }
+    },
+    { Octokit: TestOctokit }
   );
 
   t.deepEqual(t.context.log.args[0], ["Verify GitHub authentication"]);

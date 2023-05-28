@@ -1,7 +1,6 @@
 import { escape } from "node:querystring";
 
 import nock from "nock";
-import quibble from "quibble";
 import SemanticReleaseError from "@semantic-release/error";
 import sinon from "sinon";
 import test from "ava";
@@ -12,9 +11,7 @@ import { TestOctokit } from "./helpers/test-octokit.js";
 
 /* eslint camelcase: ["error", {properties: "never"}] */
 
-// mock rate limit imported via lib/get-client.js
-await quibble.esm("../lib/semantic-release-octokit.js", {}, TestOctokit); // eslint-disable-line
-const fail = (await import("../lib/fail.js")).default;
+import fail from "../lib/fail.js";
 
 test.beforeEach((t) => {
   // Mock logger
@@ -58,13 +55,17 @@ test.serial("Open a new issue with the list of errors", async (t) => {
     })
     .reply(200, { html_url: "https://github.com/issues/1", number: 1 });
 
-  await fail(pluginConfig, {
-    env,
-    options,
-    branch: { name: "master" },
-    errors,
-    logger: t.context.logger,
-  });
+  await fail(
+    pluginConfig,
+    {
+      env,
+      options,
+      branch: { name: "master" },
+      errors,
+      logger: t.context.logger,
+    },
+    { Octokit: TestOctokit }
+  );
 
   t.true(
     t.context.log.calledWith(
@@ -109,13 +110,17 @@ test.serial(
       })
       .reply(200, { html_url: "https://github.com/issues/1", number: 1 });
 
-    await fail(pluginConfig, {
-      env,
-      options,
-      branch: { name: "master" },
-      errors,
-      logger: t.context.logger,
-    });
+    await fail(
+      pluginConfig,
+      {
+        env,
+        options,
+        branch: { name: "master" },
+        errors,
+        logger: t.context.logger,
+      },
+      { Octokit: TestOctokit }
+    );
 
     t.true(
       t.context.log.calledWith(
@@ -161,13 +166,17 @@ test.serial(
       })
       .reply(200, { html_url: "https://github.com/issues/1", number: 1 });
 
-    await fail(pluginConfig, {
-      env,
-      options,
-      branch: { name: "master" },
-      errors,
-      logger: t.context.logger,
-    });
+    await fail(
+      pluginConfig,
+      {
+        env,
+        options,
+        branch: { name: "master" },
+        errors,
+        logger: t.context.logger,
+      },
+      { Octokit: TestOctokit }
+    );
 
     t.true(
       t.context.log.calledWith(
@@ -212,13 +221,17 @@ test.serial(
       })
       .reply(200, { html_url: "https://github.com/issues/1", number: 1 });
 
-    await fail(pluginConfig, {
-      env,
-      options,
-      branch: { name: "master" },
-      errors,
-      logger: t.context.logger,
-    });
+    await fail(
+      pluginConfig,
+      {
+        env,
+        options,
+        branch: { name: "master" },
+        errors,
+        logger: t.context.logger,
+      },
+      { Octokit: TestOctokit }
+    );
 
     t.true(
       t.context.log.calledWith(
@@ -266,13 +279,17 @@ test.serial(
       })
       .reply(200, { html_url: "https://github.com/issues/2", number: 2 });
 
-    await fail(pluginConfig, {
-      env,
-      options,
-      branch: { name: "master" },
-      errors,
-      logger: t.context.logger,
-    });
+    await fail(
+      pluginConfig,
+      {
+        env,
+        options,
+        branch: { name: "master" },
+        errors,
+        logger: t.context.logger,
+      },
+      { Octokit: TestOctokit }
+    );
 
     t.true(
       t.context.log.calledWith("Found existing semantic-release issue #%d.", 2)
@@ -300,13 +317,17 @@ test.serial('Skip if "failComment" is "false"', async (t) => {
     new SemanticReleaseError("Error message 3", "ERR3", "Error 3 details"),
   ];
 
-  await fail(pluginConfig, {
-    env,
-    options,
-    branch: { name: "master" },
-    errors,
-    logger: t.context.logger,
-  });
+  await fail(
+    pluginConfig,
+    {
+      env,
+      options,
+      branch: { name: "master" },
+      errors,
+      logger: t.context.logger,
+    },
+    { Octokit: TestOctokit }
+  );
 
   t.true(t.context.log.calledWith("Skip issue creation."));
 });
@@ -323,13 +344,17 @@ test.serial('Skip if "failTitle" is "false"', async (t) => {
     new SemanticReleaseError("Error message 3", "ERR3", "Error 3 details"),
   ];
 
-  await fail(pluginConfig, {
-    env,
-    options,
-    branch: { name: "master" },
-    errors,
-    logger: t.context.logger,
-  });
+  await fail(
+    pluginConfig,
+    {
+      env,
+      options,
+      branch: { name: "master" },
+      errors,
+      logger: t.context.logger,
+    },
+    { Octokit: TestOctokit }
+  );
 
   t.true(t.context.log.calledWith("Skip issue creation."));
 });

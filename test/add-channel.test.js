@@ -1,16 +1,13 @@
 import test from "ava";
 import nock from "nock";
 import sinon from "sinon";
-import quibble from "quibble";
 
 import { authenticate } from "./helpers/mock-github.js";
 import { TestOctokit } from "./helpers/test-octokit.js";
 
 /* eslint camelcase: ["error", {properties: "never"}] */
 
-// mock rate limit imported via lib/get-client.js
-await quibble.esm("../lib/semantic-release-octokit.js", {}, TestOctokit); // eslint-disable-line
-const addChannel = (await import("../lib/add-channel.js")).default;
+import addChannel from "../lib/add-channel.js";
 
 test.beforeEach((t) => {
   // Mock logger
@@ -48,13 +45,17 @@ test.serial("Update a release", async (t) => {
     })
     .reply(200, { html_url: releaseUrl });
 
-  const result = await addChannel(pluginConfig, {
-    env,
-    options,
-    branch: { type: "release", main: true },
-    nextRelease,
-    logger: t.context.logger,
-  });
+  const result = await addChannel(
+    pluginConfig,
+    {
+      env,
+      options,
+      branch: { type: "release", main: true },
+      nextRelease,
+      logger: t.context.logger,
+    },
+    { Octokit: TestOctokit }
+  );
 
   t.is(result.url, releaseUrl);
   t.deepEqual(t.context.log.args[0], [
@@ -89,13 +90,17 @@ test.serial("Update a maintenance release", async (t) => {
     })
     .reply(200, { html_url: releaseUrl });
 
-  const result = await addChannel(pluginConfig, {
-    env,
-    options,
-    branch: { type: "maintenance", channel: "1.x", main: false },
-    nextRelease,
-    logger: t.context.logger,
-  });
+  const result = await addChannel(
+    pluginConfig,
+    {
+      env,
+      options,
+      branch: { type: "maintenance", channel: "1.x", main: false },
+      nextRelease,
+      logger: t.context.logger,
+    },
+    { Octokit: TestOctokit }
+  );
 
   t.is(result.url, releaseUrl);
   t.deepEqual(t.context.log.args[0], [
@@ -129,13 +134,17 @@ test.serial("Update a prerelease", async (t) => {
     })
     .reply(200, { html_url: releaseUrl });
 
-  const result = await addChannel(pluginConfig, {
-    env,
-    options,
-    branch: { type: "maintenance", channel: "1.x", main: false },
-    nextRelease,
-    logger: t.context.logger,
-  });
+  const result = await addChannel(
+    pluginConfig,
+    {
+      env,
+      options,
+      branch: { type: "maintenance", channel: "1.x", main: false },
+      nextRelease,
+      logger: t.context.logger,
+    },
+    { Octokit: TestOctokit }
+  );
 
   t.is(result.url, releaseUrl);
   t.deepEqual(t.context.log.args[0], [
@@ -173,13 +182,17 @@ test.serial("Update a release with a custom github url", async (t) => {
     })
     .reply(200, { html_url: releaseUrl });
 
-  const result = await addChannel(pluginConfig, {
-    env,
-    options,
-    branch: { type: "release", main: true },
-    nextRelease,
-    logger: t.context.logger,
-  });
+  const result = await addChannel(
+    pluginConfig,
+    {
+      env,
+      options,
+      branch: { type: "release", main: true },
+      nextRelease,
+      logger: t.context.logger,
+    },
+    { Octokit: TestOctokit }
+  );
 
   t.is(result.url, releaseUrl);
   t.deepEqual(t.context.log.args[0], [
@@ -213,13 +226,17 @@ test.serial("Create the new release if current one is missing", async (t) => {
     })
     .reply(200, { html_url: releaseUrl });
 
-  const result = await addChannel(pluginConfig, {
-    env,
-    options,
-    branch: { type: "release", main: true },
-    nextRelease,
-    logger: t.context.logger,
-  });
+  const result = await addChannel(
+    pluginConfig,
+    {
+      env,
+      options,
+      branch: { type: "release", main: true },
+      nextRelease,
+      logger: t.context.logger,
+    },
+    { Octokit: TestOctokit }
+  );
 
   t.is(result.url, releaseUrl);
   t.deepEqual(t.context.log.args[0], [
@@ -251,13 +268,17 @@ test.serial("Throw error if cannot read current release", async (t) => {
     .reply(500);
 
   const error = await t.throwsAsync(
-    addChannel(pluginConfig, {
-      env,
-      options,
-      branch: { type: "release", main: true },
-      nextRelease,
-      logger: t.context.logger,
-    })
+    addChannel(
+      pluginConfig,
+      {
+        env,
+        options,
+        branch: { type: "release", main: true },
+        nextRelease,
+        logger: t.context.logger,
+      },
+      { Octokit: TestOctokit }
+    )
   );
 
   t.is(error.status, 500);
@@ -292,13 +313,17 @@ test.serial(
       .reply(500);
 
     const error = await t.throwsAsync(
-      addChannel(pluginConfig, {
-        env,
-        options,
-        branch: { type: "release", main: true },
-        nextRelease,
-        logger: t.context.logger,
-      })
+      addChannel(
+        pluginConfig,
+        {
+          env,
+          options,
+          branch: { type: "release", main: true },
+          nextRelease,
+          logger: t.context.logger,
+        },
+        { Octokit: TestOctokit }
+      )
     );
 
     t.is(error.status, 500);
@@ -331,13 +356,17 @@ test.serial("Throw error if cannot update release", async (t) => {
     .reply(404);
 
   const error = await t.throwsAsync(
-    addChannel(pluginConfig, {
-      env,
-      options,
-      branch: { type: "release", main: true },
-      nextRelease,
-      logger: t.context.logger,
-    })
+    addChannel(
+      pluginConfig,
+      {
+        env,
+        options,
+        branch: { type: "release", main: true },
+        nextRelease,
+        logger: t.context.logger,
+      },
+      { Octokit: TestOctokit }
+    )
   );
 
   t.is(error.status, 404);

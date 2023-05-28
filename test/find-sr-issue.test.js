@@ -1,7 +1,6 @@
 import { escape } from "node:querystring";
 
 import nock from "nock";
-import quibble from "quibble";
 import sinon from "sinon";
 import test from "ava";
 
@@ -9,13 +8,6 @@ import { ISSUE_ID } from "../lib/definitions/constants.js";
 import findSRIssues from "../lib/find-sr-issues.js";
 import { authenticate } from "./helpers/mock-github.js";
 import { TestOctokit } from "./helpers/test-octokit.js";
-
-// mock rate limit imported via lib/get-client.js
-await quibble.esm("../lib/semantic-release-octokit.js", {}, TestOctokit); // eslint-disable-line
-const getClient = (await import("../lib/get-client.js")).default;
-
-const githubToken = "github_token";
-const client = getClient({ githubToken });
 
 test.beforeEach((t) => {
   // Mock logger
@@ -47,7 +39,7 @@ test.serial("Filter out issues without ID", async (t) => {
     )
     .reply(200, { items: issues });
 
-  const srIssues = await findSRIssues(client, title, owner, repo);
+  const srIssues = await findSRIssues(new TestOctokit(), title, owner, repo);
 
   t.deepEqual(srIssues, [
     {
@@ -79,7 +71,7 @@ test.serial("Return empty array if not issues found", async (t) => {
     )
     .reply(200, { items: issues });
 
-  const srIssues = await findSRIssues(client, title, owner, repo);
+  const srIssues = await findSRIssues(new TestOctokit(), title, owner, repo);
 
   t.deepEqual(srIssues, []);
 
@@ -103,7 +95,7 @@ test.serial("Return empty array if not issues has matching ID", async (t) => {
     )
     .reply(200, { items: issues });
 
-  const srIssues = await findSRIssues(client, title, owner, repo);
+  const srIssues = await findSRIssues(new TestOctokit(), title, owner, repo);
 
   t.deepEqual(srIssues, []);
   t.true(github.isDone());
