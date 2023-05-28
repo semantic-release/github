@@ -421,6 +421,44 @@ test.serial('Verify "addReleases" is valid (false)', async (t) => {
   t.true(github.isDone());
 });
 
+test.serial('Verify "draftRelease" is valid (true)', async (t) => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  const env = {GH_TOKEN: 'github_token'};
+  const draftRelease = true;
+  const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {permissions: {push: true}});
+
+  await t.notThrowsAsync(
+    verify(
+      {draftRelease},
+      {env, options: {repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`}, logger: t.context.logger}
+    )
+  );
+
+  t.true(github.isDone());
+});
+
+test.serial('Verify "draftRelease" is valid (false)', async (t) => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  const env = {GH_TOKEN: 'github_token'};
+  const draftRelease = false;
+  const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {permissions: {push: true}});
+
+  await t.notThrowsAsync(
+    verify(
+      {draftRelease},
+      {env, options: {repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`}, logger: t.context.logger}
+    )
+  );
+
+  t.true(github.isDone());
+});
+
 // https://github.com/semantic-release/github/issues/182
 test.serial('Verify if run in GitHub Action', async (t) => {
   const owner = 'test_user';
@@ -1146,5 +1184,27 @@ test.serial('Throw SemanticReleaseError if "addReleases" option is not a valid s
   t.is(errors.length, 0);
   t.is(error.name, 'SemanticReleaseError');
   t.is(error.code, 'EINVALIDADDRELEASES');
+  t.true(github.isDone());
+});
+
+test.serial('Throw SemanticReleaseError if "draftRelease" option is not a valid boolean (string)', async (t) => {
+  const owner = 'test_user';
+  const repo = 'test_repo';
+  const env = {GH_TOKEN: 'github_token'};
+  const draftRelease = 'test';
+  const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, {permissions: {push: true}});
+
+  const [error, ...errors] = await t.throwsAsync(
+    verify(
+      {draftRelease},
+      {env, options: {repositoryUrl: `https://github.com/${owner}/${repo}.git`}, logger: t.context.logger}
+    )
+  );
+
+  t.is(errors.length, 0);
+  t.is(error.name, 'SemanticReleaseError');
+  t.is(error.code, 'EINVALIDDRAFTRELEASE');
   t.true(github.isDone());
 });
