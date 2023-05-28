@@ -8,19 +8,19 @@ const proxyquire = require('proxyquire');
 const clearModule = require('clear-module');
 const SemanticReleaseError = require('@semantic-release/error');
 const {authenticate, upload} = require('./helpers/mock-github');
-const rateLimit = require('./helpers/rate-limit');
+const {TestOctokit} = require('./helpers/test-octokit');
 
+const getClient = () => new TestOctokit();
 const cwd = 'test/fixtures/files';
-const client = proxyquire('../lib/get-client', {'./definitions/rate-limit': rateLimit});
 
 test.beforeEach((t) => {
   // Clear npm cache to refresh the module state
   clearModule('..');
   t.context.m = proxyquire('..', {
-    './lib/verify': proxyquire('../lib/verify', {'./get-client': client}),
-    './lib/publish': proxyquire('../lib/publish', {'./get-client': client}),
-    './lib/success': proxyquire('../lib/success', {'./get-client': client}),
-    './lib/fail': proxyquire('../lib/fail', {'./get-client': client}),
+    './lib/verify': proxyquire('../lib/verify', {'./get-client': getClient}),
+    './lib/publish': proxyquire('../lib/publish', {'./get-client': getClient}),
+    './lib/success': proxyquire('../lib/success', {'./get-client': getClient}),
+    './lib/fail': proxyquire('../lib/fail', {'./get-client': getClient}),
   });
   // Stub the logger
   t.context.log = stub();

@@ -13,29 +13,31 @@ jobs:
     strategy:
       matrix:
         node-version:
-          - 10
-          - 12
-          - 14
+          - '14.17'
+          - 16
         os:
           - ubuntu-latest
     runs-on: "${{ matrix.os }}"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3
       - name: "Use Node.js ${{ matrix.node-version }}"
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3
         with:
           node-version: "${{ matrix.node-version }}"
-      - uses: bahmutov/npm-install@v1
+          cache: npm
+      - run: npm ci
       - run: "npm run test:ci"
   test:
     runs-on: ubuntu-latest
     needs: test_matrix
     steps:
-      - uses: actions/checkout@v2
-      - name: "Use Node.js ${{ matrix.node-version }}"
-        uses: actions/setup-node@v2
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3
+      - uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3
         with:
-          node-version: "${{ matrix.node-version }}"
-      - uses: bahmutov/npm-install@v1
+          node-version: 16
+          cache: npm
+      - run: npm ci
+      - name: Ensure dependencies are compatible with the version of node
+        run: npx ls-engines
       - run: npm run lint
       - run: npx lockfile-lint --path package-lock.json
