@@ -9,7 +9,7 @@ import { TestOctokit } from "./helpers/test-octokit.js";
 /* eslint camelcase: ["error", {properties: "never"}] */
 
 // mock rate limit imported via lib/get-client.js
-await quibble.esm("../lib/semantic-release-octokit.js", TestOctokit); // eslint-disable-line
+await quibble.esm("../lib/semantic-release-octokit.js", {}, TestOctokit); // eslint-disable-line
 const addChannel = (await import("../lib/add-channel.js")).default;
 
 test.beforeEach((t) => {
@@ -264,45 +264,6 @@ test.serial("Throw error if cannot read current release", async (t) => {
   t.true(github.isDone());
 });
 
-test.serial("Throw error if cannot read current release", async (t) => {
-  const owner = "test_user";
-  const repo = "test_repo";
-  const env = { GITHUB_TOKEN: "github_token" };
-  const pluginConfig = {};
-  const nextRelease = {
-    gitTag: "v1.0.0",
-    name: "v1.0.0",
-    notes: "Test release note body",
-  };
-  const options = { repositoryUrl: `https://github.com/${owner}/${repo}.git` };
-
-  const github = authenticate(env)
-    .get(`/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`)
-
-    .reply(404)
-    .post(`/repos/${owner}/${repo}/releases`, {
-      tag_name: nextRelease.gitTag,
-      name: nextRelease.name,
-      body: nextRelease.notes,
-      prerelease: false,
-    })
-
-    .reply(500);
-
-  const error = await t.throwsAsync(
-    addChannel(pluginConfig, {
-      env,
-      options,
-      branch: { type: "release", main: true },
-      nextRelease,
-      logger: t.context.logger,
-    })
-  );
-
-  t.is(error.status, 500);
-  t.true(github.isDone());
-});
-
 test.serial(
   "Throw error if cannot create missing current release",
   async (t) => {
@@ -321,7 +282,6 @@ test.serial(
 
     const github = authenticate(env)
       .get(`/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`)
-      .times(4)
       .reply(404)
       .post(`/repos/${owner}/${repo}/releases`, {
         tag_name: nextRelease.gitTag,
@@ -329,7 +289,6 @@ test.serial(
         body: nextRelease.notes,
         prerelease: false,
       })
-      .times(4)
       .reply(500);
 
     const error = await t.throwsAsync(

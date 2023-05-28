@@ -9,7 +9,7 @@ import { TestOctokit } from "./helpers/test-octokit.js";
 /* eslint camelcase: ["error", {properties: "never"}] */
 
 // mock rate limit imported via lib/get-client.js
-await quibble.esm("../lib/semantic-release-octokit.js", TestOctokit); // eslint-disable-line
+await quibble.esm("../lib/semantic-release-octokit.js", {}, TestOctokit); // eslint-disable-line
 const verify = (await import("../lib/verify.js")).default;
 
 test.beforeEach((t) => {
@@ -1646,7 +1646,9 @@ test.serial(
       .get(`/repos/${owner}/${repo}`)
       .reply(200, { permissions: { push: true } });
 
-    const [error, ...errors] = await t.throwsAsync(
+    const {
+      errors: [error, ...errors],
+    } = await t.throwsAsync(
       verify(
         { draftRelease },
         {

@@ -13,7 +13,7 @@ import { TestOctokit } from "./helpers/test-octokit.js";
 /* eslint camelcase: ["error", {properties: "never"}] */
 
 // mock rate limit imported via lib/get-client.js
-await quibble.esm("../lib/semantic-release-octokit.js", TestOctokit); // eslint-disable-line
+await quibble.esm("../lib/semantic-release-octokit.js", {}, TestOctokit); // eslint-disable-line
 const fail = (await import("../lib/fail.js")).default;
 
 test.beforeEach((t) => {

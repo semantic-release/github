@@ -16,7 +16,7 @@ const cwd = "test/fixtures/files";
 test.beforeEach(async (t) => {
   // Mock rate limit imported via lib/get-client.js
   await quibble.reset();
-  await quibble.esm("../lib/semantic-release-octokit.js", TestOctokit); // eslint-disable-line
+  await quibble.esm("../lib/semantic-release-octokit.js", {}, TestOctokit); // eslint-disable-line
 
   t.context.m = await import("../index.js");
   // Stub the logger

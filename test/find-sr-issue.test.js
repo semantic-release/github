@@ -11,7 +11,7 @@ import { authenticate } from "./helpers/mock-github.js";
 import { TestOctokit } from "./helpers/test-octokit.js";
 
 // mock rate limit imported via lib/get-client.js
-await quibble.esm("../lib/semantic-release-octokit.js", TestOctokit); // eslint-disable-line
+await quibble.esm("../lib/semantic-release-octokit.js", {}, TestOctokit); // eslint-disable-line
 const getClient = (await import("../lib/get-client.js")).default;
 
 const githubToken = "github_token";

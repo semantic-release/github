@@ -14,7 +14,7 @@ import { TestOctokit } from "./helpers/test-octokit.js";
 /* eslint camelcase: ["error", {properties: "never"}] */
 
 // mock rate limit imported via lib/get-client.js
-await quibble.esm("../lib/semantic-release-octokit.js", TestOctokit); // eslint-disable-line
+await quibble.esm("../lib/semantic-release-octokit.js", {}, TestOctokit); // eslint-disable-line
 const publish = (await import("../lib/publish.js")).default;
 
 const cwd = "test/fixtures/files";
@@ -506,7 +506,7 @@ test.serial("Publish a draft release with one asset", async (t) => {
 
   const githubUpload = upload(env, {
     uploadUrl: "https://github.com",
-    contentLength: (await stat(path.resolve(cwd, ".dotfile"))).size,
+    contentLength: (await stat(resolve(cwd, ".dotfile"))).size,
   })
     .post(
       `${uploadUri}?name=${escape(".dotfile")}&label=${escape(
