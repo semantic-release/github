@@ -9,14 +9,14 @@ import quibble from "quibble";
 import SemanticReleaseError from "@semantic-release/error";
 
 import { authenticate, upload } from "./helpers/mock-github.js";
-import * as RATE_LIMIT_MOCK from "./helpers/rate-limit.js";
+import { TestOctokit } from "./helpers/test-octokit.js";
 
 const cwd = "test/fixtures/files";
 
 test.beforeEach(async (t) => {
   // Mock rate limit imported via lib/get-client.js
   await quibble.reset();
-  await quibble.esm("../lib/definitions/rate-limit.js", RATE_LIMIT_MOCK);
+  await quibble.esm("../lib/semantic-release-octokit.js", TestOctokit); // eslint-disable-line
 
   t.context.m = await import("../index.js");
   // Stub the logger

@@ -9,12 +9,12 @@ import quibble from "quibble";
 import { ISSUE_ID } from "../lib/definitions/constants.js";
 import getReleaseLinks from "../lib/get-release-links.js";
 import { authenticate } from "./helpers/mock-github.js";
-import * as RATE_LIMIT_MOCK from "./helpers/rate-limit.js";
+import { TestOctokit } from "./helpers/test-octokit.js";
 
 /* eslint camelcase: ["error", {properties: "never"}] */
 
 // mock rate limit imported via lib/get-client.js
-await quibble.esm("../lib/definitions/rate-limit.js", RATE_LIMIT_MOCK);
+await quibble.esm("../lib/semantic-release-octokit.js", TestOctokit); // eslint-disable-line
 const success = (await import("../lib/success.js")).default;
 
 test.beforeEach((t) => {
@@ -739,10 +739,8 @@ test.serial("Ignore missing and forbidden issues/PRs", async (t) => {
     .reply(200, { html_url: "https://github.com/successcomment-1" })
     .post(`/repos/${owner}/${repo}/issues/1/labels`, '["released"]')
     .reply(200, {})
-    .post(`/repos/${owner}/${repo}/issues/2/comments`, {
-      body: /This PR is included/,
-    })
-    .times(3)
+    .post(`/repos/${owner}/${repo}/issues/2/comments`, {body: /This PR is included/})
+
     .reply(404)
     .post(`/repos/${owner}/${repo}/issues/3/comments`, {
       body: /This PR is included/,
@@ -1468,6 +1466,23 @@ test.serial("Editing the release with no ID in the release", async (t) => {
       1,
       "https://github.com/successcomment-1"
     )
+    .reply(200, {items: issues})
+    .patch(`/repos/${owner}/${repo}/issues/2`, {state: 'closed'})
+
+    .reply(500)
+    .patch(`/repos/${owner}/${repo}/issues/3`, {state: 'closed'})
+    .reply(200, {html_url: 'https://github.com/issues/3'});
+
+  const [error1, error2] = await t.throwsAsync(
+    success(pluginConfig, {
+      env,
+      options,
+      branch: {name: 'master'},
+      commits,
+      nextRelease,
+      releases,
+      logger: t.context.logger,
+    })
   );
   t.true(github.isDone());
 });

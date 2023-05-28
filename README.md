@@ -63,6 +63,12 @@ When creating the token, the **minimum required scopes** are:
 _Note on GitHub Actions:_ You can use the default token which is provided in the secret _GITHUB_TOKEN_. However releases done with this token will NOT trigger release events to start other workflows.
 If you have actions that trigger on newly created releases, please use a generated token for that and store it in your repository's secrets (any other name than GITHUB_TOKEN is fine).
 
+When using the _GITHUB_TOKEN_, the **minimum required permissions** are:
+
+- `contents: write` to be able to publish a GitHub release
+- `issues: write` to be able to comment on released issues
+- `pull-requests: write` to be able to comment on released pull requests
+
 ### Environment variables
 
 | Variable                                     | Description                                               |
@@ -86,6 +92,7 @@ If you have actions that trigger on newly created releases, please use a generat
 | `assignees`           | The [assignees](https://help.github.com/articles/assigning-issues-and-pull-requests-to-other-github-users) to add to the issue created when a release fails.                                           | -                                                                                                                                                    |
 | `releasedLabels`      | The [labels](https://help.github.com/articles/about-labels) to add to each issue and pull request resolved by the release. Set to `false` to not add any label. See [releasedLabels](#releasedlabels). | `['released<%= nextRelease.channel ? \` on @\${nextRelease.channel}\` : "" %>']-                                                                     |
 | `addReleases`         | Will add release links to the GitHub Release. Can be `false`, `"bottom"` or `"top"`. See [addReleases](#addReleases).                                                                                  | `false`                                                                                                                                              |
+| `draftRelease`        | A boolean indicating if a GitHub Draft Release should be created instead of publishing an actual GitHub Release.                                                                                       | `false`                                                                                                                                              |
 
 #### proxy
 

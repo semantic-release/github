@@ -8,10 +8,10 @@ import test from "ava";
 import { ISSUE_ID } from "../lib/definitions/constants.js";
 import findSRIssues from "../lib/find-sr-issues.js";
 import { authenticate } from "./helpers/mock-github.js";
-import * as RATE_LIMIT_MOCK from "./helpers/rate-limit.js";
+import { TestOctokit } from "./helpers/test-octokit.js";
 
 // mock rate limit imported via lib/get-client.js
-await quibble.esm("../lib/definitions/rate-limit.js", RATE_LIMIT_MOCK);
+await quibble.esm("../lib/semantic-release-octokit.js", TestOctokit); // eslint-disable-line
 const getClient = (await import("../lib/get-client.js")).default;
 
 const githubToken = "github_token";
@@ -106,42 +106,5 @@ test.serial("Return empty array if not issues has matching ID", async (t) => {
   const srIssues = await findSRIssues(client, title, owner, repo);
 
   t.deepEqual(srIssues, []);
-  t.true(github.isDone());
-});
-
-test.serial("Retries 4 times", async (t) => {
-  const owner = "test_user";
-  const repo = "test_repo";
-  const title = "The automated release is failing :rotating_light:";
-  const github = authenticate({}, { githubToken })
-    .get(
-      `/search/issues?q=${escape("in:title")}+${escape(
-        `repo:${owner}/${repo}`
-      )}+${escape("type:issue")}+${escape("state:open")}+${escape(title)}`
-    )
-    .times(4)
-    .reply(422);
-
-  const error = await t.throwsAsync(findSRIssues(client, title, owner, repo));
-
-  t.is(error.status, 422);
-  t.true(github.isDone());
-});
-
-test.serial("Do not retry on 401 error", async (t) => {
-  const owner = "test_user";
-  const repo = "test_repo";
-  const title = "The automated release is failing :rotating_light:";
-  const github = authenticate({}, { githubToken })
-    .get(
-      `/search/issues?q=${escape("in:title")}+${escape(
-        `repo:${owner}/${repo}`
-      )}+${escape("type:issue")}+${escape("state:open")}+${escape(title)}`
-    )
-    .reply(401);
-
-  const error = await t.throwsAsync(findSRIssues(client, title, owner, repo));
-
-  t.is(error.status, 401);
   t.true(github.isDone());
 });

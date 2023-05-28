@@ -4,12 +4,12 @@ import sinon from "sinon";
 import test from "ava";
 
 import { authenticate } from "./helpers/mock-github.js";
-import * as RATE_LIMIT_MOCK from "./helpers/rate-limit.js";
+import { TestOctokit } from "./helpers/test-octokit.js";
 
 /* eslint camelcase: ["error", {properties: "never"}] */
 
 // mock rate limit imported via lib/get-client.js
-await quibble.esm("../lib/definitions/rate-limit.js", RATE_LIMIT_MOCK); // eslint-disable-line
+await quibble.esm("../lib/semantic-release-octokit.js", TestOctokit); // eslint-disable-line
 const verify = (await import("../lib/verify.js")).default;
 
 test.beforeEach((t) => {
@@ -560,6 +560,52 @@ test.serial('Verify "addReleases" is valid (false)', async (t) => {
   t.true(github.isDone());
 });
 
+test.serial('Verify "draftRelease" is valid (true)', async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GH_TOKEN: "github_token" };
+  const draftRelease = true;
+  const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, { permissions: { push: true } });
+
+  await t.notThrowsAsync(
+    verify(
+      { draftRelease },
+      {
+        env,
+        options: { repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git` },
+        logger: t.context.logger,
+      }
+    )
+  );
+
+  t.true(github.isDone());
+});
+
+test.serial('Verify "draftRelease" is valid (false)', async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GH_TOKEN: "github_token" };
+  const draftRelease = false;
+  const github = authenticate(env)
+    .get(`/repos/${owner}/${repo}`)
+    .reply(200, { permissions: { push: true } });
+
+  await t.notThrowsAsync(
+    verify(
+      { draftRelease },
+      {
+        env,
+        options: { repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git` },
+        logger: t.context.logger,
+      }
+    )
+  );
+
+  t.true(github.isDone());
+});
+
 // https://github.com/semantic-release/github/issues/182
 test.serial("Verify if run in GitHub Action", async (t) => {
   const owner = "test_user";
@@ -723,10 +769,7 @@ test.serial(
     const owner = "test_user";
     const repo = "test_repo";
     const env = { GH_TOKEN: "github_token" };
-    const github = authenticate(env)
-      .get(`/repos/${owner}/${repo}`)
-      .times(4)
-      .reply(404);
+    const github = authenticate(env).get(`/repos/${owner}/${repo}`).reply(404);
 
     const {
       errors: [error, ...errors],
@@ -1588,6 +1631,35 @@ test.serial(
     t.is(errors.length, 0);
     t.is(error.name, "SemanticReleaseError");
     t.is(error.code, "EINVALIDADDRELEASES");
+    t.true(github.isDone());
+  }
+);
+
+test.serial(
+  'Throw SemanticReleaseError if "draftRelease" option is not a valid boolean (string)',
+  async (t) => {
+    const owner = "test_user";
+    const repo = "test_repo";
+    const env = { GH_TOKEN: "github_token" };
+    const draftRelease = "test";
+    const github = authenticate(env)
+      .get(`/repos/${owner}/${repo}`)
+      .reply(200, { permissions: { push: true } });
+
+    const [error, ...errors] = await t.throwsAsync(
+      verify(
+        { draftRelease },
+        {
+          env,
+          options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
+          logger: t.context.logger,
+        }
+      )
+    );
+
+    t.is(errors.length, 0);
+    t.is(error.name, "SemanticReleaseError");
+    t.is(error.code, "EINVALIDDRAFTRELEASE");
     t.true(github.isDone());
   }
 );

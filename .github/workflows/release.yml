@@ -6,16 +6,23 @@ name: Release
       - next
       - beta
       - "*.x"
+permissions:
+  contents: read # for checkout
 jobs:
   release:
+    permissions:
+      contents: write # to be able to publish a GitHub release
+      issues: write # to be able to comment on released issues
+      pull-requests: write # to be able to comment on released pull requests
+      id-token: write # to enable use of OIDC for npm provenance
     name: release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3
+      - uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3
         with:
           cache: npm
-          node-version: 16
+          node-version: lts/*
       - run: npm ci
       - run: npx semantic-release
         env:

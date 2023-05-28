@@ -8,12 +8,12 @@ import test from "ava";
 
 import { ISSUE_ID } from "../lib/definitions/constants.js";
 import { authenticate } from "./helpers/mock-github.js";
-import * as RATE_LIMIT_MOCK from "./helpers/rate-limit.js";
+import { TestOctokit } from "./helpers/test-octokit.js";
 
 /* eslint camelcase: ["error", {properties: "never"}] */
 
 // mock rate limit imported via lib/get-client.js
-await quibble.esm("../lib/definitions/rate-limit.js", RATE_LIMIT_MOCK);
+await quibble.esm("../lib/semantic-release-octokit.js", TestOctokit); // eslint-disable-line
 const fail = (await import("../lib/fail.js")).default;
 
 test.beforeEach((t) => {
@@ -75,71 +75,6 @@ test.serial("Open a new issue with the list of errors", async (t) => {
   );
   t.true(github.isDone());
 });
-
-test.serial(
-  "Open a new issue with the list of errors, retrying 4 times",
-  async (t) => {
-    const owner = "test_user";
-    const repo = "test_repo";
-    const env = { GITHUB_TOKEN: "github_token" };
-    const failTitle = "The automated release is failing 🚨";
-    const pluginConfig = { failTitle };
-    const options = {
-      repositoryUrl: `https://github.com/${owner}/${repo}.git`,
-    };
-    const errors = [
-      new SemanticReleaseError("Error message 1", "ERR1", "Error 1 details"),
-      new SemanticReleaseError("Error message 2", "ERR2", "Error 2 details"),
-      new SemanticReleaseError("Error message 3", "ERR3", "Error 3 details"),
-    ];
-    const github = authenticate(env)
-      .get(`/repos/${owner}/${repo}`)
-      .reply(200, { full_name: `${owner}/${repo}` })
-      .get(
-        `/search/issues?q=${escape("in:title")}+${escape(
-          `repo:${owner}/${repo}`
-        )}+${escape("type:issue")}+${escape("state:open")}+${escape(failTitle)}`
-      )
-      .times(3)
-      .reply(404)
-      .get(
-        `/search/issues?q=${escape("in:title")}+${escape(
-          `repo:${owner}/${repo}`
-        )}+${escape("type:issue")}+${escape("state:open")}+${escape(failTitle)}`
-      )
-      .reply(200, { items: [] })
-      .post(`/repos/${owner}/${repo}/issues`, {
-        title: failTitle,
-        body: /---\n\n### Error message 1\n\nError 1 details\n\n---\n\n### Error message 2\n\nError 2 details\n\n---\n\n### Error message 3\n\nError 3 details\n\n---/,
-        labels: ["semantic-release"],
-      })
-      .times(3)
-      .reply(500)
-      .post(`/repos/${owner}/${repo}/issues`, {
-        title: failTitle,
-        body: /---\n\n### Error message 1\n\nError 1 details\n\n---\n\n### Error message 2\n\nError 2 details\n\n---\n\n### Error message 3\n\nError 3 details\n\n---/,
-        labels: ["semantic-release"],
-      })
-      .reply(200, { html_url: "https://github.com/issues/1", number: 1 });
-
-    await fail(pluginConfig, {
-      env,
-      options,
-      branch: { name: "master" },
-      errors,
-      logger: t.context.logger,
-    });
-
-    t.true(
-      t.context.log.calledWith(
-        "Created issue #%d: %s.",
-        1,
-        "https://github.com/issues/1"
-      )
-    );
-    t.true(github.isDone());
-  }
-);
 
 test.serial(
   "Open a new issue with the list of errors and custom title and comment",
