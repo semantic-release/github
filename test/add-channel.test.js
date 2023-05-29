@@ -2,7 +2,6 @@ import test from "ava";
 import sinon from "sinon";
 import fetchMock from "fetch-mock";
 
-import { authenticate } from "./helpers/mock-github.js";
 import { TestOctokit } from "./helpers/test-octokit.js";
 
 /* eslint camelcase: ["error", {properties: "never"}] */
