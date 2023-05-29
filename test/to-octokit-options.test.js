@@ -1,19 +1,8 @@
-import { join, dirname } from "node:path";
-import { createServer } from "node:http";
 import { createServer as _createServer } from "node:https";
-import { promisify } from "node:util";
-import { fileURLToPath } from "node:url";
-import { readFile } from "node:fs/promises";
 
-import Proxy from "proxy";
-import serverDestroy from "server-destroy";
-import sinon from "sinon";
 import test from "ava";
 import { HttpProxyAgent } from "http-proxy-agent";
 import { HttpsProxyAgent } from "https-proxy-agent";
-import nodeFetch from "node-fetch";
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
 
 import { toOctokitOptions } from "../lib/octokit.js";
 

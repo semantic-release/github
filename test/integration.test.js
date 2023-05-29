@@ -422,7 +422,7 @@ test("Comment and add labels on PR included in the releases", async (t) => {
         full_name: `${owner}/${repo}`,
       },
       {
-        // TODO: why?
+        // TODO: why do we call the same endpoint twice?
         repeat: 2,
       }
     )
