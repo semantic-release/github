@@ -13,7 +13,7 @@ test.beforeEach((t) => {
   t.context.logger = { log: t.context.log, error: t.context.error };
 });
 
-test.serial("Filter out issues without ID", async (t) => {
+test("Filter out issues without ID", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
   const title = "The automated release is failing 🚨";
@@ -57,7 +57,7 @@ test.serial("Filter out issues without ID", async (t) => {
   t.true(fetch.done());
 });
 
-test.serial("Return empty array if not issues found", async (t) => {
+test("Return empty array if not issues found", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
   const title = "The automated release is failing 🚨";
@@ -85,7 +85,7 @@ test.serial("Return empty array if not issues found", async (t) => {
   t.true(fetch.done());
 });
 
-test.serial("Return empty array if not issues has matching ID", async (t) => {
+test("Return empty array if not issues has matching ID", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
   const title = "The automated release is failing 🚨";
