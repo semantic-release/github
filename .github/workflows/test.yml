@@ -42,3 +42,6 @@ jobs:
       - name: Ensure dependencies are compatible with the version of node
         run: npx ls-engines
       - run: npm run lint
+      # https://github.com/lirantal/lockfile-lint#readme
+      - name: Scan lockfile for security issues
+        run: npx lockfile-lint --path package-lock.json
