@@ -1,12 +1,9 @@
-import { escape } from "node:querystring";
-
-import nock from "nock";
 import sinon from "sinon";
 import test from "ava";
+import fetchMock from "fetch-mock";
 
 import { ISSUE_ID } from "../lib/definitions/constants.js";
 import findSRIssues from "../lib/find-sr-issues.js";
-import { authenticate } from "./helpers/mock-github.js";
 import { TestOctokit } from "./helpers/test-octokit.js";
 
 test.beforeEach((t) => {
@@ -16,30 +13,33 @@ test.beforeEach((t) => {
   t.context.logger = { log: t.context.log, error: t.context.error };
 });
 
-test.afterEach.always(() => {
-  // Clear nock
-  nock.cleanAll();
-});
-
 test.serial("Filter out issues without ID", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
-  const githubToken = "github_token";
   const title = "The automated release is failing 🚨";
   const issues = [
     { number: 1, body: "Issue 1 body", title },
     { number: 2, body: `Issue 2 body\n\n${ISSUE_ID}`, title },
     { number: 3, body: `Issue 3 body\n\n${ISSUE_ID}`, title },
   ];
-  const github = authenticate({}, { githubToken })
-    .get(
-      `/search/issues?q=${escape("in:title")}+${escape(
-        `repo:${owner}/${repo}`
-      )}+${escape("type:issue")}+${escape("state:open")}+${escape(title)}`
-    )
-    .reply(200, { items: issues });
 
-  const srIssues = await findSRIssues(new TestOctokit(), title, owner, repo);
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
+        "in:title"
+      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
+        "type:issue"
+      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(title)}`,
+      { items: issues }
+    );
+
+  const srIssues = await findSRIssues(
+    new TestOctokit({ request: { fetch } }),
+    title,
+    owner,
+    repo
+  );
 
   t.deepEqual(srIssues, [
     {
@@ -54,49 +54,63 @@ test.serial("Filter out issues without ID", async (t) => {
     },
   ]);
 
-  t.true(github.isDone());
+  t.true(fetch.done());
 });
 
 test.serial("Return empty array if not issues found", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
-  const githubToken = "github_token";
   const title = "The automated release is failing 🚨";
   const issues = [];
-  const github = authenticate({}, { githubToken })
-    .get(
-      `/search/issues?q=${escape("in:title")}+${escape(
-        `repo:${owner}/${repo}`
-      )}+${escape("type:issue")}+${escape("state:open")}+${escape(title)}`
-    )
-    .reply(200, { items: issues });
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
+        "in:title"
+      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
+        "type:issue"
+      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(title)}`,
+      { items: issues }
+    );
 
-  const srIssues = await findSRIssues(new TestOctokit(), title, owner, repo);
+  const srIssues = await findSRIssues(
+    new TestOctokit({ request: { fetch } }),
+    title,
+    owner,
+    repo
+  );
 
   t.deepEqual(srIssues, []);
 
-  t.true(github.isDone());
+  t.true(fetch.done());
 });
 
 test.serial("Return empty array if not issues has matching ID", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
-  const githubToken = "github_token";
   const title = "The automated release is failing 🚨";
   const issues = [
     { number: 1, body: "Issue 1 body", title },
     { number: 2, body: "Issue 2 body", title },
   ];
-  const github = authenticate({}, { githubToken })
-    .get(
-      `/search/issues?q=${escape("in:title")}+${escape(
-        `repo:${owner}/${repo}`
-      )}+${escape("type:issue")}+${escape("state:open")}+${escape(title)}`
-    )
-    .reply(200, { items: issues });
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
+        "in:title"
+      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
+        "type:issue"
+      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(title)}`,
+      { items: issues }
+    );
 
-  const srIssues = await findSRIssues(new TestOctokit(), title, owner, repo);
+  const srIssues = await findSRIssues(
+    new TestOctokit({ request: { fetch } }),
+    title,
+    owner,
+    repo
+  );
 
   t.deepEqual(srIssues, []);
-  t.true(github.isDone());
+  t.true(fetch.done());
 });

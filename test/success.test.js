@@ -1,13 +1,10 @@
-import { escape } from "node:querystring";
-
-import nock from "nock";
 import { repeat } from "lodash-es";
 import sinon from "sinon";
 import test from "ava";
+import fetchMock from "fetch-mock";
 
 import { ISSUE_ID } from "../lib/definitions/constants.js";
 import getReleaseLinks from "../lib/get-release-links.js";
-import { authenticate } from "./helpers/mock-github.js";
 import { TestOctokit } from "./helpers/test-octokit.js";
 
 /* eslint camelcase: ["error", {properties: "never"}] */
@@ -19,11 +16,6 @@ test.beforeEach((t) => {
   t.context.log = sinon.stub();
   t.context.error = sinon.stub();
   t.context.logger = { log: t.context.log, error: t.context.error };
-});
-
-test.afterEach.always(() => {
-  // Clear nock
-  nock.cleanAll();
 });
 
 test.serial(
@@ -61,63 +53,76 @@ test.serial(
     const releases = [
       { name: "GitHub release", url: "https://github.com/release" },
     ];
-    const github = authenticate(env)
-      .get(`/repos/${owner}/${repo}`)
-      .reply(200, { full_name: `${redirectedOwner}/${redirectedRepo}` })
-      .get(
-        `/search/issues?q=${escape(
+
+    const fetch = fetchMock
+      .sandbox()
+      .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+        full_name: `${redirectedOwner}/${redirectedRepo}`,
+      })
+      .getOnce(
+        `https://api.github.local/search/issues?q=${encodeURIComponent(
           `repo:${redirectedOwner}/${redirectedRepo}`
-        )}+${escape("type:pr")}+${escape("is:merged")}+${commits
-          .map((commit) => commit.hash)
-          .join("+")}`
+        )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
+          "is:merged"
+        )}+${commits.map((commit) => commit.hash).join("+")}`,
+        { items: prs }
       )
-      .reply(200, { items: prs })
-      .get(`/repos/${redirectedOwner}/${redirectedRepo}/pulls/1/commits`)
-      .reply(200, [{ sha: commits[0].hash }])
-      .get(`/repos/${redirectedOwner}/${redirectedRepo}/pulls/2/commits`)
-      .reply(200, [{ sha: commits[1].hash }])
-      .post(`/repos/${redirectedOwner}/${redirectedRepo}/issues/1/comments`, {
-        body: /This PR is included/,
-      })
-      .reply(200, { html_url: "https://github.com/successcomment-1" })
-      .post(
-        `/repos/${redirectedOwner}/${redirectedRepo}/issues/1/labels`,
-        '["released"]'
+      .getOnce(
+        `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/pulls/1/commits`,
+        [{ sha: commits[0].hash }]
       )
-      .reply(200, {})
-      .post(`/repos/${redirectedOwner}/${redirectedRepo}/issues/2/comments`, {
-        body: /This PR is included/,
-      })
-      .reply(200, { html_url: "https://github.com/successcomment-2" })
-      .post(
-        `/repos/${redirectedOwner}/${redirectedRepo}/issues/2/labels`,
-        '["released"]'
+      .getOnce(
+        `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/pulls/2/commits`,
+        [{ sha: commits[1].hash }]
       )
-      .reply(200, {})
-      .post(`/repos/${redirectedOwner}/${redirectedRepo}/issues/3/comments`, {
-        body: /This issue has been resolved/,
-      })
-      .reply(200, { html_url: "https://github.com/successcomment-3" })
-      .post(
-        `/repos/${redirectedOwner}/${redirectedRepo}/issues/3/labels`,
-        '["released"]'
+      .postOnce(
+        `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/issues/1/comments`,
+        {
+          html_url: "https://github.com/successcomment-1",
+        }
       )
-      .reply(200, {})
-      .post(`/repos/${redirectedOwner}/${redirectedRepo}/issues/4/comments`, {
-        body: /This issue has been resolved/,
-      })
-      .reply(200, { html_url: "https://github.com/successcomment-4" })
-      .post(
-        `/repos/${redirectedOwner}/${redirectedRepo}/issues/4/labels`,
-        '["released"]'
+      .postOnce(
+        `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/issues/1/labels`,
+        {},
+        { body: ["released"] }
       )
-      .reply(200, {})
-      .get(
-        `/search/issues?q=${escape("in:title")}+${escape(
+      .postOnce(
+        `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/issues/2/comments`,
+        { html_url: "https://github.com/successcomment-2" }
+      )
+      .postOnce(
+        `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/issues/2/labels`,
+        {},
+        { body: ["released"] }
+      )
+      .postOnce(
+        `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/issues/3/comments`,
+        { html_url: "https://github.com/successcomment-3" }
+      )
+      .postOnce(
+        `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/issues/3/labels`,
+        {},
+        { body: ["released"] }
+      )
+      .postOnce(
+        `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/issues/4/comments`,
+        { html_url: "https://github.com/successcomment-4" }
+      )
+      .postOnce(
+        `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/issues/4/labels`,
+        {},
+        { body: ["released"] }
+      )
+      .getOnce(
+        `https://api.github.local/search/issues?q=${encodeURIComponent(
+          "in:title"
+        )}+${encodeURIComponent(
           `repo:${redirectedOwner}/${redirectedRepo}`
-        )}+${escape("type:issue")}+${escape("state:open")}+${escape(failTitle)}`
-      )
-      .reply(200, { items: [] });
+        )}+${encodeURIComponent("type:issue")}+${encodeURIComponent(
+          "state:open"
+        )}+${encodeURIComponent(failTitle)}`,
+        { items: [] }
+      );
 
     await success(
       pluginConfig,
@@ -129,7 +134,12 @@ test.serial(
         releases,
         logger: t.context.logger,
       },
-      { Octokit: TestOctokit }
+      {
+        Octokit: TestOctokit.defaults((options) => ({
+          ...options,
+          request: { ...options.request, fetch },
+        })),
+      }
     );
 
     t.true(
@@ -172,7 +182,7 @@ test.serial(
     t.true(
       t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 4)
     );
-    t.true(github.isDone());
+    t.true(fetch.done());
   }
 );
 
@@ -208,51 +218,82 @@ test.serial(
     const releases = [
       { name: "GitHub release", url: "https://custom-url.com/release" },
     ];
-    const github = authenticate(env)
-      .get(`/repos/${owner}/${repo}`)
-      .reply(200, { full_name: `${owner}/${repo}` })
-      .get(
-        `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape(
-          "type:pr"
-        )}+${escape("is:merged")}+${commits
-          .map((commit) => commit.hash)
-          .join("+")}`
-      )
-      .reply(200, { items: prs })
-      .get(`/repos/${owner}/${repo}/pulls/1/commits`)
-      .reply(200, [{ sha: commits[0].hash }])
-      .get(`/repos/${owner}/${repo}/pulls/2/commits`)
-      .reply(200, [{ sha: commits[1].hash }])
-      .post(`/repos/${owner}/${repo}/issues/1/comments`, {
-        body: /This PR is included/,
+
+    const fetch = fetchMock
+      .sandbox()
+      .getOnce(`https://custom-url.com/prefix/repos/${owner}/${repo}`, {
+        full_name: `${owner}/${repo}`,
       })
-      .reply(200, { html_url: "https://custom-url.com/successcomment-1" })
-      .post(`/repos/${owner}/${repo}/issues/1/labels`, '["released on @next"]')
-      .reply(200, {})
-      .post(`/repos/${owner}/${repo}/issues/2/comments`, {
-        body: /This PR is included/,
-      })
-      .reply(200, { html_url: "https://custom-url.com/successcomment-2" })
-      .post(`/repos/${owner}/${repo}/issues/2/labels`, '["released on @next"]')
-      .reply(200, {})
-      .post(`/repos/${owner}/${repo}/issues/3/comments`, {
-        body: /This issue has been resolved/,
-      })
-      .reply(200, { html_url: "https://custom-url.com/successcomment-3" })
-      .post(`/repos/${owner}/${repo}/issues/3/labels`, '["released on @next"]')
-      .reply(200, {})
-      .post(`/repos/${owner}/${repo}/issues/4/comments`, {
-        body: /This issue has been resolved/,
-      })
-      .reply(200, { html_url: "https://custom-url.com/successcomment-4" })
-      .post(`/repos/${owner}/${repo}/issues/4/labels`, '["released on @next"]')
-      .reply(200, {})
-      .get(
-        `/search/issues?q=${escape("in:title")}+${escape(
+      .getOnce(
+        `https://custom-url.com/prefix/search/issues?q=${encodeURIComponent(
           `repo:${owner}/${repo}`
-        )}+${escape("type:issue")}+${escape("state:open")}+${escape(failTitle)}`
+        )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
+          "is:merged"
+        )}+${commits.map((commit) => commit.hash).join("+")}`,
+        { items: prs }
       )
-      .reply(200, { items: [] });
+      .getOnce(
+        `https://custom-url.com/prefix/repos/${owner}/${repo}/pulls/1/commits`,
+        [{ sha: commits[0].hash }]
+      )
+      .getOnce(
+        `https://custom-url.com/prefix/repos/${owner}/${repo}/pulls/2/commits`,
+        [{ sha: commits[1].hash }]
+      )
+      .postOnce(
+        `https://custom-url.com/prefix/repos/${owner}/${repo}/issues/1/comments`,
+        {
+          html_url: "https://custom-url.com/successcomment-1",
+        }
+      )
+      .postOnce(
+        `https://custom-url.com/prefix/repos/${owner}/${repo}/issues/1/labels`,
+        {},
+        { body: ["released on @next"] }
+      )
+      .postOnce(
+        `https://custom-url.com/prefix/repos/${owner}/${repo}/issues/2/comments`,
+        {
+          html_url: "https://custom-url.com/successcomment-2",
+        }
+      )
+      .postOnce(
+        `https://custom-url.com/prefix/repos/${owner}/${repo}/issues/2/labels`,
+        {},
+        { body: ["released on @next"] }
+      )
+      .postOnce(
+        `https://custom-url.com/prefix/repos/${owner}/${repo}/issues/3/comments`,
+        {
+          html_url: "https://custom-url.com/successcomment-3",
+        }
+      )
+      .postOnce(
+        `https://custom-url.com/prefix/repos/${owner}/${repo}/issues/3/labels`,
+        {},
+        { body: ["released on @next"] }
+      )
+      .postOnce(
+        `https://custom-url.com/prefix/repos/${owner}/${repo}/issues/4/comments`,
+        {
+          html_url: "https://custom-url.com/successcomment-4",
+        }
+      )
+      .postOnce(
+        `https://custom-url.com/prefix/repos/${owner}/${repo}/issues/4/labels`,
+        {},
+        { body: ["released on @next"] }
+      )
+      .getOnce(
+        `https://custom-url.com/prefix/search/issues?q=${encodeURIComponent(
+          "in:title"
+        )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
+          "type:issue"
+        )}+${encodeURIComponent("state:open")}+${encodeURIComponent(
+          failTitle
+        )}`,
+        { items: [] }
+      );
 
     await success(
       pluginConfig,
@@ -264,7 +305,12 @@ test.serial(
         releases,
         logger: t.context.logger,
       },
-      { Octokit: TestOctokit }
+      {
+        Octokit: TestOctokit.defaults((options) => ({
+          ...options,
+          request: { ...options.request, fetch },
+        })),
+      }
     );
 
     t.true(
@@ -323,7 +369,7 @@ test.serial(
         4
       )
     );
-    t.true(github.isDone());
+    t.true(fetch.done());
   }
 );
 
@@ -358,77 +404,128 @@ test.serial("Make multiple search queries if necessary", async (t) => {
   const releases = [
     { name: "GitHub release", url: "https://github.com/release" },
   ];
-  const github = authenticate(env)
-    .get(`/repos/${owner}/${repo}`)
-    .reply(200, { full_name: `${owner}/${repo}` })
-    .get(
-      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape(
-        "type:pr"
-      )}+${escape("is:merged")}+${commits[0].hash}+${commits[1].hash}+${
-        commits[2].hash
-      }+${commits[3].hash}+${commits[4].hash}`
-    )
-    .reply(200, { items: [prs[0], prs[1], prs[2], prs[3], prs[4]] })
-    .get(
-      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape(
-        "type:pr"
-      )}+${escape("is:merged")}+${commits[5].hash}+${commits[6].hash}`
-    )
-    .reply(200, { items: [prs[5], prs[1]] })
-    .get(`/repos/${owner}/${repo}/pulls/1/commits`)
-    .reply(200, [{ sha: commits[0].hash }])
-    .get(`/repos/${owner}/${repo}/pulls/2/commits`)
-    .reply(200, [{ sha: commits[1].hash }])
-    .get(`/repos/${owner}/${repo}/pulls/3/commits`)
-    .reply(200, [{ sha: commits[2].hash }])
-    .get(`/repos/${owner}/${repo}/pulls/4/commits`)
-    .reply(200, [{ sha: commits[3].hash }])
-    .get(`/repos/${owner}/${repo}/pulls/5/commits`)
-    .reply(200, [{ sha: commits[4].hash }])
-    .get(`/repos/${owner}/${repo}/pulls/6/commits`)
-    .reply(200, [{ sha: commits[5].hash }])
-    .post(`/repos/${owner}/${repo}/issues/1/comments`, {
-      body: /This PR is included/,
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      full_name: `${owner}/${repo}`,
     })
-    .reply(200, { html_url: "https://github.com/successcomment-1" })
-    .post(`/repos/${owner}/${repo}/issues/1/labels`, '["released"]')
-    .reply(200, {})
-    .post(`/repos/${owner}/${repo}/issues/2/comments`, {
-      body: /This PR is included/,
-    })
-    .reply(200, { html_url: "https://github.com/successcomment-2" })
-    .post(`/repos/${owner}/${repo}/issues/2/labels`, '["released"]')
-    .reply(200, {})
-    .post(`/repos/${owner}/${repo}/issues/3/comments`, {
-      body: /This PR is included/,
-    })
-    .reply(200, { html_url: "https://github.com/successcomment-3" })
-    .post(`/repos/${owner}/${repo}/issues/3/labels`, '["released"]')
-    .reply(200, {})
-    .post(`/repos/${owner}/${repo}/issues/4/comments`, {
-      body: /This PR is included/,
-    })
-    .reply(200, { html_url: "https://github.com/successcomment-4" })
-    .post(`/repos/${owner}/${repo}/issues/4/labels`, '["released"]')
-    .reply(200, {})
-    .post(`/repos/${owner}/${repo}/issues/5/comments`, {
-      body: /This PR is included/,
-    })
-    .reply(200, { html_url: "https://github.com/successcomment-5" })
-    .post(`/repos/${owner}/${repo}/issues/5/labels`, '["released"]')
-    .reply(200, {})
-    .post(`/repos/${owner}/${repo}/issues/6/comments`, {
-      body: /This PR is included/,
-    })
-    .reply(200, { html_url: "https://github.com/successcomment-6" })
-    .post(`/repos/${owner}/${repo}/issues/6/labels`, '["released"]')
-    .reply(200, {})
-    .get(
-      `/search/issues?q=${escape("in:title")}+${escape(
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
         `repo:${owner}/${repo}`
-      )}+${escape("type:issue")}+${escape("state:open")}+${escape(failTitle)}`
+      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent("is:merged")}+${
+        commits[0].hash
+      }+${commits[1].hash}+${commits[2].hash}+${commits[3].hash}+${
+        commits[4].hash
+      }`,
+      { items: [prs[0], prs[1], prs[2], prs[3], prs[4]] }
     )
-    .reply(200, { items: [] });
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
+        `repo:${owner}/${repo}`
+      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent("is:merged")}+${
+        commits[5].hash
+      }+${commits[6].hash}`,
+      { items: [prs[5], prs[1]] }
+    )
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
+      [{ sha: commits[0].hash }]
+    )
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/pulls/2/commits`,
+      [{ sha: commits[1].hash }]
+    )
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/pulls/3/commits`,
+      [{ sha: commits[2].hash }]
+    )
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/pulls/4/commits`,
+      [{ sha: commits[3].hash }]
+    )
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/pulls/5/commits`,
+      [{ sha: commits[4].hash }]
+    )
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/pulls/6/commits`,
+      [{ sha: commits[5].hash }]
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
+      { html_url: "https://github.com/successcomment-1" }
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
+      {},
+      {
+        body: ["released"],
+      }
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/2/comments`,
+      { html_url: "https://github.com/successcomment-2" }
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/2/labels`,
+      {},
+      {
+        body: ["released"],
+      }
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/3/comments`,
+      { html_url: "https://github.com/successcomment-3" }
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/3/labels`,
+      {},
+      {
+        body: ["released"],
+      }
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/4/comments`,
+      { html_url: "https://github.com/successcomment-4" }
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/4/labels`,
+      {},
+      {
+        body: ["released"],
+      }
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/5/comments`,
+      { html_url: "https://github.com/successcomment-5" }
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/5/labels`,
+      {},
+      {
+        body: ["released"],
+      }
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/6/comments`,
+      { html_url: "https://github.com/successcomment-6" }
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/6/labels`,
+      {},
+      {
+        body: ["released"],
+      }
+    )
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
+        "in:title"
+      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
+        "type:issue"
+      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
+      { items: [] }
+    );
 
   await success(
     pluginConfig,
@@ -440,7 +537,12 @@ test.serial("Make multiple search queries if necessary", async (t) => {
       releases,
       logger: t.context.logger,
     },
-    { Octokit: TestOctokit }
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    }
   );
 
   t.true(
@@ -503,7 +605,7 @@ test.serial("Make multiple search queries if necessary", async (t) => {
   t.true(
     t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 6)
   );
-  t.true(github.isDone());
+  t.true(fetch.done());
 });
 
 test.serial(
@@ -530,37 +632,55 @@ test.serial(
     const releases = [
       { name: "GitHub release", url: "https://github.com/release" },
     ];
-    const github = authenticate(env)
-      .get(`/repos/${owner}/${repo}`)
-      .reply(200, { full_name: `${owner}/${repo}` })
-      .get(
-        `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape(
-          "type:pr"
-        )}+${escape("is:merged")}+${commits
-          .map((commit) => commit.hash)
-          .join("+")}`
-      )
-      .reply(200, { items: prs })
-      .get(`/repos/${owner}/${repo}/pulls/1/commits`)
-      .reply(200, [{ sha: "rebased_sha" }])
-      .get(`/repos/${owner}/${repo}/pulls/1`)
-      .reply(200, { merge_commit_sha: commits[0].hash })
-      .get(`/repos/${owner}/${repo}/pulls/2/commits`)
-      .reply(200, [{ sha: "rebased_sha" }])
-      .get(`/repos/${owner}/${repo}/pulls/2`)
-      .reply(200, { merge_commit_sha: "unrelated_sha" })
-      .post(`/repos/${owner}/${repo}/issues/1/comments`, {
-        body: /This PR is included/,
+
+    const fetch = fetchMock
+      .sandbox()
+      .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+        full_name: `${owner}/${repo}`,
       })
-      .reply(200, { html_url: "https://github.com/successcomment-1" })
-      .post(`/repos/${owner}/${repo}/issues/1/labels`, '["released"]')
-      .reply(200, {})
-      .get(
-        `/search/issues?q=${escape("in:title")}+${escape(
+      .getOnce(
+        `https://api.github.local/search/issues?q=${encodeURIComponent(
           `repo:${owner}/${repo}`
-        )}+${escape("type:issue")}+${escape("state:open")}+${escape(failTitle)}`
+        )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
+          "is:merged"
+        )}+${commits.map((commit) => commit.hash).join("+")}`,
+        { items: prs }
       )
-      .reply(200, { items: [] });
+      .getOnce(
+        `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
+        [{ sha: "rebased_sha" }]
+      )
+      .getOnce(`https://api.github.local/repos/${owner}/${repo}/pulls/1`, {
+        merge_commit_sha: commits[0].hash,
+      })
+      .getOnce(
+        `https://api.github.local/repos/${owner}/${repo}/pulls/2/commits`,
+        [{ sha: "rebased_sha" }]
+      )
+      .getOnce(`https://api.github.local/repos/${owner}/${repo}/pulls/2`, {
+        merge_commit_sha: "unrelated_sha",
+      })
+      .postOnce(
+        `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
+        {
+          html_url: "https://github.com/successcomment-1",
+        }
+      )
+      .postOnce(
+        `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
+        {},
+        { body: ["released"] }
+      )
+      .getOnce(
+        `https://api.github.local/search/issues?q=${encodeURIComponent(
+          "in:title"
+        )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
+          "type:issue"
+        )}+${encodeURIComponent("state:open")}+${encodeURIComponent(
+          failTitle
+        )}`,
+        { items: [] }
+      );
 
     await success(
       pluginConfig,
@@ -572,7 +692,12 @@ test.serial(
         releases,
         logger: t.context.logger,
       },
-      { Octokit: TestOctokit }
+      {
+        Octokit: TestOctokit.defaults((options) => ({
+          ...options,
+          request: { ...options.request, fetch },
+        })),
+      }
     );
 
     t.true(
@@ -585,7 +710,7 @@ test.serial(
     t.true(
       t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 1)
     );
-    t.true(github.isDone());
+    t.true(fetch.done());
   }
 );
 
@@ -606,23 +731,30 @@ test.serial(
     const releases = [
       { name: "GitHub release", url: "https://github.com/release" },
     ];
-    const github = authenticate(env)
-      .get(`/repos/${owner}/${repo}`)
-      .reply(200, { full_name: `${owner}/${repo}` })
-      .get(
-        `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape(
-          "type:pr"
-        )}+${escape("is:merged")}+${commits
-          .map((commit) => commit.hash)
-          .join("+")}`
-      )
-      .reply(200, { items: [] })
-      .get(
-        `/search/issues?q=${escape("in:title")}+${escape(
+
+    const fetch = fetchMock
+      .sandbox()
+      .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+        full_name: `${owner}/${repo}`,
+      })
+      .getOnce(
+        `https://api.github.local/search/issues?q=${encodeURIComponent(
           `repo:${owner}/${repo}`
-        )}+${escape("type:issue")}+${escape("state:open")}+${escape(failTitle)}`
+        )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
+          "is:merged"
+        )}+${commits.map((commit) => commit.hash).join("+")}`,
+        { items: [] }
       )
-      .reply(200, { items: [] });
+      .getOnce(
+        `https://api.github.local/search/issues?q=${encodeURIComponent(
+          "in:title"
+        )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
+          "type:issue"
+        )}+${encodeURIComponent("state:open")}+${encodeURIComponent(
+          failTitle
+        )}`,
+        { items: [] }
+      );
 
     await success(
       pluginConfig,
@@ -634,10 +766,15 @@ test.serial(
         releases,
         logger: t.context.logger,
       },
-      { Octokit: TestOctokit }
+      {
+        Octokit: TestOctokit.defaults((options) => ({
+          ...options,
+          request: { ...options.request, fetch },
+        })),
+      }
     );
 
-    t.true(github.isDone());
+    t.true(fetch.done());
   }
 );
 
@@ -662,29 +799,39 @@ test.serial(
     const releases = [
       { name: "GitHub release", url: "https://github.com/release" },
     ];
-    const github = authenticate(env)
-      .get(`/repos/${owner}/${repo}`)
-      .reply(200, { full_name: `${owner}/${repo}` })
-      .get(
-        `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape(
-          "type:pr"
-        )}+${escape("is:merged")}+${commits
-          .map((commit) => commit.hash)
-          .join("+")}`
-      )
-      .reply(200, { items: [] })
-      .post(`/repos/${owner}/${repo}/issues/2/comments`, {
-        body: /This issue has been resolved/,
+
+    const fetch = fetchMock
+      .sandbox()
+      .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+        full_name: `${owner}/${repo}`,
       })
-      .reply(200, { html_url: "https://github.com/successcomment-2" })
-      .post(`/repos/${owner}/${repo}/issues/2/labels`, '["released"]')
-      .reply(200, {})
-      .get(
-        `/search/issues?q=${escape("in:title")}+${escape(
+      .getOnce(
+        `https://api.github.local/search/issues?q=${encodeURIComponent(
           `repo:${owner}/${repo}`
-        )}+${escape("type:issue")}+${escape("state:open")}+${escape(failTitle)}`
+        )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
+          "is:merged"
+        )}+${commits.map((commit) => commit.hash).join("+")}`,
+        { items: [] }
       )
-      .reply(200, { items: [] });
+      .postOnce(
+        `https://api.github.local/repos/${owner}/${repo}/issues/2/comments`,
+        { html_url: "https://github.com/successcomment-2" }
+      )
+      .postOnce(
+        `https://api.github.local/repos/${owner}/${repo}/issues/2/labels`,
+        {},
+        { body: ["released"] }
+      )
+      .getOnce(
+        `https://api.github.local/search/issues?q=${encodeURIComponent(
+          "in:title"
+        )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
+          "type:issue"
+        )}+${encodeURIComponent("state:open")}+${encodeURIComponent(
+          failTitle
+        )}`,
+        { items: [] }
+      );
 
     await success(
       pluginConfig,
@@ -696,7 +843,12 @@ test.serial(
         releases,
         logger: t.context.logger,
       },
-      { Octokit: TestOctokit }
+      {
+        Octokit: TestOctokit.defaults((options) => ({
+          ...options,
+          request: { ...options.request, fetch },
+        })),
+      }
     );
 
     t.true(
@@ -709,7 +861,7 @@ test.serial(
     t.true(
       t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 2)
     );
-    t.true(github.isDone());
+    t.true(fetch.done());
   }
 );
 
@@ -737,56 +889,75 @@ test.serial("Ignore missing and forbidden issues/PRs", async (t) => {
   const releases = [
     { name: "GitHub release", url: "https://github.com/release" },
   ];
-  const github = authenticate(env)
-    .get(`/repos/${owner}/${repo}`)
-    .reply(200, { full_name: `${owner}/${repo}` })
-    .get(
-      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape(
-        "type:pr"
-      )}+${escape("is:merged")}+${commits
-        .map((commit) => commit.hash)
-        .join("+")}`
-    )
-    .reply(200, { items: prs })
-    .get(`/repos/${owner}/${repo}/pulls/1/commits`)
-    .reply(200, [{ sha: commits[0].hash }])
-    .get(`/repos/${owner}/${repo}/pulls/2/commits`)
-    .reply(200, [{ sha: commits[1].hash }])
-    .get(`/repos/${owner}/${repo}/pulls/3/commits`)
-    .reply(200, [{ sha: commits[2].hash }])
-    .post(`/repos/${owner}/${repo}/issues/1/comments`, {
-      body: /This PR is included/,
-    })
-    .reply(200, { html_url: "https://github.com/successcomment-1" })
-    .post(`/repos/${owner}/${repo}/issues/1/labels`, '["released"]')
-    .reply(200, {})
-    .post(`/repos/${owner}/${repo}/issues/2/comments`, {
-      body: /This PR is included/,
-    })
 
-    .reply(404)
-    .post(`/repos/${owner}/${repo}/issues/3/comments`, {
-      body: /This PR is included/,
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      full_name: `${owner}/${repo}`,
     })
-    .reply(403)
-    .post(`/repos/${owner}/${repo}/issues/4/comments`, {
-      body: /This issue has been resolved/,
-    })
-    .reply(200, { html_url: "https://github.com/successcomment-4" })
-    .post(`/repos/${owner}/${repo}/issues/4/labels`, '["released"]')
-    .reply(200, {})
-    .post(`/repos/${owner}/${repo}/issues/5/comments`, {
-      body: /This issue has been resolved/,
-    })
-    .reply(200, { html_url: "https://github.com/successcomment-5" })
-    .post(`/repos/${owner}/${repo}/issues/5/labels`, '["released"]')
-    .reply(200, {})
-    .get(
-      `/search/issues?q=${escape("in:title")}+${escape(
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
         `repo:${owner}/${repo}`
-      )}+${escape("type:issue")}+${escape("state:open")}+${escape(failTitle)}`
+      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
+        "is:merged"
+      )}+${commits.map((commit) => commit.hash).join("+")}`,
+      { items: prs }
     )
-    .reply(200, { items: [] });
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
+      [{ sha: commits[0].hash }]
+    )
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/pulls/2/commits`,
+      [{ sha: commits[1].hash }]
+    )
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/pulls/3/commits`,
+      [{ sha: commits[2].hash }]
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
+      { html_url: "https://github.com/successcomment-1" }
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
+      {},
+      { body: ["released"] }
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/2/comments`,
+      404
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/3/comments`,
+      403
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/4/comments`,
+      { html_url: "https://github.com/successcomment-4" }
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/4/labels`,
+      {},
+      { body: ["released"] }
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/5/comments`,
+      { html_url: "https://github.com/successcomment-5" }
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/5/labels`,
+      {},
+      { body: ["released"] }
+    )
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
+        "in:title"
+      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
+        "type:issue"
+      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
+      { items: [] }
+    );
 
   await success(
     pluginConfig,
@@ -798,7 +969,12 @@ test.serial("Ignore missing and forbidden issues/PRs", async (t) => {
       releases,
       logger: t.context.logger,
     },
-    { Octokit: TestOctokit }
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    }
   );
 
   t.true(
@@ -843,7 +1019,7 @@ test.serial("Ignore missing and forbidden issues/PRs", async (t) => {
       3
     )
   );
-  t.true(github.isDone());
+  t.true(fetch.done());
 });
 
 test.serial("Add custom comment and labels", async (t) => {
@@ -869,34 +1045,46 @@ test.serial("Add custom comment and labels", async (t) => {
   const releases = [
     { name: "GitHub release", url: "https://github.com/release" },
   ];
-  const github = authenticate(env)
-    .get(`/repos/${owner}/${repo}`)
-    .reply(200, { full_name: `${owner}/${repo}` })
-    .get(
-      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape(
-        "type:pr"
-      )}+${escape("is:merged")}+${commits
-        .map((commit) => commit.hash)
-        .join("+")}`
-    )
-    .reply(200, { items: prs })
-    .get(`/repos/${owner}/${repo}/pulls/1/commits`)
-    .reply(200, [{ sha: commits[0].hash }])
-    .post(`/repos/${owner}/${repo}/issues/1/comments`, {
-      body: /last release: 1\.0\.0 nextRelease: 2\.0\.0 branch: master commits: 1 releases: 1 PR attribute: PR prop/,
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      full_name: `${owner}/${repo}`,
     })
-    .reply(200, { html_url: "https://github.com/successcomment-1" })
-    .post(
-      `/repos/${owner}/${repo}/issues/1/labels`,
-      '["released on @next","released from master"]'
-    )
-    .reply(200, {})
-    .get(
-      `/search/issues?q=${escape("in:title")}+${escape(
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
         `repo:${owner}/${repo}`
-      )}+${escape("type:issue")}+${escape("state:open")}+${escape(failTitle)}`
+      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
+        "is:merged"
+      )}+${commits.map((commit) => commit.hash).join("+")}`,
+      { items: prs }
     )
-    .reply(200, { items: [] });
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
+      [{ sha: commits[0].hash }]
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
+      { html_url: "https://github.com/successcomment-1" },
+      {
+        body: {
+          body: `last release: ${lastRelease.version} nextRelease: ${nextRelease.version} branch: master commits: 1 releases: 1 PR attribute: PR prop`,
+        },
+      }
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
+      {},
+      { body: ["released on @next", "released from master"] }
+    )
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
+        "in:title"
+      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
+        "type:issue"
+      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
+      { items: [] }
+    );
 
   await success(
     pluginConfig,
@@ -910,7 +1098,12 @@ test.serial("Add custom comment and labels", async (t) => {
       releases,
       logger: t.context.logger,
     },
-    { Octokit: TestOctokit }
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    }
   );
 
   t.true(
@@ -927,7 +1120,7 @@ test.serial("Add custom comment and labels", async (t) => {
       1
     )
   );
-  t.true(github.isDone());
+  t.true(fetch.done());
 });
 
 test.serial("Add custom label", async (t) => {
@@ -944,31 +1137,41 @@ test.serial("Add custom label", async (t) => {
   const releases = [
     { name: "GitHub release", url: "https://github.com/release" },
   ];
-  const github = authenticate(env)
-    .get(`/repos/${owner}/${repo}`)
-    .reply(200, { full_name: `${owner}/${repo}` })
-    .get(
-      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape(
-        "type:pr"
-      )}+${escape("is:merged")}+${commits
-        .map((commit) => commit.hash)
-        .join("+")}`
-    )
-    .reply(200, { items: prs })
-    .get(`/repos/${owner}/${repo}/pulls/1/commits`)
-    .reply(200, [{ sha: commits[0].hash }])
-    .post(`/repos/${owner}/${repo}/issues/1/comments`, {
-      body: /This PR is included/,
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      full_name: `${owner}/${repo}`,
     })
-    .reply(200, { html_url: "https://github.com/successcomment-1" })
-    .post(`/repos/${owner}/${repo}/issues/1/labels`, '["custom label"]')
-    .reply(200, {})
-    .get(
-      `/search/issues?q=${escape("in:title")}+${escape(
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
         `repo:${owner}/${repo}`
-      )}+${escape("type:issue")}+${escape("state:open")}+${escape(failTitle)}`
+      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
+        "is:merged"
+      )}+${commits.map((commit) => commit.hash).join("+")}`,
+      { items: prs }
     )
-    .reply(200, { items: [] });
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
+      [{ sha: commits[0].hash }]
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
+      { html_url: "https://github.com/successcomment-1" }
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
+      {},
+      { body: ["custom label"] }
+    )
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
+        "in:title"
+      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
+        "type:issue"
+      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
+      { items: [] }
+    );
 
   await success(
     pluginConfig,
@@ -982,7 +1185,12 @@ test.serial("Add custom label", async (t) => {
       releases,
       logger: t.context.logger,
     },
-    { Octokit: TestOctokit }
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    }
   );
 
   t.true(
@@ -999,7 +1207,7 @@ test.serial("Add custom label", async (t) => {
       1
     )
   );
-  t.true(github.isDone());
+  t.true(fetch.done());
 });
 
 test.serial("Comment on issue/PR without ading a label", async (t) => {
@@ -1016,29 +1224,36 @@ test.serial("Comment on issue/PR without ading a label", async (t) => {
   const releases = [
     { name: "GitHub release", url: "https://github.com/release" },
   ];
-  const github = authenticate(env)
-    .get(`/repos/${owner}/${repo}`)
-    .reply(200, { full_name: `${owner}/${repo}` })
-    .get(
-      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape(
-        "type:pr"
-      )}+${escape("is:merged")}+${commits
-        .map((commit) => commit.hash)
-        .join("+")}`
-    )
-    .reply(200, { items: prs })
-    .get(`/repos/${owner}/${repo}/pulls/1/commits`)
-    .reply(200, [{ sha: commits[0].hash }])
-    .post(`/repos/${owner}/${repo}/issues/1/comments`, {
-      body: /This PR is included/,
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      full_name: `${owner}/${repo}`,
     })
-    .reply(200, { html_url: "https://github.com/successcomment-1" })
-    .get(
-      `/search/issues?q=${escape("in:title")}+${escape(
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
         `repo:${owner}/${repo}`
-      )}+${escape("type:issue")}+${escape("state:open")}+${escape(failTitle)}`
+      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
+        "is:merged"
+      )}+${commits.map((commit) => commit.hash).join("+")}`,
+      { items: prs }
     )
-    .reply(200, { items: [] });
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
+      [{ sha: commits[0].hash }]
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
+      { html_url: "https://github.com/successcomment-1" }
+    )
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
+        "in:title"
+      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
+        "type:issue"
+      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
+      { items: [] }
+    );
 
   await success(
     pluginConfig,
@@ -1052,7 +1267,12 @@ test.serial("Comment on issue/PR without ading a label", async (t) => {
       releases,
       logger: t.context.logger,
     },
-    { Octokit: TestOctokit }
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    }
   );
 
   t.true(
@@ -1062,7 +1282,7 @@ test.serial("Comment on issue/PR without ading a label", async (t) => {
       "https://github.com/successcomment-1"
     )
   );
-  t.true(github.isDone());
+  t.true(fetch.done());
 });
 
 test.serial(
@@ -1096,33 +1316,52 @@ test.serial(
       { name: "S3", url: "s3://my-bucket/release-asset" },
       { name: "Docker: docker.io/python:slim" },
     ];
-    const github = authenticate(env)
-      .get(`/repos/${owner}/${repo}`)
-      .reply(200, { full_name: `${owner}/${repo}` })
-      .get(
-        `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape(
-          "type:pr"
-        )}+${escape("is:merged")}+${commits
-          .map((commit) => commit.hash)
-          .join("+")}`
-      )
-      .reply(200, { items: prs })
-      .get(`/repos/${owner}/${repo}/pulls/1/commits`)
-      .reply(200, [{ sha: commits[0].hash }])
-      .post(`/repos/${owner}/${repo}/issues/1/comments`, {
-        body: /This PR is included/,
+
+    const fetch = fetchMock
+      .sandbox()
+      .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+        full_name: `${owner}/${repo}`,
       })
-      .reply(200, { html_url: "https://github.com/successcomment-1" })
-      .get(
-        `/search/issues?q=${escape("in:title")}+${escape(
+      .getOnce(
+        `https://api.github.local/search/issues?q=${encodeURIComponent(
           `repo:${owner}/${repo}`
-        )}+${escape("type:issue")}+${escape("state:open")}+${escape(failTitle)}`
+        )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
+          "is:merged"
+        )}+${commits.map((commit) => commit.hash).join("+")}`,
+        { items: prs }
       )
-      .reply(200, { items: [] })
-      .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {
-        body: nextRelease.notes.concat("\n---\n", getReleaseLinks(releases)),
-      })
-      .reply(200, { html_url: releaseUrl });
+      .getOnce(
+        `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
+        [{ sha: commits[0].hash }]
+      )
+      .postOnce(
+        `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
+        { html_url: "https://github.com/successcomment-1" }
+      )
+      .getOnce(
+        `https://api.github.local/search/issues?q=${encodeURIComponent(
+          "in:title"
+        )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
+          "type:issue"
+        )}+${encodeURIComponent("state:open")}+${encodeURIComponent(
+          failTitle
+        )}`,
+        { items: [] }
+      )
+      .patchOnce(
+        `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
+        {
+          html_url: releaseUrl,
+        },
+        {
+          body: {
+            body: nextRelease.notes.concat(
+              "\n---\n",
+              getReleaseLinks(releases)
+            ),
+          },
+        }
+      );
 
     await success(
       pluginConfig,
@@ -1136,7 +1375,12 @@ test.serial(
         releases,
         logger: t.context.logger,
       },
-      { Octokit: TestOctokit }
+      {
+        Octokit: TestOctokit.defaults((options) => ({
+          ...options,
+          request: { ...options.request, fetch },
+        })),
+      }
     );
 
     t.true(
@@ -1146,7 +1390,7 @@ test.serial(
         "https://github.com/successcomment-1"
       )
     );
-    t.true(github.isDone());
+    t.true(fetch.done());
   }
 );
 
@@ -1182,33 +1426,48 @@ test.serial(
       { name: "Docker: docker.io/python:slim" },
     ];
 
-    const github = authenticate(env)
-      .get(`/repos/${owner}/${repo}`)
-      .reply(200, { full_name: `${owner}/${repo}` })
-      .get(
-        `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape(
-          "type:pr"
-        )}+${escape("is:merged")}+${commits
-          .map((commit) => commit.hash)
-          .join("+")}`
-      )
-      .reply(200, { items: prs })
-      .get(`/repos/${owner}/${repo}/pulls/1/commits`)
-      .reply(200, [{ sha: commits[0].hash }])
-      .post(`/repos/${owner}/${repo}/issues/1/comments`, {
-        body: /This PR is included/,
+    const fetch = fetchMock
+      .sandbox()
+      .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+        full_name: `${owner}/${repo}`,
       })
-      .reply(200, { html_url: "https://github.com/successcomment-1" })
-      .get(
-        `/search/issues?q=${escape("in:title")}+${escape(
+      .getOnce(
+        `https://api.github.local/search/issues?q=${encodeURIComponent(
           `repo:${owner}/${repo}`
-        )}+${escape("type:issue")}+${escape("state:open")}+${escape(failTitle)}`
+        )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
+          "is:merged"
+        )}+${commits.map((commit) => commit.hash).join("+")}`,
+        { items: prs }
       )
-      .reply(200, { items: [] })
-      .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {
-        body: getReleaseLinks(releases) + "\n---\n" + nextRelease.notes,
-      })
-      .reply(200, { html_url: releaseUrl });
+      .getOnce(
+        `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
+        [{ sha: commits[0].hash }]
+      )
+      .postOnce(
+        `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
+        { html_url: "https://github.com/successcomment-1" }
+      )
+      .getOnce(
+        `https://api.github.local/search/issues?q=${encodeURIComponent(
+          "in:title"
+        )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
+          "type:issue"
+        )}+${encodeURIComponent("state:open")}+${encodeURIComponent(
+          failTitle
+        )}`,
+        { items: [] }
+      )
+      .patchOnce(
+        `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
+        {
+          html_url: releaseUrl,
+        },
+        {
+          body: {
+            body: getReleaseLinks(releases) + "\n---\n" + nextRelease.notes,
+          },
+        }
+      );
 
     await success(
       pluginConfig,
@@ -1222,7 +1481,12 @@ test.serial(
         releases,
         logger: t.context.logger,
       },
-      { Octokit: TestOctokit }
+      {
+        Octokit: TestOctokit.defaults((options) => ({
+          ...options,
+          request: { ...options.request, fetch },
+        })),
+      }
     );
 
     t.true(
@@ -1232,7 +1496,7 @@ test.serial(
         "https://github.com/successcomment-1"
       )
     );
-    t.true(github.isDone());
+    t.true(fetch.done());
   }
 );
 
@@ -1264,29 +1528,38 @@ test.serial(
         id: releaseId,
       },
     ];
-    const github = authenticate(env)
-      .get(`/repos/${owner}/${repo}`)
-      .reply(200, { full_name: `${owner}/${repo}` })
-      .get(
-        `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape(
-          "type:pr"
-        )}+${escape("is:merged")}+${commits
-          .map((commit) => commit.hash)
-          .join("+")}`
-      )
-      .reply(200, { items: prs })
-      .get(`/repos/${owner}/${repo}/pulls/1/commits`)
-      .reply(200, [{ sha: commits[0].hash }])
-      .post(`/repos/${owner}/${repo}/issues/1/comments`, {
-        body: /This PR is included/,
+
+    const fetch = fetchMock
+      .sandbox()
+      .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+        full_name: `${owner}/${repo}`,
       })
-      .reply(200, { html_url: "https://github.com/successcomment-1" })
-      .get(
-        `/search/issues?q=${escape("in:title")}+${escape(
+      .getOnce(
+        `https://api.github.local/search/issues?q=${encodeURIComponent(
           `repo:${owner}/${repo}`
-        )}+${escape("type:issue")}+${escape("state:open")}+${escape(failTitle)}`
+        )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
+          "is:merged"
+        )}+${commits.map((commit) => commit.hash).join("+")}`,
+        { items: prs }
       )
-      .reply(200, { items: [] });
+      .getOnce(
+        `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
+        [{ sha: commits[0].hash }]
+      )
+      .postOnce(
+        `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
+        { html_url: "https://github.com/successcomment-1" }
+      )
+      .getOnce(
+        `https://api.github.local/search/issues?q=${encodeURIComponent(
+          "in:title"
+        )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
+          "type:issue"
+        )}+${encodeURIComponent("state:open")}+${encodeURIComponent(
+          failTitle
+        )}`,
+        { items: [] }
+      );
 
     await success(
       pluginConfig,
@@ -1300,7 +1573,12 @@ test.serial(
         releases,
         logger: t.context.logger,
       },
-      { Octokit: TestOctokit }
+      {
+        Octokit: TestOctokit.defaults((options) => ({
+          ...options,
+          request: { ...options.request, fetch },
+        })),
+      }
     );
 
     t.true(
@@ -1310,7 +1588,7 @@ test.serial(
         "https://github.com/successcomment-1"
       )
     );
-    t.true(github.isDone());
+    t.true(fetch.done());
   }
 );
 
@@ -1342,29 +1620,38 @@ test.serial(
         id: releaseId,
       },
     ];
-    const github = authenticate(env)
-      .get(`/repos/${owner}/${repo}`)
-      .reply(200, { full_name: `${owner}/${repo}` })
-      .get(
-        `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape(
-          "type:pr"
-        )}+${escape("is:merged")}+${commits
-          .map((commit) => commit.hash)
-          .join("+")}`
-      )
-      .reply(200, { items: prs })
-      .get(`/repos/${owner}/${repo}/pulls/1/commits`)
-      .reply(200, [{ sha: commits[0].hash }])
-      .post(`/repos/${owner}/${repo}/issues/1/comments`, {
-        body: /This PR is included/,
+
+    const fetch = fetchMock
+      .sandbox()
+      .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+        full_name: `${owner}/${repo}`,
       })
-      .reply(200, { html_url: "https://github.com/successcomment-1" })
-      .get(
-        `/search/issues?q=${escape("in:title")}+${escape(
+      .getOnce(
+        `https://api.github.local/search/issues?q=${encodeURIComponent(
           `repo:${owner}/${repo}`
-        )}+${escape("type:issue")}+${escape("state:open")}+${escape(failTitle)}`
+        )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
+          "is:merged"
+        )}+${commits.map((commit) => commit.hash).join("+")}`,
+        { items: prs }
       )
-      .reply(200, { items: [] });
+      .getOnce(
+        `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
+        [{ sha: commits[0].hash }]
+      )
+      .postOnce(
+        `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
+        { html_url: "https://github.com/successcomment-1" }
+      )
+      .getOnce(
+        `https://api.github.local/search/issues?q=${encodeURIComponent(
+          "in:title"
+        )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
+          "type:issue"
+        )}+${encodeURIComponent("state:open")}+${encodeURIComponent(
+          failTitle
+        )}`,
+        { items: [] }
+      );
 
     await success(
       pluginConfig,
@@ -1378,7 +1665,12 @@ test.serial(
         releases,
         logger: t.context.logger,
       },
-      { Octokit: TestOctokit }
+      {
+        Octokit: TestOctokit.defaults((options) => ({
+          ...options,
+          request: { ...options.request, fetch },
+        })),
+      }
     );
 
     t.true(
@@ -1388,7 +1680,7 @@ test.serial(
         "https://github.com/successcomment-1"
       )
     );
-    t.true(github.isDone());
+    t.true(fetch.done());
   }
 );
 
@@ -1413,29 +1705,38 @@ test.serial(
     const lastRelease = { version: "1.0.0" };
     const commits = [{ hash: "123", message: "Commit 1 message" }];
     const releases = [];
-    const github = authenticate(env)
-      .get(`/repos/${owner}/${repo}`)
-      .reply(200, { full_name: `${owner}/${repo}` })
-      .get(
-        `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape(
-          "type:pr"
-        )}+${escape("is:merged")}+${commits
-          .map((commit) => commit.hash)
-          .join("+")}`
-      )
-      .reply(200, { items: prs })
-      .get(`/repos/${owner}/${repo}/pulls/1/commits`)
-      .reply(200, [{ sha: commits[0].hash }])
-      .post(`/repos/${owner}/${repo}/issues/1/comments`, {
-        body: /This PR is included/,
+
+    const fetch = fetchMock
+      .sandbox()
+      .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+        full_name: `${owner}/${repo}`,
       })
-      .reply(200, { html_url: "https://github.com/successcomment-1" })
-      .get(
-        `/search/issues?q=${escape("in:title")}+${escape(
+      .getOnce(
+        `https://api.github.local/search/issues?q=${encodeURIComponent(
           `repo:${owner}/${repo}`
-        )}+${escape("type:issue")}+${escape("state:open")}+${escape(failTitle)}`
+        )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
+          "is:merged"
+        )}+${commits.map((commit) => commit.hash).join("+")}`,
+        { items: prs }
       )
-      .reply(200, { items: [] });
+      .getOnce(
+        `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
+        [{ sha: commits[0].hash }]
+      )
+      .postOnce(
+        `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
+        { html_url: "https://github.com/successcomment-1" }
+      )
+      .getOnce(
+        `https://api.github.local/search/issues?q=${encodeURIComponent(
+          "in:title"
+        )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
+          "type:issue"
+        )}+${encodeURIComponent("state:open")}+${encodeURIComponent(
+          failTitle
+        )}`,
+        { items: [] }
+      );
 
     await success(
       pluginConfig,
@@ -1449,7 +1750,12 @@ test.serial(
         releases,
         logger: t.context.logger,
       },
-      { Octokit: TestOctokit }
+      {
+        Octokit: TestOctokit.defaults((options) => ({
+          ...options,
+          request: { ...options.request, fetch },
+        })),
+      }
     );
 
     t.true(
@@ -1459,7 +1765,7 @@ test.serial(
         "https://github.com/successcomment-1"
       )
     );
-    t.true(github.isDone());
+    t.true(fetch.done());
   }
 );
 
@@ -1484,29 +1790,36 @@ test.serial("Editing the release with no ID in the release", async (t) => {
     { name: "S3", url: "s3://my-bucket/release-asset" },
     { name: "Docker: docker.io/python:slim" },
   ];
-  const github = authenticate(env)
-    .get(`/repos/${owner}/${repo}`)
-    .reply(200, { full_name: `${owner}/${repo}` })
-    .get(
-      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape(
-        "type:pr"
-      )}+${escape("is:merged")}+${commits
-        .map((commit) => commit.hash)
-        .join("+")}`
-    )
-    .reply(200, { items: prs })
-    .get(`/repos/${owner}/${repo}/pulls/1/commits`)
-    .reply(200, [{ sha: commits[0].hash }])
-    .post(`/repos/${owner}/${repo}/issues/1/comments`, {
-      body: /This PR is included/,
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      full_name: `${owner}/${repo}`,
     })
-    .reply(200, { html_url: "https://github.com/successcomment-1" })
-    .get(
-      `/search/issues?q=${escape("in:title")}+${escape(
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
         `repo:${owner}/${repo}`
-      )}+${escape("type:issue")}+${escape("state:open")}+${escape(failTitle)}`
+      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
+        "is:merged"
+      )}+${commits.map((commit) => commit.hash).join("+")}`,
+      { items: prs }
     )
-    .reply(200, { items: [] });
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
+      [{ sha: commits[0].hash }]
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
+      { html_url: "https://github.com/successcomment-1" }
+    )
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
+        "in:title"
+      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
+        "type:issue"
+      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
+      { items: [] }
+    );
 
   await success(
     pluginConfig,
@@ -1520,7 +1833,12 @@ test.serial("Editing the release with no ID in the release", async (t) => {
       releases,
       logger: t.context.logger,
     },
-    { Octokit: TestOctokit }
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    }
   );
 
   t.true(
@@ -1530,7 +1848,7 @@ test.serial("Editing the release with no ID in the release", async (t) => {
       "https://github.com/successcomment-1"
     )
   );
-  t.true(github.isDone());
+  t.true(fetch.done());
 });
 
 test.serial(
@@ -1561,40 +1879,69 @@ test.serial(
     const releases = [
       { name: "GitHub release", url: "https://github.com/release" },
     ];
-    const github = authenticate(env)
-      .get(`/repos/${owner}/${repo}`)
-      .reply(200, { full_name: `${owner}/${repo}` })
-      .get(
-        `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape(
-          "type:pr"
-        )}+${escape("is:merged")}+${commits
-          .map((commit) => commit.hash)
-          .join("+")}`
-      )
-      .reply(200, { items: prs })
-      .get(`/repos/${owner}/${repo}/pulls/1/commits`)
-      .reply(200, [{ sha: commits[0].hash }])
-      .get(`/repos/${owner}/${repo}/pulls/2/commits`)
-      .reply(200, [{ sha: commits[1].hash }])
-      .post(`/repos/${owner}/${repo}/issues/1/comments`, {
-        body: /This PR is included/,
-      })
-      .reply(400, {})
-      .post(`/repos/${owner}/${repo}/issues/2/comments`, {
-        body: /This PR is included/,
-      })
-      .reply(200, { html_url: "https://github.com/successcomment-2" })
-      .get(
-        `/search/issues?q=${escape("in:title")}+${escape(
-          `repo:${owner}/${repo}`
-        )}+${escape("type:issue")}+${escape("state:open")}+${escape(failTitle)}`
-      )
-      .reply(200, { items: issues })
-      .patch(`/repos/${owner}/${repo}/issues/2`, { state: "closed" })
 
-      .reply(500)
-      .patch(`/repos/${owner}/${repo}/issues/3`, { state: "closed" })
-      .reply(200, { html_url: "https://github.com/issues/3" });
+    const fetch = fetchMock
+      .sandbox()
+      .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+        full_name: `${owner}/${repo}`,
+      })
+      .getOnce(
+        `https://api.github.local/search/issues?q=${encodeURIComponent(
+          `repo:${owner}/${repo}`
+        )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
+          "is:merged"
+        )}+${commits.map((commit) => commit.hash).join("+")}`,
+        { items: prs }
+      )
+      .getOnce(
+        `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
+        [{ sha: commits[0].hash }]
+      )
+      .getOnce(
+        `https://api.github.local/repos/${owner}/${repo}/pulls/2/commits`,
+        [{ sha: commits[1].hash }]
+      )
+      .postOnce(
+        `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
+        400
+      )
+      .postOnce(
+        `https://api.github.local/repos/${owner}/${repo}/issues/2/comments`,
+        { html_url: "https://github.com/successcomment-2" }
+      )
+      .postOnce(
+        `https://api.github.local/repos/${owner}/${repo}/issues/2/labels`,
+        {},
+        { body: ["released"] }
+      )
+      .getOnce(
+        `https://api.github.local/search/issues?q=${encodeURIComponent(
+          "in:title"
+        )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
+          "type:issue"
+        )}+${encodeURIComponent("state:open")}+${encodeURIComponent(
+          failTitle
+        )}`,
+        { items: issues }
+      )
+      .patchOnce(
+        `https://api.github.local/repos/${owner}/${repo}/issues/2`,
+        500,
+        {
+          body: {
+            state: "closed",
+          },
+        }
+      )
+      .patchOnce(
+        `https://api.github.local/repos/${owner}/${repo}/issues/3`,
+        { html_url: "https://github.com/issues/3" },
+        {
+          body: {
+            state: "closed",
+          },
+        }
+      );
 
     const {
       errors: [error1, error2],
@@ -1610,7 +1957,12 @@ test.serial(
           releases,
           logger: t.context.logger,
         },
-        { Octokit: TestOctokit }
+        {
+          Octokit: TestOctokit.defaults((options) => ({
+            ...options,
+            request: { ...options.request, fetch },
+          })),
+        }
       )
     );
 
@@ -1634,7 +1986,7 @@ test.serial(
         "https://github.com/issues/3"
       )
     );
-    t.true(github.isDone());
+    t.true(fetch.done());
   }
 );
 
@@ -1655,27 +2007,46 @@ test.serial("Close open issues when a release is successful", async (t) => {
   const releases = [
     { name: "GitHub release", url: "https://github.com/release" },
   ];
-  const github = authenticate(env)
-    .get(`/repos/${owner}/${repo}`)
-    .reply(200, { full_name: `${owner}/${repo}` })
-    .get(
-      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape(
-        "type:pr"
-      )}+${escape("is:merged")}+${commits
-        .map((commit) => commit.hash)
-        .join("+")}`
-    )
-    .reply(200, { items: [] })
-    .get(
-      `/search/issues?q=${escape("in:title")}+${escape(
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      full_name: `${owner}/${repo}`,
+    })
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
         `repo:${owner}/${repo}`
-      )}+${escape("type:issue")}+${escape("state:open")}+${escape(failTitle)}`
+      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
+        "is:merged"
+      )}+${commits.map((commit) => commit.hash).join("+")}`,
+      { items: [] }
     )
-    .reply(200, { items: issues })
-    .patch(`/repos/${owner}/${repo}/issues/2`, { state: "closed" })
-    .reply(200, { html_url: "https://github.com/issues/2" })
-    .patch(`/repos/${owner}/${repo}/issues/3`, { state: "closed" })
-    .reply(200, { html_url: "https://github.com/issues/3" });
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
+        "in:title"
+      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
+        "type:issue"
+      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
+      { items: issues }
+    )
+    .patchOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/2`,
+      { html_url: "https://github.com/issues/2" },
+      {
+        body: {
+          state: "closed",
+        },
+      }
+    )
+    .patchOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/3`,
+      { html_url: "https://github.com/issues/3" },
+      {
+        body: {
+          state: "closed",
+        },
+      }
+    );
 
   await success(
     pluginConfig,
@@ -1688,7 +2059,12 @@ test.serial("Close open issues when a release is successful", async (t) => {
       releases,
       logger: t.context.logger,
     },
-    { Octokit: TestOctokit }
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    }
   );
 
   t.true(
@@ -1705,7 +2081,7 @@ test.serial("Close open issues when a release is successful", async (t) => {
       "https://github.com/issues/3"
     )
   );
-  t.true(github.isDone());
+  t.true(fetch.done());
 });
 
 test.serial(
@@ -1730,15 +2106,22 @@ test.serial(
     const releases = [
       { name: "GitHub release", url: "https://github.com/release" },
     ];
-    const github = authenticate(env)
-      .get(`/repos/${owner}/${repo}`)
-      .reply(200, { full_name: `${owner}/${repo}` })
-      .get(
-        `/search/issues?q=${escape("in:title")}+${escape(
-          `repo:${owner}/${repo}`
-        )}+${escape("type:issue")}+${escape("state:open")}+${escape(failTitle)}`
-      )
-      .reply(200, { items: [] });
+
+    const fetch = fetchMock
+      .sandbox()
+      .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+        full_name: `${owner}/${repo}`,
+      })
+      .getOnce(
+        `https://api.github.local/search/issues?q=${encodeURIComponent(
+          "in:title"
+        )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
+          "type:issue"
+        )}+${encodeURIComponent("state:open")}+${encodeURIComponent(
+          failTitle
+        )}`,
+        { items: [] }
+      );
 
     await success(
       pluginConfig,
@@ -1751,13 +2134,18 @@ test.serial(
         releases,
         logger: t.context.logger,
       },
-      { Octokit: TestOctokit }
+      {
+        Octokit: TestOctokit.defaults((options) => ({
+          ...options,
+          request: { ...options.request, fetch },
+        })),
+      }
     );
 
     t.true(
       t.context.log.calledWith("Skip commenting on issues and pull requests.")
     );
-    t.true(github.isDone());
+    t.true(fetch.done());
   }
 );
 
@@ -1772,17 +2160,20 @@ test.serial('Skip closing issues if "failComment" is "false"', async (t) => {
   const releases = [
     { name: "GitHub release", url: "https://github.com/release" },
   ];
-  const github = authenticate(env)
-    .get(`/repos/${owner}/${repo}`)
-    .reply(200, { full_name: `${owner}/${repo}` })
-    .get(
-      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape(
-        "type:pr"
-      )}+${escape("is:merged")}+${commits
-        .map((commit) => commit.hash)
-        .join("+")}`
-    )
-    .reply(200, { items: [] });
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      full_name: `${owner}/${repo}`,
+    })
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
+        `repo:${owner}/${repo}`
+      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
+        "is:merged"
+      )}+${commits.map((commit) => commit.hash).join("+")}`,
+      { items: [] }
+    );
 
   await success(
     pluginConfig,
@@ -1795,10 +2186,15 @@ test.serial('Skip closing issues if "failComment" is "false"', async (t) => {
       releases,
       logger: t.context.logger,
     },
-    { Octokit: TestOctokit }
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    }
   );
   t.true(t.context.log.calledWith("Skip closing issue."));
-  t.true(github.isDone());
+  t.true(fetch.done());
 });
 
 test.serial('Skip closing issues if "failTitle" is "false"', async (t) => {
@@ -1812,17 +2208,20 @@ test.serial('Skip closing issues if "failTitle" is "false"', async (t) => {
   const releases = [
     { name: "GitHub release", url: "https://github.com/release" },
   ];
-  const github = authenticate(env)
-    .get(`/repos/${owner}/${repo}`)
-    .reply(200, { full_name: `${owner}/${repo}` })
-    .get(
-      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape(
-        "type:pr"
-      )}+${escape("is:merged")}+${commits
-        .map((commit) => commit.hash)
-        .join("+")}`
-    )
-    .reply(200, { items: [] });
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      full_name: `${owner}/${repo}`,
+    })
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
+        `repo:${owner}/${repo}`
+      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
+        "is:merged"
+      )}+${commits.map((commit) => commit.hash).join("+")}`,
+      { items: [] }
+    );
 
   await success(
     pluginConfig,
@@ -1835,8 +2234,13 @@ test.serial('Skip closing issues if "failTitle" is "false"', async (t) => {
       releases,
       logger: t.context.logger,
     },
-    { Octokit: TestOctokit }
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    }
   );
   t.true(t.context.log.calledWith("Skip closing issue."));
-  t.true(github.isDone());
+  t.true(fetch.done());
 });

@@ -1,6 +1,6 @@
 import test from "ava";
-import nock from "nock";
 import sinon from "sinon";
+import fetchMock from "fetch-mock";
 
 import { authenticate } from "./helpers/mock-github.js";
 import { TestOctokit } from "./helpers/test-octokit.js";
@@ -14,11 +14,6 @@ test.beforeEach((t) => {
   t.context.log = sinon.stub();
   t.context.error = sinon.stub();
   t.context.logger = { log: t.context.log, error: t.context.error };
-});
-
-test.afterEach.always(() => {
-  // Clear nock
-  nock.cleanAll();
 });
 
 test.serial("Update a release", async (t) => {
@@ -35,15 +30,27 @@ test.serial("Update a release", async (t) => {
   const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
   const releaseId = 1;
 
-  const github = authenticate(env)
-    .get(`/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`)
-    .reply(200, { id: releaseId })
-    .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {
-      tag_name: nextRelease.gitTag,
-      name: nextRelease.name,
-      prerelease: false,
-    })
-    .reply(200, { html_url: releaseUrl });
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`,
+      {
+        id: releaseId,
+      }
+    )
+    .patchOnce(
+      `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
+      {
+        html_url: releaseUrl,
+      },
+      {
+        body: {
+          tag_name: nextRelease.gitTag,
+          name: nextRelease.name,
+          prerelease: false,
+        },
+      }
+    );
 
   const result = await addChannel(
     pluginConfig,
@@ -54,7 +61,12 @@ test.serial("Update a release", async (t) => {
       nextRelease,
       logger: t.context.logger,
     },
-    { Octokit: TestOctokit }
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    }
   );
 
   t.is(result.url, releaseUrl);
@@ -62,7 +74,7 @@ test.serial("Update a release", async (t) => {
     "Updated GitHub release: %s",
     releaseUrl,
   ]);
-  t.true(github.isDone());
+  t.true(fetch.done());
 });
 
 test.serial("Update a maintenance release", async (t) => {
@@ -80,15 +92,27 @@ test.serial("Update a maintenance release", async (t) => {
   const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
   const releaseId = 1;
 
-  const github = authenticate(env)
-    .get(`/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`)
-    .reply(200, { id: releaseId })
-    .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {
-      tag_name: nextRelease.gitTag,
-      name: nextRelease.name,
-      prerelease: false,
-    })
-    .reply(200, { html_url: releaseUrl });
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`,
+      {
+        id: releaseId,
+      }
+    )
+    .patchOnce(
+      `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
+      {
+        html_url: releaseUrl,
+      },
+      {
+        body: {
+          tag_name: nextRelease.gitTag,
+          name: nextRelease.name,
+          prerelease: false,
+        },
+      }
+    );
 
   const result = await addChannel(
     pluginConfig,
@@ -99,7 +123,12 @@ test.serial("Update a maintenance release", async (t) => {
       nextRelease,
       logger: t.context.logger,
     },
-    { Octokit: TestOctokit }
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    }
   );
 
   t.is(result.url, releaseUrl);
@@ -107,7 +136,7 @@ test.serial("Update a maintenance release", async (t) => {
     "Updated GitHub release: %s",
     releaseUrl,
   ]);
-  t.true(github.isDone());
+  t.true(fetch.done());
 });
 
 test.serial("Update a prerelease", async (t) => {
@@ -124,15 +153,27 @@ test.serial("Update a prerelease", async (t) => {
   const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
   const releaseId = 1;
 
-  const github = authenticate(env)
-    .get(`/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`)
-    .reply(200, { id: releaseId })
-    .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {
-      tag_name: nextRelease.gitTag,
-      name: nextRelease.name,
-      prerelease: false,
-    })
-    .reply(200, { html_url: releaseUrl });
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`,
+      {
+        id: releaseId,
+      }
+    )
+    .patchOnce(
+      `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
+      {
+        html_url: releaseUrl,
+      },
+      {
+        body: {
+          tag_name: nextRelease.gitTag,
+          name: nextRelease.name,
+          prerelease: false,
+        },
+      }
+    );
 
   const result = await addChannel(
     pluginConfig,
@@ -143,7 +184,12 @@ test.serial("Update a prerelease", async (t) => {
       nextRelease,
       logger: t.context.logger,
     },
-    { Octokit: TestOctokit }
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    }
   );
 
   t.is(result.url, releaseUrl);
@@ -151,7 +197,7 @@ test.serial("Update a prerelease", async (t) => {
     "Updated GitHub release: %s",
     releaseUrl,
   ]);
-  t.true(github.isDone());
+  t.true(fetch.done());
 });
 
 test.serial("Update a release with a custom github url", async (t) => {
@@ -172,15 +218,27 @@ test.serial("Update a release with a custom github url", async (t) => {
   const releaseUrl = `${env.GH_URL}/${owner}/${repo}/releases/${nextRelease.version}`;
   const releaseId = 1;
 
-  const github = authenticate(env)
-    .get(`/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`)
-    .reply(200, { id: releaseId })
-    .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {
-      tag_name: nextRelease.gitTag,
-      name: nextRelease.name,
-      prerelease: false,
-    })
-    .reply(200, { html_url: releaseUrl });
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(
+      `https://othertesturl.com:443/prefix/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`,
+      {
+        id: releaseId,
+      }
+    )
+    .patchOnce(
+      `https://othertesturl.com:443/prefix/repos/${owner}/${repo}/releases/${releaseId}`,
+      {
+        html_url: releaseUrl,
+      },
+      {
+        body: {
+          tag_name: nextRelease.gitTag,
+          name: nextRelease.name,
+          prerelease: false,
+        },
+      }
+    );
 
   const result = await addChannel(
     pluginConfig,
@@ -191,7 +249,12 @@ test.serial("Update a release with a custom github url", async (t) => {
       nextRelease,
       logger: t.context.logger,
     },
-    { Octokit: TestOctokit }
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    }
   );
 
   t.is(result.url, releaseUrl);
@@ -199,7 +262,7 @@ test.serial("Update a release with a custom github url", async (t) => {
     "Updated GitHub release: %s",
     releaseUrl,
   ]);
-  t.true(github.isDone());
+  t.true(fetch.done());
 });
 
 test.serial("Create the new release if current one is missing", async (t) => {
@@ -215,16 +278,26 @@ test.serial("Create the new release if current one is missing", async (t) => {
   const options = { repositoryUrl: `https://github.com/${owner}/${repo}.git` };
   const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
 
-  const github = authenticate(env)
-    .get(`/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`)
-    .reply(404)
-    .post(`/repos/${owner}/${repo}/releases`, {
-      tag_name: nextRelease.gitTag,
-      name: nextRelease.name,
-      body: nextRelease.notes,
-      prerelease: false,
-    })
-    .reply(200, { html_url: releaseUrl });
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`,
+      404
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/releases`,
+      {
+        html_url: releaseUrl,
+      },
+      {
+        body: {
+          tag_name: nextRelease.gitTag,
+          name: nextRelease.name,
+          body: nextRelease.notes,
+          prerelease: false,
+        },
+      }
+    );
 
   const result = await addChannel(
     pluginConfig,
@@ -235,7 +308,12 @@ test.serial("Create the new release if current one is missing", async (t) => {
       nextRelease,
       logger: t.context.logger,
     },
-    { Octokit: TestOctokit }
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    }
   );
 
   t.is(result.url, releaseUrl);
@@ -247,7 +325,7 @@ test.serial("Create the new release if current one is missing", async (t) => {
     "Published GitHub release: %s",
     releaseUrl,
   ]);
-  t.true(github.isDone());
+  t.true(fetch.done());
 });
 
 test.serial("Throw error if cannot read current release", async (t) => {
@@ -262,10 +340,12 @@ test.serial("Throw error if cannot read current release", async (t) => {
   };
   const options = { repositoryUrl: `https://github.com/${owner}/${repo}.git` };
 
-  const github = authenticate(env)
-    .get(`/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`)
-
-    .reply(500);
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`,
+      500
+    );
 
   const error = await t.throwsAsync(
     addChannel(
@@ -277,12 +357,17 @@ test.serial("Throw error if cannot read current release", async (t) => {
         nextRelease,
         logger: t.context.logger,
       },
-      { Octokit: TestOctokit }
+      {
+        Octokit: TestOctokit.defaults((options) => ({
+          ...options,
+          request: { ...options.request, fetch },
+        })),
+      }
     )
   );
 
   t.is(error.status, 500);
-  t.true(github.isDone());
+  t.true(fetch.done());
 });
 
 test.serial(
@@ -301,16 +386,24 @@ test.serial(
       repositoryUrl: `https://github.com/${owner}/${repo}.git`,
     };
 
-    const github = authenticate(env)
-      .get(`/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`)
-      .reply(404)
-      .post(`/repos/${owner}/${repo}/releases`, {
-        tag_name: nextRelease.gitTag,
-        name: nextRelease.name,
-        body: nextRelease.notes,
-        prerelease: false,
-      })
-      .reply(500);
+    const fetch = fetchMock
+      .sandbox()
+      .getOnce(
+        `https://api.github.local/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`,
+        404
+      )
+      .postOnce(
+        `https://api.github.local/repos/${owner}/${repo}/releases`,
+        500,
+        {
+          body: {
+            tag_name: nextRelease.gitTag,
+            name: nextRelease.name,
+            body: nextRelease.notes,
+            prerelease: false,
+          },
+        }
+      );
 
     const error = await t.throwsAsync(
       addChannel(
@@ -322,12 +415,17 @@ test.serial(
           nextRelease,
           logger: t.context.logger,
         },
-        { Octokit: TestOctokit }
+        {
+          Octokit: TestOctokit.defaults((options) => ({
+            ...options,
+            request: { ...options.request, fetch },
+          })),
+        }
       )
     );
 
     t.is(error.status, 500);
-    t.true(github.isDone());
+    t.true(fetch.done());
   }
 );
 
@@ -344,16 +442,23 @@ test.serial("Throw error if cannot update release", async (t) => {
   const options = { repositoryUrl: `https://github.com/${owner}/${repo}.git` };
   const releaseId = 1;
 
-  const github = authenticate(env)
-    .get(`/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`)
-    .reply(200, { id: releaseId })
-    .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {
-      tag_name: nextRelease.gitTag,
-      name: nextRelease.name,
-      prerelease: false,
-    })
-
-    .reply(404);
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`,
+      { id: releaseId }
+    )
+    .patchOnce(
+      `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
+      404,
+      {
+        body: {
+          tag_name: nextRelease.gitTag,
+          name: nextRelease.name,
+          prerelease: false,
+        },
+      }
+    );
 
   const error = await t.throwsAsync(
     addChannel(
@@ -365,10 +470,15 @@ test.serial("Throw error if cannot update release", async (t) => {
         nextRelease,
         logger: t.context.logger,
       },
-      { Octokit: TestOctokit }
+      {
+        Octokit: TestOctokit.defaults((options) => ({
+          ...options,
+          request: { ...options.request, fetch },
+        })),
+      }
     )
   );
 
   t.is(error.status, 404);
-  t.true(github.isDone());
+  t.true(fetch.done());
 });

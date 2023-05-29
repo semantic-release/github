@@ -1,13 +1,8 @@
-import { resolve } from "node:path";
-import { escape } from "node:querystring";
-import { stat } from "node:fs/promises";
-
 import test from "ava";
-import nock from "nock";
 import sinon from "sinon";
 import SemanticReleaseError from "@semantic-release/error";
+import fetchMock from "fetch-mock";
 
-import { authenticate, upload } from "./helpers/mock-github.js";
 import { TestOctokit } from "./helpers/test-octokit.js";
 
 const cwd = "test/fixtures/files";
@@ -21,34 +16,37 @@ test.beforeEach(async (t) => {
   t.context.logger = { log: t.context.log, error: t.context.error };
 });
 
-test.afterEach.always(() => {
-  // Clear nock
-  nock.cleanAll();
-});
-
-test.serial("Verify GitHub auth", async (t) => {
+test("Verify GitHub auth", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
   const env = { GITHUB_TOKEN: "github_token" };
   const options = {
     repositoryUrl: `git+https://othertesturl.com/${owner}/${repo}.git`,
   };
-  const github = authenticate(env)
-    .get(`/repos/${owner}/${repo}`)
-    .reply(200, { permissions: { push: true } });
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      permissions: { push: true },
+    });
 
   await t.notThrowsAsync(
     t.context.m.verifyConditions(
       {},
       { cwd, env, options, logger: t.context.logger },
-      { Octokit: TestOctokit }
+      {
+        Octokit: TestOctokit.defaults((options) => ({
+          ...options,
+          request: { ...options.request, fetch },
+        })),
+      }
     )
   );
 
-  t.true(github.isDone());
+  t.true(fetch.done());
 });
 
-test.serial("Verify GitHub auth with publish options", async (t) => {
+test("Verify GitHub auth with publish options", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
   const env = { GITHUB_TOKEN: "github_token" };
@@ -56,22 +54,29 @@ test.serial("Verify GitHub auth with publish options", async (t) => {
     publish: { path: "@semantic-release/github" },
     repositoryUrl: `git+https://othertesturl.com/${owner}/${repo}.git`,
   };
-  const github = authenticate(env)
-    .get(`/repos/${owner}/${repo}`)
-    .reply(200, { permissions: { push: true } });
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      permissions: { push: true },
+    });
 
   await t.notThrowsAsync(
     t.context.m.verifyConditions(
       {},
       { cwd, env, options, logger: t.context.logger },
-      { Octokit: TestOctokit }
+      {
+        Octokit: TestOctokit.defaults((options) => ({
+          ...options,
+          request: { ...options.request, fetch },
+        })),
+      }
     )
   );
 
-  t.true(github.isDone());
+  t.true(fetch.done());
 });
 
-test.serial("Verify GitHub auth and assets config", async (t) => {
+test("Verify GitHub auth and assets config", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
   const env = { GITHUB_TOKEN: "github_token" };
@@ -86,22 +91,29 @@ test.serial("Verify GitHub auth and assets config", async (t) => {
     publish: [{ path: "@semantic-release/npm" }],
     repositoryUrl: `git+https://othertesturl.com/${owner}/${repo}.git`,
   };
-  const github = authenticate(env)
-    .get(`/repos/${owner}/${repo}`)
-    .reply(200, { permissions: { push: true } });
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      permissions: { push: true },
+    });
 
   await t.notThrowsAsync(
     t.context.m.verifyConditions(
       { assets },
       { cwd, env, options, logger: t.context.logger },
-      { Octokit: TestOctokit }
+      {
+        Octokit: TestOctokit.defaults((options) => ({
+          ...options,
+          request: { ...options.request, fetch },
+        })),
+      }
     )
   );
 
-  t.true(github.isDone());
+  t.true(fetch.done());
 });
 
-test.serial("Throw SemanticReleaseError if invalid config", async (t) => {
+test("Throw SemanticReleaseError if invalid config", async (t) => {
   const env = {};
   const assets = [{ wrongProperty: "lib/file.js" }];
   const successComment = 42;
@@ -129,7 +141,12 @@ test.serial("Throw SemanticReleaseError if invalid config", async (t) => {
     t.context.m.verifyConditions(
       {},
       { cwd, env, options, logger: t.context.logger },
-      { Octokit: TestOctokit }
+      {
+        Octokit: TestOctokit.defaults((options) => ({
+          ...options,
+          request: { ...options.request, fetch },
+        })),
+      }
     )
   );
 
@@ -151,7 +168,7 @@ test.serial("Throw SemanticReleaseError if invalid config", async (t) => {
   t.is(errors[7].code, "ENOGHTOKEN");
 });
 
-test.serial("Publish a release with an array of assets", async (t) => {
+test("Publish a release with an array of assets", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
   const env = { GITHUB_TOKEN: "github_token" };
@@ -169,37 +186,47 @@ test.serial("Publish a release with an array of assets", async (t) => {
   const assetUrl = `https://github.com/${owner}/${repo}/releases/download/${nextRelease.version}/upload.txt`;
   const otherAssetUrl = `https://github.com/${owner}/${repo}/releases/download/${nextRelease.version}/other_file.txt`;
   const releaseId = 1;
+  const uploadOrigin = "https://github.com";
   const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
-  const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
-  const github = authenticate(env)
-    .get(`/repos/${owner}/${repo}`)
-    .reply(200, { permissions: { push: true } })
-    .post(`/repos/${owner}/${repo}/releases`, {
-      tag_name: nextRelease.gitTag,
-      name: nextRelease.name,
-      body: nextRelease.notes,
-      draft: true,
-      prerelease: false,
+  const uploadUrl = `${uploadOrigin}${uploadUri}{?name,label}`;
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      permissions: { push: true },
     })
-    .reply(200, { upload_url: uploadUrl, html_url: releaseUrl, id: releaseId })
-    .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, { draft: false })
-    .reply(200, { html_url: releaseUrl });
-  const githubUpload1 = upload(env, {
-    uploadUrl: "https://github.com",
-    contentLength: (await stat(resolve(cwd, "upload.txt"))).size,
-  })
-    .post(`${uploadUri}?name=${escape("upload_file_name.txt")}`)
-    .reply(200, { browser_download_url: assetUrl });
-  const githubUpload2 = upload(env, {
-    uploadUrl: "https://github.com",
-    contentLength: (await stat(resolve(cwd, "upload_other.txt"))).size,
-  })
-    .post(
-      `${uploadUri}?name=${escape("other_file.txt")}&label=${escape(
-        "Other File"
-      )}`
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/releases`,
+      { upload_url: uploadUrl, html_url: releaseUrl, id: releaseId },
+      {
+        body: {
+          tag_name: nextRelease.gitTag,
+          name: nextRelease.name,
+          body: nextRelease.notes,
+          draft: true,
+          prerelease: false,
+        },
+      }
     )
-    .reply(200, { browser_download_url: otherAssetUrl });
+    .patchOnce(
+      `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
+      { html_url: releaseUrl },
+      {
+        body: { draft: false },
+      }
+    )
+    .postOnce(
+      `${uploadOrigin}${uploadUri}?name=${encodeURIComponent(
+        "upload_file_name.txt"
+      )}&`,
+      { browser_download_url: assetUrl }
+    )
+    .postOnce(
+      `${uploadOrigin}${uploadUri}?name=${encodeURIComponent(
+        "other_file.txt"
+      )}&label=${encodeURIComponent("Other File")}`,
+      { browser_download_url: otherAssetUrl }
+    );
 
   const result = await t.context.m.publish(
     { assets },
@@ -211,7 +238,12 @@ test.serial("Publish a release with an array of assets", async (t) => {
       nextRelease,
       logger: t.context.logger,
     },
-    { Octokit: TestOctokit }
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    }
   );
 
   t.is(result.url, releaseUrl);
@@ -219,92 +251,93 @@ test.serial("Publish a release with an array of assets", async (t) => {
   t.true(t.context.log.calledWith("Published file %s", otherAssetUrl));
   t.true(t.context.log.calledWith("Published file %s", assetUrl));
   t.true(t.context.log.calledWith("Published GitHub release: %s", releaseUrl));
-  t.true(github.isDone());
-  t.true(githubUpload1.isDone());
-  t.true(githubUpload2.isDone());
+  t.true(fetch.done());
 });
 
-test.serial(
-  "Publish a release with release information in assets",
-  async (t) => {
-    const owner = "test_user";
-    const repo = "test_repo";
-    const env = { GITHUB_TOKEN: "github_token" };
-    const assets = [
-      {
-        path: ["upload.txt"],
-        name: `file_with_release_\${nextRelease.gitTag}_in_filename.txt`,
-        label: `File with release \${nextRelease.gitTag} in label`,
-      },
-    ];
-    const nextRelease = {
-      gitTag: "v1.0.0",
-      name: "v1.0.0",
-      notes: "Test release note body",
-    };
-    const options = {
-      repositoryUrl: `https://github.com/${owner}/${repo}.git`,
-    };
-    const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
-    const assetUrl = `https://github.com/${owner}/${repo}/releases/download/${nextRelease.version}/file_with_release_v1.0.0_in_filename.txt`;
-    const releaseId = 1;
-    const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
-    const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
-    const github = authenticate(env)
-      .get(`/repos/${owner}/${repo}`)
-      .reply(200, { permissions: { push: true } })
-      .post(`/repos/${owner}/${repo}/releases`, {
-        tag_name: nextRelease.gitTag,
-        name: nextRelease.gitTag,
-        body: nextRelease.notes,
-        draft: true,
-        prerelease: true,
-      })
-      .reply(200, {
-        upload_url: uploadUrl,
-        html_url: releaseUrl,
-        id: releaseId,
-      })
-      .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {
-        draft: false,
-      })
-      .reply(200, { html_url: releaseUrl });
-    const githubUpload = upload(env, {
-      uploadUrl: "https://github.com",
-      contentLength: (await stat(resolve(cwd, "upload.txt"))).size,
+test("Publish a release with release information in assets", async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GITHUB_TOKEN: "github_token" };
+  const assets = [
+    {
+      path: ["upload.txt"],
+      name: `file_with_release_\${nextRelease.gitTag}_in_filename.txt`,
+      label: `File with release \${nextRelease.gitTag} in label`,
+    },
+  ];
+  const nextRelease = {
+    gitTag: "v1.0.0",
+    name: "v1.0.0",
+    notes: "Test release note body",
+  };
+  const options = {
+    repositoryUrl: `https://github.com/${owner}/${repo}.git`,
+  };
+  const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
+  const assetUrl = `https://github.com/${owner}/${repo}/releases/download/${nextRelease.version}/file_with_release_v1.0.0_in_filename.txt`;
+  const releaseId = 1;
+  const uploadOrigin = "https://github.com";
+  const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
+  const uploadUrl = `${uploadOrigin}${uploadUri}{?name,label}`;
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      permissions: { push: true },
     })
-      .post(
-        `${uploadUri}?name=${escape(
-          "file_with_release_v1.0.0_in_filename.txt"
-        )}&label=${escape("File with release v1.0.0 in label")}`
-      )
-      .reply(200, { browser_download_url: assetUrl });
-
-    const result = await t.context.m.publish(
-      { assets },
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/releases`,
+      { upload_url: uploadUrl, html_url: releaseUrl, id: releaseId },
       {
-        cwd,
-        env,
-        options,
-        branch: { type: "release" },
-        nextRelease,
-        logger: t.context.logger,
-      },
-      { Octokit: TestOctokit }
+        body: {
+          tag_name: nextRelease.gitTag,
+          name: nextRelease.gitTag,
+          body: nextRelease.notes,
+          draft: true,
+          prerelease: true,
+        },
+      }
+    )
+    .patchOnce(
+      `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
+      { html_url: releaseUrl },
+      {
+        body: { draft: false },
+      }
+    )
+    .postOnce(
+      `${uploadOrigin}${uploadUri}?name=${encodeURIComponent(
+        "file_with_release_v1.0.0_in_filename.txt"
+      )}&label=${encodeURIComponent("File with release v1.0.0 in label")}`,
+      { browser_download_url: assetUrl }
     );
 
-    t.is(result.url, releaseUrl);
-    t.deepEqual(t.context.log.args[0], ["Verify GitHub authentication"]);
-    t.true(t.context.log.calledWith("Published file %s", assetUrl));
-    t.true(
-      t.context.log.calledWith("Published GitHub release: %s", releaseUrl)
-    );
-    t.true(github.isDone());
-    t.true(githubUpload.isDone());
-  }
-);
+  const result = await t.context.m.publish(
+    { assets },
+    {
+      cwd,
+      env,
+      options,
+      branch: { type: "release" },
+      nextRelease,
+      logger: t.context.logger,
+    },
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    }
+  );
 
-test.serial("Update a release", async (t) => {
+  t.is(result.url, releaseUrl);
+  t.deepEqual(t.context.log.args[0], ["Verify GitHub authentication"]);
+  t.true(t.context.log.calledWith("Published file %s", assetUrl));
+  t.true(t.context.log.calledWith("Published GitHub release: %s", releaseUrl));
+  t.true(fetch.done());
+});
+
+test("Update a release", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
   const env = { GITHUB_TOKEN: "github_token" };
@@ -317,17 +350,26 @@ test.serial("Update a release", async (t) => {
   const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
   const releaseId = 1;
 
-  const github = authenticate(env)
-    .get(`/repos/${owner}/${repo}`)
-    .reply(200, { permissions: { push: true } })
-    .get(`/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`)
-    .reply(200, { id: releaseId })
-    .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {
-      tag_name: nextRelease.gitTag,
-      name: nextRelease.name,
-      prerelease: false,
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      permissions: { push: true },
     })
-    .reply(200, { html_url: releaseUrl });
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`,
+      { id: releaseId }
+    )
+    .patchOnce(
+      `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
+      { html_url: releaseUrl },
+      {
+        body: {
+          tag_name: nextRelease.gitTag,
+          name: nextRelease.name,
+          prerelease: false,
+        },
+      }
+    );
 
   const result = await t.context.m.addChannel(
     {},
@@ -339,7 +381,12 @@ test.serial("Update a release", async (t) => {
       nextRelease,
       logger: t.context.logger,
     },
-    { Octokit: TestOctokit }
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    }
   );
 
   t.is(result.url, releaseUrl);
@@ -348,83 +395,113 @@ test.serial("Update a release", async (t) => {
     "Updated GitHub release: %s",
     releaseUrl,
   ]);
-  t.true(github.isDone());
+  t.true(fetch.done());
 });
 
-test.serial(
-  "Comment and add labels on PR included in the releases",
-  async (t) => {
-    const owner = "test_user";
-    const repo = "test_repo";
-    const env = { GITHUB_TOKEN: "github_token" };
-    const failTitle = "The automated release is failing 🚨";
-    const prs = [{ number: 1, pull_request: {}, state: "closed" }];
-    const options = {
-      repositoryUrl: `https://github.com/${owner}/${repo}.git`,
-    };
-    const commits = [{ hash: "123", message: "Commit 1 message" }];
-    const nextRelease = { version: "1.0.0" };
-    const releases = [
-      { name: "GitHub release", url: "https://github.com/release" },
-    ];
-    const github = authenticate(env)
-      .get(`/repos/${owner}/${repo}`)
-      .reply(200, { permissions: { push: true } })
-      .get(`/repos/${owner}/${repo}`)
-      .reply(200, { full_name: `${owner}/${repo}` })
-      .get(
-        `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape(
-          "type:pr"
-        )}+${escape("is:merged")}+${commits
-          .map((commit) => commit.hash)
-          .join("+")}`
-      )
-      .reply(200, { items: prs })
-      .get(`/repos/${owner}/${repo}/pulls/1/commits`)
-      .reply(200, [{ sha: commits[0].hash }])
-      .post(`/repos/${owner}/${repo}/issues/1/comments`, {
-        body: /This PR is included/,
-      })
-      .reply(200, { html_url: "https://github.com/successcomment-1" })
-      .post(`/repos/${owner}/${repo}/issues/1/labels`, '["released"]')
-      .reply(200, {})
-      .get(
-        `/search/issues?q=${escape("in:title")}+${escape(
-          `repo:${owner}/${repo}`
-        )}+${escape("type:issue")}+${escape("state:open")}+${escape(failTitle)}`
-      )
-      .reply(200, { items: [] });
+test("Comment and add labels on PR included in the releases", async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GITHUB_TOKEN: "github_token" };
+  const failTitle = "The automated release is failing 🚨";
+  const prs = [{ number: 1, pull_request: {}, state: "closed" }];
+  const options = {
+    repositoryUrl: `https://github.com/${owner}/${repo}.git`,
+  };
+  const commits = [{ hash: "123", message: "Commit 1 message" }];
+  const nextRelease = { version: "1.0.0" };
+  const releases = [
+    { name: "GitHub release", url: "https://github.com/release" },
+  ];
 
-    await t.context.m.success(
-      { failTitle },
+  const fetch = fetchMock
+    .sandbox()
+    .get(
+      `https://api.github.local/repos/${owner}/${repo}`,
       {
-        cwd,
-        env,
-        options,
-        commits,
-        nextRelease,
-        releases,
-        logger: t.context.logger,
+        permissions: { push: true },
+        full_name: `${owner}/${repo}`,
       },
-      { Octokit: TestOctokit }
+      {
+        // TODO: why?
+        repeat: 2,
+      }
+    )
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
+        `repo:${owner}/${repo}`
+      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
+        "is:merged"
+      )}+${commits.map((commit) => commit.hash).join("+")}`,
+      { items: prs }
+    )
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
+      [{ sha: commits[0].hash }]
+    )
+    .postOnce(
+      (url, { body }) => {
+        t.is(
+          url,
+          `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`
+        );
+
+        const data = JSON.parse(body);
+        t.regex(data.body, /This PR is included/);
+
+        return true;
+      },
+      { html_url: "https://github.com/successcomment-1" }
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
+      {},
+      {
+        body: ["released"],
+      }
+    )
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
+        "in:title"
+      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
+        "type:issue"
+      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
+      { items: [] }
     );
 
-    t.deepEqual(t.context.log.args[0], ["Verify GitHub authentication"]);
-    t.true(
-      t.context.log.calledWith(
-        "Added comment to issue #%d: %s",
-        1,
-        "https://github.com/successcomment-1"
-      )
-    );
-    t.true(
-      t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 1)
-    );
-    t.true(github.isDone());
-  }
-);
+  await t.context.m.success(
+    { failTitle },
+    {
+      cwd,
+      env,
+      options,
+      commits,
+      nextRelease,
+      releases,
+      logger: t.context.logger,
+    },
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    }
+  );
 
-test.serial("Open a new issue with the list of errors", async (t) => {
+  t.deepEqual(t.context.log.args[0], ["Verify GitHub authentication"]);
+  t.true(
+    t.context.log.calledWith(
+      "Added comment to issue #%d: %s",
+      1,
+      "https://github.com/successcomment-1"
+    )
+  );
+  t.true(
+    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 1)
+  );
+  t.true(fetch.done());
+});
+
+test("Open a new issue with the list of errors", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
   const env = { GITHUB_TOKEN: "github_token" };
@@ -435,23 +512,42 @@ test.serial("Open a new issue with the list of errors", async (t) => {
     new SemanticReleaseError("Error message 2", "ERR2", "Error 2 details"),
     new SemanticReleaseError("Error message 3", "ERR3", "Error 3 details"),
   ];
-  const github = authenticate(env)
-    .get(`/repos/${owner}/${repo}`)
-    .reply(200, { permissions: { push: true } })
-    .get(`/repos/${owner}/${repo}`)
-    .reply(200, { full_name: `${owner}/${repo}` })
+
+  const fetch = fetchMock
+    .sandbox()
     .get(
-      `/search/issues?q=${escape("in:title")}+${escape(
-        `repo:${owner}/${repo}`
-      )}+${escape("type:issue")}+${escape("state:open")}+${escape(failTitle)}`
+      `https://api.github.local/repos/${owner}/${repo}`,
+      {
+        permissions: { push: true },
+        full_name: `${owner}/${repo}`,
+      },
+      {
+        repeat: 2,
+      }
     )
-    .reply(200, { items: [] })
-    .post(`/repos/${owner}/${repo}/issues`, {
-      title: failTitle,
-      body: /---\n\n### Error message 1\n\nError 1 details\n\n---\n\n### Error message 2\n\nError 2 details\n\n---\n\n### Error message 3\n\nError 3 details\n\n---/,
-      labels: ["semantic-release"],
-    })
-    .reply(200, { html_url: "https://github.com/issues/1", number: 1 });
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
+        "in:title"
+      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
+        "type:issue"
+      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
+      { items: [] }
+    )
+    .postOnce(
+      (url, { body }) => {
+        t.is(url, `https://api.github.local/repos/${owner}/${repo}/issues`);
+        const data = JSON.parse(body);
+        t.is(data.title, failTitle);
+        t.regex(
+          data.body,
+          /---\n\n### Error message 1\n\nError 1 details\n\n---\n\n### Error message 2\n\nError 2 details\n\n---\n\n### Error message 3\n\nError 3 details\n\n---/
+        );
+        t.deepEqual(data.labels, ["semantic-release"]);
+
+        return true;
+      },
+      { html_url: "https://github.com/issues/1", number: 1 }
+    );
 
   await t.context.m.fail(
     { failTitle },
@@ -463,7 +559,12 @@ test.serial("Open a new issue with the list of errors", async (t) => {
       errors,
       logger: t.context.logger,
     },
-    { Octokit: TestOctokit }
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    }
   );
 
   t.deepEqual(t.context.log.args[0], ["Verify GitHub authentication"]);
@@ -474,10 +575,10 @@ test.serial("Open a new issue with the list of errors", async (t) => {
       "https://github.com/issues/1"
     )
   );
-  t.true(github.isDone());
+  t.true(fetch.done());
 });
 
-test.serial("Verify, release and notify success", async (t) => {
+test("Verify, release and notify success", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
   const env = { GITHUB_TOKEN: "github_token" };
@@ -502,69 +603,97 @@ test.serial("Verify, release and notify success", async (t) => {
   const assetUrl = `https://github.com/${owner}/${repo}/releases/download/${nextRelease.version}/upload.txt`;
   const otherAssetUrl = `https://github.com/${owner}/${repo}/releases/download/${nextRelease.version}/other_file.txt`;
   const releaseId = 1;
+  const uploadOrigin = "https://github.com";
   const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
-  const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
+  const uploadUrl = `${uploadOrigin}${uploadUri}{?name,label}`;
   const prs = [{ number: 1, pull_request: {}, state: "closed" }];
   const commits = [{ hash: "123", message: "Commit 1 message" }];
-  const github = authenticate(env)
-    .get(`/repos/${owner}/${repo}`)
-    .reply(200, { permissions: { push: true } })
-    .post(`/repos/${owner}/${repo}/releases`, {
-      tag_name: nextRelease.gitTag,
-      name: nextRelease.name,
-      body: nextRelease.notes,
-      draft: true,
-      prerelease: false,
-    })
-    .reply(200, { upload_url: uploadUrl, html_url: releaseUrl, id: releaseId })
-    .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, { draft: false })
-    .reply(200, { html_url: releaseUrl })
-    .get(`/repos/${owner}/${repo}`)
-    .reply(200, { full_name: `${owner}/${repo}` })
+
+  const fetch = fetchMock
+    .sandbox()
     .get(
-      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape(
-        "type:pr"
-      )}+${escape("is:merged")}+${commits
-        .map((commit) => commit.hash)
-        .join("+")}`
+      `https://api.github.local/repos/${owner}/${repo}`,
+      {
+        permissions: { push: true },
+        full_name: `${owner}/${repo}`,
+      },
+      {
+        repeat: 2,
+      }
     )
-    .reply(200, { items: prs })
-    .get(`/repos/${owner}/${repo}/pulls/1/commits`)
-    .reply(200, [{ sha: commits[0].hash }])
-    .post(`/repos/${owner}/${repo}/issues/1/comments`, {
-      body: /This PR is included/,
-    })
-    .reply(200, { html_url: "https://github.com/successcomment-1" })
-    .post(`/repos/${owner}/${repo}/issues/1/labels`, '["released"]')
-    .reply(200, {})
-    .get(
-      `/search/issues?q=${escape("in:title")}+${escape(
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/releases`,
+      {
+        upload_url: uploadUrl,
+        html_url: releaseUrl,
+        id: releaseId,
+      },
+      {
+        body: {
+          tag_name: nextRelease.gitTag,
+          name: nextRelease.name,
+          body: nextRelease.notes,
+          draft: true,
+          prerelease: false,
+        },
+      }
+    )
+    .patchOnce(
+      `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
+      { html_url: releaseUrl },
+      { body: { draft: false } }
+    )
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
         `repo:${owner}/${repo}`
-      )}+${escape("type:issue")}+${escape("state:open")}+${escape(failTitle)}`
+      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
+        "is:merged"
+      )}+${commits.map((commit) => commit.hash).join("+")}`,
+      { items: prs }
     )
-    .reply(200, { items: [] });
-  const githubUpload1 = upload(env, {
-    uploadUrl: "https://github.com",
-    contentLength: (await stat(resolve(cwd, "upload.txt"))).size,
-  })
-    .post(`${uploadUri}?name=${escape("upload.txt")}`)
-    .reply(200, { browser_download_url: assetUrl });
-  const githubUpload2 = upload(env, {
-    uploadUrl: "https://github.com",
-    contentLength: (await stat(resolve(cwd, "upload_other.txt"))).size,
-  })
-    .post(
-      `${uploadUri}?name=${escape("other_file.txt")}&label=${escape(
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
+      [{ sha: commits[0].hash }]
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
+      {},
+      { body: ["released"] }
+    )
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
+        "in:title"
+      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
+        "type:issue"
+      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
+      { items: [] }
+    )
+    .postOnce(
+      `${uploadOrigin}${uploadUri}?name=${encodeURIComponent("upload.txt")}&`,
+      { browser_download_url: assetUrl }
+    )
+    .postOnce(
+      `${uploadOrigin}${uploadUri}?name=other_file.txt&label=${encodeURIComponent(
         "Other File"
-      )}`
+      )}`,
+      { browser_download_url: otherAssetUrl }
     )
-    .reply(200, { browser_download_url: otherAssetUrl });
+
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
+      { html_url: "https://github.com/successcomment-1" }
+    );
 
   await t.notThrowsAsync(
     t.context.m.verifyConditions(
       {},
       { cwd, env, options, logger: t.context.logger },
-      { Octokit: TestOctokit }
+      {
+        Octokit: TestOctokit.defaults((options) => ({
+          ...options,
+          request: { ...options.request, fetch },
+        })),
+      }
     )
   );
   await t.context.m.publish(
@@ -577,7 +706,12 @@ test.serial("Verify, release and notify success", async (t) => {
       nextRelease,
       logger: t.context.logger,
     },
-    { Octokit: TestOctokit }
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    }
   );
   await t.context.m.success(
     { assets, failTitle },
@@ -590,19 +724,22 @@ test.serial("Verify, release and notify success", async (t) => {
       releases: [],
       logger: t.context.logger,
     },
-    { Octokit: TestOctokit }
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    }
   );
 
   t.deepEqual(t.context.log.args[0], ["Verify GitHub authentication"]);
   t.true(t.context.log.calledWith("Published file %s", otherAssetUrl));
   t.true(t.context.log.calledWith("Published file %s", assetUrl));
   t.true(t.context.log.calledWith("Published GitHub release: %s", releaseUrl));
-  t.true(github.isDone());
-  t.true(githubUpload1.isDone());
-  t.true(githubUpload2.isDone());
+  t.true(fetch.done());
 });
 
-test.serial("Verify, update release and notify success", async (t) => {
+test("Verify, update release and notify success", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
   const env = { GITHUB_TOKEN: "github_token" };
@@ -625,47 +762,76 @@ test.serial("Verify, update release and notify success", async (t) => {
   const commits = [
     { hash: "123", message: "Commit 1 message", tree: { long: "aaa" } },
   ];
-  const github = authenticate(env)
-    .get(`/repos/${owner}/${repo}`)
-    .reply(200, { permissions: { push: true } })
-    .get(`/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`)
-    .reply(200, { id: releaseId })
-    .patch(`/repos/${owner}/${repo}/releases/${releaseId}`, {
-      tag_name: nextRelease.gitTag,
-      name: nextRelease.name,
-      prerelease: false,
-    })
-    .reply(200, { html_url: releaseUrl })
-    .get(`/repos/${owner}/${repo}`)
-    .reply(200, { full_name: `${owner}/${repo}` })
+
+  const fetch = fetchMock
+    .sandbox()
     .get(
-      `/search/issues?q=${escape(`repo:${owner}/${repo}`)}+${escape(
-        "type:pr"
-      )}+${escape("is:merged")}+${commits
-        .map((commit) => commit.hash)
-        .join("+")}`
+      `https://api.github.local/repos/${owner}/${repo}`,
+      {
+        permissions: { push: true },
+        full_name: `${owner}/${repo}`,
+      },
+      {
+        repeat: 2,
+      }
     )
-    .reply(200, { items: prs })
-    .get(`/repos/${owner}/${repo}/pulls/1/commits`)
-    .reply(200, [{ sha: commits[0].hash }])
-    .post(`/repos/${owner}/${repo}/issues/1/comments`, {
-      body: /This PR is included/,
-    })
-    .reply(200, { html_url: "https://github.com/successcomment-1" })
-    .post(`/repos/${owner}/${repo}/issues/1/labels`, '["released"]')
-    .reply(200, {})
-    .get(
-      `/search/issues?q=${escape("in:title")}+${escape(
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`,
+      { id: releaseId }
+    )
+    .patchOnce(
+      `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
+      { html_url: releaseUrl },
+      {
+        body: {
+          tag_name: nextRelease.gitTag,
+          name: nextRelease.name,
+          prerelease: false,
+        },
+      }
+    )
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
         `repo:${owner}/${repo}`
-      )}+${escape("type:issue")}+${escape("state:open")}+${escape(failTitle)}`
+      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
+        "is:merged"
+      )}+${commits.map((commit) => commit.hash).join("+")}`,
+      { items: prs }
     )
-    .reply(200, { items: [] });
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
+      [{ sha: commits[0].hash }]
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
+      { html_url: "https://github.com/successcomment-1" }
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
+      {},
+      {
+        body: ["released"],
+      }
+    )
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
+        "in:title"
+      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
+        "type:issue"
+      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
+      { items: [] }
+    );
 
   await t.notThrowsAsync(
     t.context.m.verifyConditions(
       {},
       { cwd, env, options, logger: t.context.logger },
-      { Octokit: TestOctokit }
+      {
+        Octokit: TestOctokit.defaults((options) => ({
+          ...options,
+          request: { ...options.request, fetch },
+        })),
+      }
     )
   );
   await t.context.m.addChannel(
@@ -678,7 +844,12 @@ test.serial("Verify, update release and notify success", async (t) => {
       options,
       logger: t.context.logger,
     },
-    { Octokit: TestOctokit }
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    }
   );
   await t.context.m.success(
     { failTitle },
@@ -691,7 +862,12 @@ test.serial("Verify, update release and notify success", async (t) => {
       releases: [],
       logger: t.context.logger,
     },
-    { Octokit: TestOctokit }
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    }
   );
 
   t.deepEqual(t.context.log.args[0], ["Verify GitHub authentication"]);
@@ -699,10 +875,10 @@ test.serial("Verify, update release and notify success", async (t) => {
     "Updated GitHub release: %s",
     releaseUrl,
   ]);
-  t.true(github.isDone());
+  t.true(fetch.done());
 });
 
-test.serial("Verify and notify failure", async (t) => {
+test("Verify and notify failure", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
   const env = { GITHUB_TOKEN: "github_token" };
@@ -713,29 +889,42 @@ test.serial("Verify and notify failure", async (t) => {
     new SemanticReleaseError("Error message 2", "ERR2", "Error 2 details"),
     new SemanticReleaseError("Error message 3", "ERR3", "Error 3 details"),
   ];
-  const github = authenticate(env)
-    .get(`/repos/${owner}/${repo}`)
-    .reply(200, { permissions: { push: true } })
-    .get(`/repos/${owner}/${repo}`)
-    .reply(200, { full_name: `${owner}/${repo}` })
+
+  const fetch = fetchMock
+    .sandbox()
     .get(
-      `/search/issues?q=${escape("in:title")}+${escape(
-        `repo:${owner}/${repo}`
-      )}+${escape("type:issue")}+${escape("state:open")}+${escape(failTitle)}`
+      `https://api.github.local/repos/${owner}/${repo}`,
+      {
+        permissions: { push: true },
+        full_name: `${owner}/${repo}`,
+      },
+      {
+        repeat: 2,
+      }
     )
-    .reply(200, { items: [] })
-    .post(`/repos/${owner}/${repo}/issues`, {
-      title: failTitle,
-      body: /---\n\n### Error message 1\n\nError 1 details\n\n---\n\n### Error message 2\n\nError 2 details\n\n---\n\n### Error message 3\n\nError 3 details\n\n---/,
-      labels: ["semantic-release"],
-    })
-    .reply(200, { html_url: "https://github.com/issues/1", number: 1 });
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
+        "in:title"
+      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
+        "type:issue"
+      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
+      { items: [] }
+    )
+    .postOnce(`https://api.github.local/repos/${owner}/${repo}/issues`, {
+      html_url: "https://github.com/issues/1",
+      number: 1,
+    });
 
   await t.notThrowsAsync(
     t.context.m.verifyConditions(
       {},
       { cwd, env, options, logger: t.context.logger },
-      { Octokit: TestOctokit }
+      {
+        Octokit: TestOctokit.defaults((options) => ({
+          ...options,
+          request: { ...options.request, fetch },
+        })),
+      }
     )
   );
   await t.context.m.fail(
@@ -748,7 +937,12 @@ test.serial("Verify and notify failure", async (t) => {
       errors,
       logger: t.context.logger,
     },
-    { Octokit: TestOctokit }
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    }
   );
 
   t.deepEqual(t.context.log.args[0], ["Verify GitHub authentication"]);
@@ -759,5 +953,5 @@ test.serial("Verify and notify failure", async (t) => {
       "https://github.com/issues/1"
     )
   );
-  t.true(github.isDone());
+  t.true(fetch.done());
 });
