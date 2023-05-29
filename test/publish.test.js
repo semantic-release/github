@@ -1,8 +1,5 @@
-import { stat } from "node:fs/promises";
-import { resolve } from "node:path";
-
 import sinon from "sinon";
-import tempy from "tempy";
+import { temporaryDirectory } from "tempy";
 import test from "ava";
 import fetchMock from "fetch-mock";
 
@@ -439,7 +436,7 @@ test("Publish a release with an array of missing assets", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
   const env = { GITHUB_TOKEN: "github_token" };
-  const emptyDirectory = tempy.directory();
+  const emptyDirectory = temporaryDirectory();
   const pluginConfig = {
     assets: [emptyDirectory, { path: "missing.txt", name: "missing.txt" }],
   };

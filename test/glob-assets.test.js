@@ -3,7 +3,7 @@ import { mkdir } from "node:fs/promises";
 
 import test from "ava";
 import { isPlainObject, sortBy } from "lodash-es";
-import tempy from "tempy";
+import { temporaryDirectory } from "tempy";
 import cpy from "cpy";
 
 import globAssets from "../lib/glob-assets.js";
@@ -14,7 +14,7 @@ const sortAssets = (assets) =>
 const fixtures = "test/fixtures/files";
 
 test("Retrieve file from single path", async (t) => {
-  const cwd = tempy.directory();
+  const cwd = temporaryDirectory();
   await cpy(fixtures, cwd, { dot: true });
   const globbedAssets = await globAssets({ cwd }, ["upload.txt"]);
 
@@ -22,7 +22,7 @@ test("Retrieve file from single path", async (t) => {
 });
 
 test("Retrieve multiple files from path", async (t) => {
-  const cwd = tempy.directory();
+  const cwd = temporaryDirectory();
   await cpy(fixtures, cwd, { dot: true });
   const globbedAssets = await globAssets({ cwd }, [
     "upload.txt",
@@ -36,7 +36,7 @@ test("Retrieve multiple files from path", async (t) => {
 });
 
 test("Include missing files as defined, using Object definition", async (t) => {
-  const cwd = tempy.directory();
+  const cwd = temporaryDirectory();
   await cpy(fixtures, cwd, { dot: true });
   const globbedAssets = await globAssets({ cwd }, [
     "upload.txt",
@@ -50,7 +50,7 @@ test("Include missing files as defined, using Object definition", async (t) => {
 });
 
 test("Retrieve multiple files from Object", async (t) => {
-  const cwd = tempy.directory();
+  const cwd = temporaryDirectory();
   await cpy(fixtures, cwd, { dot: true });
   const globbedAssets = await globAssets({ cwd }, [
     { path: "upload.txt", name: "upload_name", label: "Upload label" },
@@ -67,7 +67,7 @@ test("Retrieve multiple files from Object", async (t) => {
 });
 
 test("Retrieve multiple files without duplicates", async (t) => {
-  const cwd = tempy.directory();
+  const cwd = temporaryDirectory();
   await cpy(fixtures, cwd, { dot: true });
   const globbedAssets = await globAssets({ cwd }, [
     "upload_other.txt",
@@ -85,7 +85,7 @@ test("Retrieve multiple files without duplicates", async (t) => {
 });
 
 test("Favor Object over String values when removing duplicates", async (t) => {
-  const cwd = tempy.directory();
+  const cwd = temporaryDirectory();
   await cpy(fixtures, cwd, { dot: true });
   const globbedAssets = await globAssets({ cwd }, [
     "upload_other.txt",
@@ -107,7 +107,7 @@ test("Favor Object over String values when removing duplicates", async (t) => {
 });
 
 test("Retrieve file from single glob", async (t) => {
-  const cwd = tempy.directory();
+  const cwd = temporaryDirectory();
   await cpy(fixtures, cwd, { dot: true });
   const globbedAssets = await globAssets({ cwd }, ["upload.*"]);
 
@@ -115,7 +115,7 @@ test("Retrieve file from single glob", async (t) => {
 });
 
 test("Retrieve multiple files from single glob", async (t) => {
-  const cwd = tempy.directory();
+  const cwd = temporaryDirectory();
   await cpy(fixtures, cwd, { dot: true });
   const globbedAssets = await globAssets({ cwd }, ["*.txt"]);
 
@@ -126,7 +126,7 @@ test("Retrieve multiple files from single glob", async (t) => {
 });
 
 test("Accept glob array with one value", async (t) => {
-  const cwd = tempy.directory();
+  const cwd = temporaryDirectory();
   await cpy(fixtures, cwd, { dot: true });
   const globbedAssets = await globAssets({ cwd }, [
     ["*load.txt"],
@@ -140,7 +140,7 @@ test("Accept glob array with one value", async (t) => {
 });
 
 test("Include globs that resolve to no files as defined", async (t) => {
-  const cwd = tempy.directory();
+  const cwd = temporaryDirectory();
   await cpy(fixtures, cwd, { dot: true });
   const globbedAssets = await globAssets({ cwd }, [
     ["upload.txt", "!upload.txt"],
@@ -153,7 +153,7 @@ test("Include globs that resolve to no files as defined", async (t) => {
 });
 
 test("Accept glob array with one value for missing files", async (t) => {
-  const cwd = tempy.directory();
+  const cwd = temporaryDirectory();
   await cpy(fixtures, cwd, { dot: true });
   const globbedAssets = await globAssets({ cwd }, [
     ["*missing.txt"],
@@ -167,7 +167,7 @@ test("Accept glob array with one value for missing files", async (t) => {
 });
 
 test("Replace name by filename for Object that match multiple files", async (t) => {
-  const cwd = tempy.directory();
+  const cwd = temporaryDirectory();
   await cpy(fixtures, cwd, { dot: true });
   const globbedAssets = await globAssets({ cwd }, [
     { path: "*.txt", name: "upload_name", label: "Upload label" },
@@ -187,7 +187,7 @@ test("Replace name by filename for Object that match multiple files", async (t) 
 });
 
 test("Include dotfiles", async (t) => {
-  const cwd = tempy.directory();
+  const cwd = temporaryDirectory();
   await cpy(fixtures, cwd, { dot: true });
   const globbedAssets = await globAssets({ cwd }, [".dot*"]);
 
@@ -195,7 +195,7 @@ test("Include dotfiles", async (t) => {
 });
 
 test("Ingnore single negated glob", async (t) => {
-  const cwd = tempy.directory();
+  const cwd = temporaryDirectory();
   await cpy(fixtures, cwd, { dot: true });
   const globbedAssets = await globAssets({ cwd }, ["!*.txt"]);
 
@@ -203,7 +203,7 @@ test("Ingnore single negated glob", async (t) => {
 });
 
 test("Ingnore single negated glob in Object", async (t) => {
-  const cwd = tempy.directory();
+  const cwd = temporaryDirectory();
   await cpy(fixtures, cwd, { dot: true });
   const globbedAssets = await globAssets({ cwd }, [{ path: "!*.txt" }]);
 
@@ -211,7 +211,7 @@ test("Ingnore single negated glob in Object", async (t) => {
 });
 
 test("Accept negated globs", async (t) => {
-  const cwd = tempy.directory();
+  const cwd = temporaryDirectory();
   await cpy(fixtures, cwd, { dot: true });
   const globbedAssets = await globAssets({ cwd }, [
     ["*.txt", "!**/*_other.txt"],
@@ -221,7 +221,7 @@ test("Accept negated globs", async (t) => {
 });
 
 test("Expand directories", async (t) => {
-  const cwd = tempy.directory();
+  const cwd = temporaryDirectory();
   await cpy(fixtures, resolve(cwd, "dir"), { dot: true });
   const globbedAssets = await globAssets({ cwd }, [["dir"]]);
 
@@ -236,8 +236,8 @@ test("Expand directories", async (t) => {
   );
 });
 
-test("Include empty tempy.directory as defined", async (t) => {
-  const cwd = tempy.directory();
+test("Include empty temporaryDirectory as defined", async (t) => {
+  const cwd = temporaryDirectory();
   await cpy(fixtures, cwd, { dot: true });
   await mkdir(resolve(cwd, "empty"), { recursive: true });
   const globbedAssets = await globAssets({ cwd }, [["empty"]]);
@@ -246,7 +246,7 @@ test("Include empty tempy.directory as defined", async (t) => {
 });
 
 test("Deduplicate resulting files path", async (t) => {
-  const cwd = tempy.directory();
+  const cwd = temporaryDirectory();
   await cpy(fixtures, cwd, { dot: true });
   const globbedAssets = await globAssets({ cwd }, [
     "./upload.txt",
