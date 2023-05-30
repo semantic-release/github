@@ -15,7 +15,7 @@ test.beforeEach((t) => {
   t.context.logger = { log: t.context.log, error: t.context.error };
 });
 
-test.serial("Update a release", async (t) => {
+test("Update a release", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
   const env = { GITHUB_TOKEN: "github_token" };
@@ -76,7 +76,7 @@ test.serial("Update a release", async (t) => {
   t.true(fetch.done());
 });
 
-test.serial("Update a maintenance release", async (t) => {
+test("Update a maintenance release", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
   const env = { GITHUB_TOKEN: "github_token" };
@@ -138,7 +138,7 @@ test.serial("Update a maintenance release", async (t) => {
   t.true(fetch.done());
 });
 
-test.serial("Update a prerelease", async (t) => {
+test("Update a prerelease", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
   const env = { GITHUB_TOKEN: "github_token" };
@@ -199,7 +199,7 @@ test.serial("Update a prerelease", async (t) => {
   t.true(fetch.done());
 });
 
-test.serial("Update a release with a custom github url", async (t) => {
+test("Update a release with a custom github url", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
   const env = {
@@ -264,7 +264,7 @@ test.serial("Update a release with a custom github url", async (t) => {
   t.true(fetch.done());
 });
 
-test.serial("Create the new release if current one is missing", async (t) => {
+test("Create the new release if current one is missing", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
   const env = { GITHUB_TOKEN: "github_token" };
@@ -327,7 +327,7 @@ test.serial("Create the new release if current one is missing", async (t) => {
   t.true(fetch.done());
 });
 
-test.serial("Throw error if cannot read current release", async (t) => {
+test("Throw error if cannot read current release", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
   const env = { GITHUB_TOKEN: "github_token" };
@@ -369,66 +369,59 @@ test.serial("Throw error if cannot read current release", async (t) => {
   t.true(fetch.done());
 });
 
-test.serial(
-  "Throw error if cannot create missing current release",
-  async (t) => {
-    const owner = "test_user";
-    const repo = "test_repo";
-    const env = { GITHUB_TOKEN: "github_token" };
-    const pluginConfig = {};
-    const nextRelease = {
-      gitTag: "v1.0.0",
-      name: "v1.0.0",
-      notes: "Test release note body",
-    };
-    const options = {
-      repositoryUrl: `https://github.com/${owner}/${repo}.git`,
-    };
+test("Throw error if cannot create missing current release", async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GITHUB_TOKEN: "github_token" };
+  const pluginConfig = {};
+  const nextRelease = {
+    gitTag: "v1.0.0",
+    name: "v1.0.0",
+    notes: "Test release note body",
+  };
+  const options = {
+    repositoryUrl: `https://github.com/${owner}/${repo}.git`,
+  };
 
-    const fetch = fetchMock
-      .sandbox()
-      .getOnce(
-        `https://api.github.local/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`,
-        404
-      )
-      .postOnce(
-        `https://api.github.local/repos/${owner}/${repo}/releases`,
-        500,
-        {
-          body: {
-            tag_name: nextRelease.gitTag,
-            name: nextRelease.name,
-            body: nextRelease.notes,
-            prerelease: false,
-          },
-        }
-      );
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`,
+      404
+    )
+    .postOnce(`https://api.github.local/repos/${owner}/${repo}/releases`, 500, {
+      body: {
+        tag_name: nextRelease.gitTag,
+        name: nextRelease.name,
+        body: nextRelease.notes,
+        prerelease: false,
+      },
+    });
 
-    const error = await t.throwsAsync(
-      addChannel(
-        pluginConfig,
-        {
-          env,
-          options,
-          branch: { type: "release", main: true },
-          nextRelease,
-          logger: t.context.logger,
-        },
-        {
-          Octokit: TestOctokit.defaults((options) => ({
-            ...options,
-            request: { ...options.request, fetch },
-          })),
-        }
-      )
-    );
+  const error = await t.throwsAsync(
+    addChannel(
+      pluginConfig,
+      {
+        env,
+        options,
+        branch: { type: "release", main: true },
+        nextRelease,
+        logger: t.context.logger,
+      },
+      {
+        Octokit: TestOctokit.defaults((options) => ({
+          ...options,
+          request: { ...options.request, fetch },
+        })),
+      }
+    )
+  );
 
-    t.is(error.status, 500);
-    t.true(fetch.done());
-  }
-);
+  t.is(error.status, 500);
+  t.true(fetch.done());
+});
 
-test.serial("Throw error if cannot update release", async (t) => {
+test("Throw error if cannot update release", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
   const env = { GITHUB_TOKEN: "github_token" };

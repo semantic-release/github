@@ -8,7 +8,7 @@ import { toOctokitOptions } from "../lib/octokit.js";
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
-test.serial("Use a http proxy", async (t) => {
+test("Use a http proxy", async (t) => {
   const options = toOctokitOptions({
     githubToken: "github_token",
     githubUrl: `http://localhost:10001`,
@@ -23,7 +23,7 @@ test.serial("Use a http proxy", async (t) => {
   t.true(request.agent instanceof HttpProxyAgent);
 });
 
-test.serial("Use a https proxy", async (t) => {
+test("Use a https proxy", async (t) => {
   const options = toOctokitOptions({
     githubToken: "github_token",
     githubUrl: `https://localhost:10001`,
@@ -38,7 +38,7 @@ test.serial("Use a https proxy", async (t) => {
   t.true(request.agent instanceof HttpsProxyAgent);
 });
 
-test.serial("Do not use a proxy if set to false", async (t) => {
+test("Do not use a proxy if set to false", async (t) => {
   const options = toOctokitOptions({
     githubToken: "github_token",
     githubUrl: `http://localhost:10001`,
