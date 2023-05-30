@@ -7,9 +7,10 @@ import addChannelGitHub from "./lib/add-channel.js";
 import publishGitHub from "./lib/publish.js";
 import successGitHub from "./lib/success.js";
 import failGitHub from "./lib/fail.js";
-import { SemanticReleaseOctokit } from "./lib/octokit.js";
+import { SemanticReleaseOctokit, getOctokitInstance } from "./lib/octokit.js";
 
 let verified;
+let octokit;
 
 export async function verifyConditions(
   pluginConfig,
@@ -44,7 +45,9 @@ export async function verifyConditions(
     );
   }
 
-  await verifyGitHub(pluginConfig, context, { Octokit });
+  octokit = octokit || getOctokitInstance(Octokit, pluginConfig, context);
+
+  await verifyGitHub(pluginConfig, context, { octokit });
   verified = true;
 }
 
@@ -53,12 +56,14 @@ export async function publish(
   context,
   { Octokit = SemanticReleaseOctokit } = {}
 ) {
+  octokit = octokit || getOctokitInstance(Octokit, pluginConfig, context);
+
   if (!verified) {
-    await verifyGitHub(pluginConfig, context, { Octokit });
+    await verifyGitHub(pluginConfig, context, { octokit });
     verified = true;
   }
 
-  return publishGitHub(pluginConfig, context, { Octokit });
+  return publishGitHub(pluginConfig, context, { octokit });
 }
 
 export async function addChannel(
@@ -66,12 +71,14 @@ export async function addChannel(
   context,
   { Octokit = SemanticReleaseOctokit } = {}
 ) {
+  octokit = octokit || getOctokitInstance(Octokit, pluginConfig, context);
+
   if (!verified) {
-    await verifyGitHub(pluginConfig, context, { Octokit });
+    await verifyGitHub(pluginConfig, context, { octokit });
     verified = true;
   }
 
-  return addChannelGitHub(pluginConfig, context, { Octokit });
+  return addChannelGitHub(pluginConfig, context, { octokit });
 }
 
 export async function success(
@@ -79,12 +86,14 @@ export async function success(
   context,
   { Octokit = SemanticReleaseOctokit } = {}
 ) {
+  octokit = octokit || getOctokitInstance(Octokit, pluginConfig, context);
+
   if (!verified) {
-    await verifyGitHub(pluginConfig, context, { Octokit });
+    await verifyGitHub(pluginConfig, context, { octokit });
     verified = true;
   }
 
-  await successGitHub(pluginConfig, context, { Octokit });
+  await successGitHub(pluginConfig, context, { octokit });
 }
 
 export async function fail(
@@ -92,10 +101,12 @@ export async function fail(
   context,
   { Octokit = SemanticReleaseOctokit } = {}
 ) {
+  octokit = octokit || getOctokitInstance(Octokit, pluginConfig, context);
+
   if (!verified) {
-    await verifyGitHub(pluginConfig, context, { Octokit });
+    await verifyGitHub(pluginConfig, context, { octokit });
     verified = true;
   }
 
-  await failGitHub(pluginConfig, context, { Octokit });
+  await failGitHub(pluginConfig, context, { octokit });
 }
