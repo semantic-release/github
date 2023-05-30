@@ -78,10 +78,9 @@ test("Open a new issue with the list of errors", async (t) => {
       logger: t.context.logger,
     },
     {
-      Octokit: TestOctokit.defaults((options) => ({
-        ...options,
-        request: { ...options.request, fetch },
-      })),
+      octokit: new TestOctokit({
+        request: { fetch },
+      }),
     }
   );
 
@@ -146,10 +145,9 @@ test("Open a new issue with the list of errors and custom title and comment", as
       logger: t.context.logger,
     },
     {
-      Octokit: TestOctokit.defaults((options) => ({
-        ...options,
-        request: { ...options.request, fetch },
-      })),
+      octokit: new TestOctokit({
+        request: { fetch },
+      }),
     }
   );
 
@@ -218,10 +216,9 @@ test("Open a new issue with assignees and the list of errors", async (t) => {
       logger: t.context.logger,
     },
     {
-      Octokit: TestOctokit.defaults((options) => ({
-        ...options,
-        request: { ...options.request, fetch },
-      })),
+      octokit: new TestOctokit({
+        request: { fetch },
+      }),
     }
   );
 
@@ -289,10 +286,9 @@ test("Open a new issue without labels and the list of errors", async (t) => {
       logger: t.context.logger,
     },
     {
-      Octokit: TestOctokit.defaults((options) => ({
-        ...options,
-        request: { ...options.request, fetch },
-      })),
+      octokit: new TestOctokit({
+        request: { fetch },
+      }),
     }
   );
 
@@ -364,10 +360,9 @@ test("Update the first existing issue with the list of errors", async (t) => {
       logger: t.context.logger,
     },
     {
-      Octokit: TestOctokit.defaults((options) => ({
-        ...options,
-        request: { ...options.request, fetch },
-      })),
+      octokit: new TestOctokit({
+        request: { fetch },
+      }),
     }
   );
 
@@ -406,10 +401,9 @@ test('Skip if "failComment" is "false"', async (t) => {
       logger: t.context.logger,
     },
     {
-      Octokit: TestOctokit.defaults((options) => ({
-        ...options,
-        request: { ...options.request, fetch },
-      })),
+      octokit: new TestOctokit({
+        request: { fetch },
+      }),
     }
   );
 
@@ -438,10 +432,9 @@ test('Skip if "failTitle" is "false"', async (t) => {
       logger: t.context.logger,
     },
     {
-      Octokit: TestOctokit.defaults((options) => ({
-        ...options,
-        request: { ...options.request, fetch },
-      })),
+      octokit: new TestOctokit({
+        request: { fetch },
+      }),
     }
   );
 
