@@ -38,7 +38,7 @@
     "url-join": "^5.0.0"
   },
   "devDependencies": {
-    "ava": "5.3.0",
+    "ava": "5.3.1",
     "c8": "8.0.0",
     "cpy": "10.1.0",
     "fetch-mock": "npm:@gr2m/fetch-mock@9.11.0-pull-request-644.1",
