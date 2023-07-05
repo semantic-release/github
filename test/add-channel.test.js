@@ -35,7 +35,7 @@ test("Update a release", async (t) => {
       `https://api.github.local/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`,
       {
         id: releaseId,
-      }
+      },
     )
     .patchOnce(
       `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
@@ -48,7 +48,7 @@ test("Update a release", async (t) => {
           name: nextRelease.name,
           prerelease: false,
         },
-      }
+      },
     );
 
   const result = await addChannel(
@@ -65,7 +65,7 @@ test("Update a release", async (t) => {
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.is(result.url, releaseUrl);
@@ -97,7 +97,7 @@ test("Update a maintenance release", async (t) => {
       `https://api.github.local/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`,
       {
         id: releaseId,
-      }
+      },
     )
     .patchOnce(
       `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
@@ -110,7 +110,7 @@ test("Update a maintenance release", async (t) => {
           name: nextRelease.name,
           prerelease: false,
         },
-      }
+      },
     );
 
   const result = await addChannel(
@@ -127,7 +127,7 @@ test("Update a maintenance release", async (t) => {
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.is(result.url, releaseUrl);
@@ -158,7 +158,7 @@ test("Update a prerelease", async (t) => {
       `https://api.github.local/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`,
       {
         id: releaseId,
-      }
+      },
     )
     .patchOnce(
       `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
@@ -171,7 +171,7 @@ test("Update a prerelease", async (t) => {
           name: nextRelease.name,
           prerelease: false,
         },
-      }
+      },
     );
 
   const result = await addChannel(
@@ -188,7 +188,7 @@ test("Update a prerelease", async (t) => {
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.is(result.url, releaseUrl);
@@ -223,7 +223,7 @@ test("Update a release with a custom github url", async (t) => {
       `https://othertesturl.com:443/prefix/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`,
       {
         id: releaseId,
-      }
+      },
     )
     .patchOnce(
       `https://othertesturl.com:443/prefix/repos/${owner}/${repo}/releases/${releaseId}`,
@@ -236,7 +236,7 @@ test("Update a release with a custom github url", async (t) => {
           name: nextRelease.name,
           prerelease: false,
         },
-      }
+      },
     );
 
   const result = await addChannel(
@@ -253,7 +253,7 @@ test("Update a release with a custom github url", async (t) => {
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.is(result.url, releaseUrl);
@@ -281,7 +281,7 @@ test("Create the new release if current one is missing", async (t) => {
     .sandbox()
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`,
-      404
+      404,
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/releases`,
@@ -295,7 +295,7 @@ test("Create the new release if current one is missing", async (t) => {
           body: nextRelease.notes,
           prerelease: false,
         },
-      }
+      },
     );
 
   const result = await addChannel(
@@ -312,7 +312,7 @@ test("Create the new release if current one is missing", async (t) => {
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.is(result.url, releaseUrl);
@@ -343,7 +343,7 @@ test("Throw error if cannot read current release", async (t) => {
     .sandbox()
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`,
-      500
+      500,
     );
 
   const error = await t.throwsAsync(
@@ -361,8 +361,8 @@ test("Throw error if cannot read current release", async (t) => {
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.is(error.status, 500);
@@ -387,7 +387,7 @@ test("Throw error if cannot create missing current release", async (t) => {
     .sandbox()
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`,
-      404
+      404,
     )
     .postOnce(`https://api.github.local/repos/${owner}/${repo}/releases`, 500, {
       body: {
@@ -413,8 +413,8 @@ test("Throw error if cannot create missing current release", async (t) => {
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.is(error.status, 500);
@@ -438,7 +438,7 @@ test("Throw error if cannot update release", async (t) => {
     .sandbox()
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`,
-      { id: releaseId }
+      { id: releaseId },
     )
     .patchOnce(
       `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
@@ -449,7 +449,7 @@ test("Throw error if cannot update release", async (t) => {
           name: nextRelease.name,
           prerelease: false,
         },
-      }
+      },
     );
 
   const error = await t.throwsAsync(
@@ -467,8 +467,8 @@ test("Throw error if cannot update release", async (t) => {
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.is(error.status, 404);

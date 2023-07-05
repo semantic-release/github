@@ -21,7 +21,7 @@ The release is available on:
 - [GitHub release](https://github.com/release)
 - [npm release](https://npm.com/release)
 
-Your **[semantic-release](${HOME_URL})** bot :package::rocket:`
+Your **[semantic-release](${HOME_URL})** bot :package::rocket:`,
   );
 });
 
@@ -42,7 +42,7 @@ The release is available on:
 - [GitHub release](https://github.com/release)
 - [npm release](https://npm.com/release)
 
-Your **[semantic-release](${HOME_URL})** bot :package::rocket:`
+Your **[semantic-release](${HOME_URL})** bot :package::rocket:`,
   );
 });
 
@@ -63,7 +63,7 @@ The release is available on:
 - [GitHub release](https://github.com/release)
 - \`npm release\`
 
-Your **[semantic-release](${HOME_URL})** bot :package::rocket:`
+Your **[semantic-release](${HOME_URL})** bot :package::rocket:`,
   );
 });
 
@@ -81,7 +81,7 @@ test("Comment with one release", (t) => {
 
 The release is available on [GitHub release](https://github.com/release)
 
-Your **[semantic-release](${HOME_URL})** bot :package::rocket:`
+Your **[semantic-release](${HOME_URL})** bot :package::rocket:`,
   );
 });
 
@@ -95,6 +95,6 @@ test("Comment with no release object", (t) => {
     comment,
     `:tada: This issue has been resolved in version 1.0.0 :tada:
 
-Your **[semantic-release](${HOME_URL})** bot :package::rocket:`
+Your **[semantic-release](${HOME_URL})** bot :package::rocket:`,
   );
 });

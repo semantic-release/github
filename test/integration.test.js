@@ -39,8 +39,8 @@ test("Verify GitHub auth", async (t) => {
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.true(fetch.done());
@@ -69,8 +69,8 @@ test("Verify GitHub auth with publish options", async (t) => {
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.true(fetch.done());
@@ -106,8 +106,8 @@ test("Verify GitHub auth and assets config", async (t) => {
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.true(fetch.done());
@@ -146,8 +146,8 @@ test("Throw SemanticReleaseError if invalid config", async (t) => {
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.is(errors[0].name, "SemanticReleaseError");
@@ -206,26 +206,26 @@ test("Publish a release with an array of assets", async (t) => {
           draft: true,
           prerelease: false,
         },
-      }
+      },
     )
     .patchOnce(
       `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
       { html_url: releaseUrl },
       {
         body: { draft: false },
-      }
+      },
     )
     .postOnce(
       `${uploadOrigin}${uploadUri}?name=${encodeURIComponent(
-        "upload_file_name.txt"
+        "upload_file_name.txt",
       )}&`,
-      { browser_download_url: assetUrl }
+      { browser_download_url: assetUrl },
     )
     .postOnce(
       `${uploadOrigin}${uploadUri}?name=${encodeURIComponent(
-        "other_file.txt"
+        "other_file.txt",
       )}&label=${encodeURIComponent("Other File")}`,
-      { browser_download_url: otherAssetUrl }
+      { browser_download_url: otherAssetUrl },
     );
 
   const result = await t.context.m.publish(
@@ -243,7 +243,7 @@ test("Publish a release with an array of assets", async (t) => {
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.is(result.url, releaseUrl);
@@ -296,20 +296,20 @@ test("Publish a release with release information in assets", async (t) => {
           draft: true,
           prerelease: true,
         },
-      }
+      },
     )
     .patchOnce(
       `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
       { html_url: releaseUrl },
       {
         body: { draft: false },
-      }
+      },
     )
     .postOnce(
       `${uploadOrigin}${uploadUri}?name=${encodeURIComponent(
-        "file_with_release_v1.0.0_in_filename.txt"
+        "file_with_release_v1.0.0_in_filename.txt",
       )}&label=${encodeURIComponent("File with release v1.0.0 in label")}`,
-      { browser_download_url: assetUrl }
+      { browser_download_url: assetUrl },
     );
 
   const result = await t.context.m.publish(
@@ -327,7 +327,7 @@ test("Publish a release with release information in assets", async (t) => {
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.is(result.url, releaseUrl);
@@ -357,7 +357,7 @@ test("Update a release", async (t) => {
     })
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`,
-      { id: releaseId }
+      { id: releaseId },
     )
     .patchOnce(
       `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
@@ -368,7 +368,7 @@ test("Update a release", async (t) => {
           name: nextRelease.name,
           prerelease: false,
         },
-      }
+      },
     );
 
   const result = await t.context.m.addChannel(
@@ -386,7 +386,7 @@ test("Update a release", async (t) => {
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.is(result.url, releaseUrl);
@@ -424,25 +424,25 @@ test("Comment and add labels on PR included in the releases", async (t) => {
       {
         // TODO: why do we call the same endpoint twice?
         repeat: 2,
-      }
+      },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`
+        `repo:${owner}/${repo}`,
       )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged"
+        "is:merged",
       )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: prs }
+      { items: prs },
     )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
-      [{ sha: commits[0].hash }]
+      [{ sha: commits[0].hash }],
     )
     .postOnce(
       (url, { body }) => {
         t.is(
           url,
-          `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`
+          `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
         );
 
         const data = JSON.parse(body);
@@ -450,22 +450,22 @@ test("Comment and add labels on PR included in the releases", async (t) => {
 
         return true;
       },
-      { html_url: "https://github.com/successcomment-1" }
+      { html_url: "https://github.com/successcomment-1" },
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
       {},
       {
         body: ["released"],
-      }
+      },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title"
+        "in:title",
       )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue"
+        "type:issue",
       )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] }
+      { items: [] },
     );
 
   await t.context.m.success(
@@ -484,7 +484,7 @@ test("Comment and add labels on PR included in the releases", async (t) => {
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.deepEqual(t.context.log.args[0], ["Verify GitHub authentication"]);
@@ -492,11 +492,11 @@ test("Comment and add labels on PR included in the releases", async (t) => {
     t.context.log.calledWith(
       "Added comment to issue #%d: %s",
       1,
-      "https://github.com/successcomment-1"
-    )
+      "https://github.com/successcomment-1",
+    ),
   );
   t.true(
-    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 1)
+    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 1),
   );
   t.true(fetch.done());
 });
@@ -523,15 +523,15 @@ test("Open a new issue with the list of errors", async (t) => {
       },
       {
         repeat: 2,
-      }
+      },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title"
+        "in:title",
       )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue"
+        "type:issue",
       )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] }
+      { items: [] },
     )
     .postOnce(
       (url, { body }) => {
@@ -540,13 +540,13 @@ test("Open a new issue with the list of errors", async (t) => {
         t.is(data.title, failTitle);
         t.regex(
           data.body,
-          /---\n\n### Error message 1\n\nError 1 details\n\n---\n\n### Error message 2\n\nError 2 details\n\n---\n\n### Error message 3\n\nError 3 details\n\n---/
+          /---\n\n### Error message 1\n\nError 1 details\n\n---\n\n### Error message 2\n\nError 2 details\n\n---\n\n### Error message 3\n\nError 3 details\n\n---/,
         );
         t.deepEqual(data.labels, ["semantic-release"]);
 
         return true;
       },
-      { html_url: "https://github.com/issues/1", number: 1 }
+      { html_url: "https://github.com/issues/1", number: 1 },
     );
 
   await t.context.m.fail(
@@ -564,7 +564,7 @@ test("Open a new issue with the list of errors", async (t) => {
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.deepEqual(t.context.log.args[0], ["Verify GitHub authentication"]);
@@ -572,8 +572,8 @@ test("Open a new issue with the list of errors", async (t) => {
     t.context.log.calledWith(
       "Created issue #%d: %s.",
       1,
-      "https://github.com/issues/1"
-    )
+      "https://github.com/issues/1",
+    ),
   );
   t.true(fetch.done());
 });
@@ -619,7 +619,7 @@ test("Verify, release and notify success", async (t) => {
       },
       {
         repeat: 2,
-      }
+      },
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/releases`,
@@ -636,52 +636,52 @@ test("Verify, release and notify success", async (t) => {
           draft: true,
           prerelease: false,
         },
-      }
+      },
     )
     .patchOnce(
       `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
       { html_url: releaseUrl },
-      { body: { draft: false } }
+      { body: { draft: false } },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`
+        `repo:${owner}/${repo}`,
       )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged"
+        "is:merged",
       )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: prs }
+      { items: prs },
     )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
-      [{ sha: commits[0].hash }]
+      [{ sha: commits[0].hash }],
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
       {},
-      { body: ["released"] }
+      { body: ["released"] },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title"
+        "in:title",
       )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue"
+        "type:issue",
       )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] }
+      { items: [] },
     )
     .postOnce(
       `${uploadOrigin}${uploadUri}?name=${encodeURIComponent("upload.txt")}&`,
-      { browser_download_url: assetUrl }
+      { browser_download_url: assetUrl },
     )
     .postOnce(
       `${uploadOrigin}${uploadUri}?name=other_file.txt&label=${encodeURIComponent(
-        "Other File"
+        "Other File",
       )}`,
-      { browser_download_url: otherAssetUrl }
+      { browser_download_url: otherAssetUrl },
     )
 
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
-      { html_url: "https://github.com/successcomment-1" }
+      { html_url: "https://github.com/successcomment-1" },
     );
 
   await t.notThrowsAsync(
@@ -693,8 +693,8 @@ test("Verify, release and notify success", async (t) => {
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
   await t.context.m.publish(
     { assets },
@@ -711,7 +711,7 @@ test("Verify, release and notify success", async (t) => {
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
   await t.context.m.success(
     { assets, failTitle },
@@ -729,7 +729,7 @@ test("Verify, release and notify success", async (t) => {
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.deepEqual(t.context.log.args[0], ["Verify GitHub authentication"]);
@@ -773,11 +773,11 @@ test("Verify, update release and notify success", async (t) => {
       },
       {
         repeat: 2,
-      }
+      },
     )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`,
-      { id: releaseId }
+      { id: releaseId },
     )
     .patchOnce(
       `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
@@ -788,38 +788,38 @@ test("Verify, update release and notify success", async (t) => {
           name: nextRelease.name,
           prerelease: false,
         },
-      }
+      },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`
+        `repo:${owner}/${repo}`,
       )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged"
+        "is:merged",
       )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: prs }
+      { items: prs },
     )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
-      [{ sha: commits[0].hash }]
+      [{ sha: commits[0].hash }],
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
-      { html_url: "https://github.com/successcomment-1" }
+      { html_url: "https://github.com/successcomment-1" },
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
       {},
       {
         body: ["released"],
-      }
+      },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title"
+        "in:title",
       )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue"
+        "type:issue",
       )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] }
+      { items: [] },
     );
 
   await t.notThrowsAsync(
@@ -831,8 +831,8 @@ test("Verify, update release and notify success", async (t) => {
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
   await t.context.m.addChannel(
     {},
@@ -849,7 +849,7 @@ test("Verify, update release and notify success", async (t) => {
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
   await t.context.m.success(
     { failTitle },
@@ -867,7 +867,7 @@ test("Verify, update release and notify success", async (t) => {
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.deepEqual(t.context.log.args[0], ["Verify GitHub authentication"]);
@@ -900,15 +900,15 @@ test("Verify and notify failure", async (t) => {
       },
       {
         repeat: 2,
-      }
+      },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title"
+        "in:title",
       )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue"
+        "type:issue",
       )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] }
+      { items: [] },
     )
     .postOnce(`https://api.github.local/repos/${owner}/${repo}/issues`, {
       html_url: "https://github.com/issues/1",
@@ -924,8 +924,8 @@ test("Verify and notify failure", async (t) => {
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
   await t.context.m.fail(
     { failTitle },
@@ -942,7 +942,7 @@ test("Verify and notify failure", async (t) => {
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.deepEqual(t.context.log.args[0], ["Verify GitHub authentication"]);
@@ -950,8 +950,8 @@ test("Verify and notify failure", async (t) => {
     t.context.log.calledWith(
       "Created issue #%d: %s.",
       1,
-      "https://github.com/issues/1"
-    )
+      "https://github.com/issues/1",
+    ),
   );
   t.true(fetch.done());
 });

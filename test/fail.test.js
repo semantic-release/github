@@ -38,26 +38,26 @@ test("Open a new issue with the list of errors", async (t) => {
     })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title"
+        "in:title",
       )}+${encodeURIComponent(
-        `repo:${redirectedOwner}/${redirectedRepo}`
+        `repo:${redirectedOwner}/${redirectedRepo}`,
       )}+${encodeURIComponent("type:issue")}+${encodeURIComponent(
-        "state:open"
+        "state:open",
       )}+${encodeURIComponent(failTitle)}`,
-      { items: [] }
+      { items: [] },
     )
     .postOnce(
       (url, { body }) => {
         t.is(
           url,
-          `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/issues`
+          `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/issues`,
         );
 
         const data = JSON.parse(body);
         t.is(data.title, failTitle);
         t.regex(
           data.body,
-          /---\n\n### Error message 1\n\nError 1 details\n\n---\n\n### Error message 2\n\nError 2 details\n\n---\n\n### Error message 3\n\nError 3 details\n\n---/
+          /---\n\n### Error message 1\n\nError 1 details\n\n---\n\n### Error message 2\n\nError 2 details\n\n---\n\n### Error message 3\n\nError 3 details\n\n---/,
         );
         t.deepEqual(data.labels, ["semantic-release"]);
         return true;
@@ -65,7 +65,7 @@ test("Open a new issue with the list of errors", async (t) => {
       {
         html_url: "https://github.com/issues/1",
         number: 1,
-      }
+      },
     );
 
   await fail(
@@ -82,15 +82,15 @@ test("Open a new issue with the list of errors", async (t) => {
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.true(
     t.context.log.calledWith(
       "Created issue #%d: %s.",
       1,
-      "https://github.com/issues/1"
-    )
+      "https://github.com/issues/1",
+    ),
   );
   t.true(fetch.done());
 });
@@ -118,11 +118,11 @@ test("Open a new issue with the list of errors and custom title and comment", as
     })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title"
+        "in:title",
       )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue"
+        "type:issue",
       )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] }
+      { items: [] },
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues`,
@@ -133,7 +133,7 @@ test("Open a new issue with the list of errors and custom title and comment", as
           body: `branch master Error message 1 Error message 2 Error message 3\n\n${ISSUE_ID}`,
           labels: ["semantic-release"],
         },
-      }
+      },
     );
 
   await fail(
@@ -150,15 +150,15 @@ test("Open a new issue with the list of errors and custom title and comment", as
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.true(
     t.context.log.calledWith(
       "Created issue #%d: %s.",
       1,
-      "https://github.com/issues/1"
-    )
+      "https://github.com/issues/1",
+    ),
   );
   t.true(fetch.done());
 });
@@ -185,11 +185,11 @@ test("Open a new issue with assignees and the list of errors", async (t) => {
     })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title"
+        "in:title",
       )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue"
+        "type:issue",
       )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] }
+      { items: [] },
     )
     .postOnce(
       (url, { body }) => {
@@ -199,13 +199,13 @@ test("Open a new issue with assignees and the list of errors", async (t) => {
         t.is(data.title, failTitle);
         t.regex(
           data.body,
-          /---\n\n### Error message 1\n\nError 1 details\n\n---\n\n### Error message 2\n\nError 2 details\n\n---/
+          /---\n\n### Error message 1\n\nError 1 details\n\n---\n\n### Error message 2\n\nError 2 details\n\n---/,
         );
         t.deepEqual(data.labels, ["semantic-release"]);
         t.deepEqual(data.assignees, ["user1", "user2"]);
         return true;
       },
-      { html_url: "https://github.com/issues/1", number: 1 }
+      { html_url: "https://github.com/issues/1", number: 1 },
     );
 
   await fail(
@@ -222,15 +222,15 @@ test("Open a new issue with assignees and the list of errors", async (t) => {
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.true(
     t.context.log.calledWith(
       "Created issue #%d: %s.",
       1,
-      "https://github.com/issues/1"
-    )
+      "https://github.com/issues/1",
+    ),
   );
   t.true(fetch.done());
 });
@@ -257,11 +257,11 @@ test("Open a new issue without labels and the list of errors", async (t) => {
     })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title"
+        "in:title",
       )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue"
+        "type:issue",
       )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] }
+      { items: [] },
     )
     .postOnce(
       (url, { body }) => {
@@ -271,12 +271,12 @@ test("Open a new issue without labels and the list of errors", async (t) => {
         t.is(data.title, failTitle);
         t.regex(
           data.body,
-          /---\n\n### Error message 1\n\nError 1 details\n\n---\n\n### Error message 2\n\nError 2 details\n\n---/
+          /---\n\n### Error message 1\n\nError 1 details\n\n---\n\n### Error message 2\n\nError 2 details\n\n---/,
         );
         t.deepEqual(data.labels, []);
         return true;
       },
-      { html_url: "https://github.com/issues/1", number: 1 }
+      { html_url: "https://github.com/issues/1", number: 1 },
     );
 
   await fail(
@@ -293,15 +293,15 @@ test("Open a new issue without labels and the list of errors", async (t) => {
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.true(
     t.context.log.calledWith(
       "Created issue #%d: %s.",
       1,
-      "https://github.com/issues/1"
-    )
+      "https://github.com/issues/1",
+    ),
   );
   t.true(fetch.done());
 });
@@ -333,25 +333,25 @@ test("Update the first existing issue with the list of errors", async (t) => {
     })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title"
+        "in:title",
       )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue"
+        "type:issue",
       )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: issues }
+      { items: issues },
     )
     .postOnce(
       (url, { body }) => {
         t.is(
           url,
-          `https://api.github.local/repos/${owner}/${repo}/issues/2/comments`
+          `https://api.github.local/repos/${owner}/${repo}/issues/2/comments`,
         );
         t.regex(
           JSON.parse(body).body,
-          /---\n\n### Error message 1\n\nError 1 details\n\n---\n\n### Error message 2\n\nError 2 details\n\n---\n\n### Error message 3\n\nError 3 details\n\n---/
+          /---\n\n### Error message 1\n\nError 1 details\n\n---\n\n### Error message 2\n\nError 2 details\n\n---\n\n### Error message 3\n\nError 3 details\n\n---/,
         );
         return true;
       },
-      { html_url: "https://github.com/issues/2", number: 2 }
+      { html_url: "https://github.com/issues/2", number: 2 },
     );
 
   await fail(
@@ -368,18 +368,18 @@ test("Update the first existing issue with the list of errors", async (t) => {
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.true(
-    t.context.log.calledWith("Found existing semantic-release issue #%d.", 2)
+    t.context.log.calledWith("Found existing semantic-release issue #%d.", 2),
   );
   t.true(
     t.context.log.calledWith(
       "Added comment to issue #%d: %s.",
       2,
-      "https://github.com/issues/2"
-    )
+      "https://github.com/issues/2",
+    ),
   );
   t.true(fetch.done());
 });
@@ -410,7 +410,7 @@ test('Skip if "failComment" is "false"', async (t) => {
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.true(t.context.log.calledWith("Skip issue creation."));
@@ -442,7 +442,7 @@ test('Skip if "failTitle" is "false"', async (t) => {
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.true(t.context.log.calledWith("Skip issue creation."));

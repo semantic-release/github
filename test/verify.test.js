@@ -47,8 +47,8 @@ test("Verify package, token and repository access", async (t) => {
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
   t.true(fetch.done());
 });
@@ -85,8 +85,8 @@ test('Verify package, token and repository access with "proxy", "asset", "succes
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
   t.true(fetch.done());
 });
@@ -119,8 +119,8 @@ test("Verify package, token and repository access and custom URL with prefix", a
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.true(fetch.done());
@@ -157,8 +157,8 @@ test("Verify package, token and repository access and custom URL without prefix"
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.true(fetch.done());
@@ -193,8 +193,8 @@ test("Verify package, token and repository access and shorthand repositoryUrl UR
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.true(fetch.done());
@@ -234,8 +234,8 @@ test("Verify package, token and repository with environment variables", async (t
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.true(fetch.done());
@@ -275,8 +275,8 @@ test("Verify package, token and repository access with alternative environment v
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
   t.true(fetch.done());
 });
@@ -306,8 +306,8 @@ test('Verify "proxy" is a String', async (t) => {
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.true(fetch.done());
@@ -340,8 +340,8 @@ test('Verify "proxy" is an object with "host" and "port" properties', async (t) 
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.true(fetch.done());
@@ -372,8 +372,8 @@ test('Verify "proxy" is a Boolean set to false', async (t) => {
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.true(fetch.done());
@@ -404,8 +404,8 @@ test('Verify "assets" is a String', async (t) => {
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.true(fetch.done());
@@ -436,8 +436,8 @@ test('Verify "assets" is an Object with a path property', async (t) => {
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.true(fetch.done());
@@ -470,8 +470,8 @@ test('Verify "assets" is an Array of Object with a path property', async (t) => 
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.true(fetch.done());
@@ -502,8 +502,8 @@ test('Verify "assets" is an Array of glob Arrays', async (t) => {
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.true(fetch.done());
@@ -536,8 +536,8 @@ test('Verify "assets" is an Array of Object with a glob Arrays in path property'
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.true(fetch.done());
@@ -568,8 +568,8 @@ test('Verify "labels" is a String', async (t) => {
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.true(fetch.done());
@@ -600,8 +600,8 @@ test('Verify "assignees" is a String', async (t) => {
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.true(fetch.done());
@@ -632,8 +632,8 @@ test('Verify "addReleases" is a valid string (top)', async (t) => {
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.true(fetch.done());
@@ -664,8 +664,8 @@ test('Verify "addReleases" is a valid string (bottom)', async (t) => {
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.true(fetch.done());
@@ -696,8 +696,8 @@ test('Verify "addReleases" is valid (false)', async (t) => {
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.true(fetch.done());
@@ -728,8 +728,8 @@ test('Verify "draftRelease" is valid (true)', async (t) => {
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.true(fetch.done());
@@ -760,8 +760,8 @@ test('Verify "draftRelease" is valid (false)', async (t) => {
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.true(fetch.done());
@@ -797,8 +797,8 @@ test("Verify if run in GitHub Action", async (t) => {
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 });
 
@@ -820,8 +820,8 @@ test("Throw SemanticReleaseError for missing github token", async (t) => {
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.is(errors.length, 0);
@@ -853,8 +853,8 @@ test("Throw SemanticReleaseError for invalid token", async (t) => {
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.is(errors.length, 0);
@@ -881,8 +881,8 @@ test("Throw SemanticReleaseError for invalid repositoryUrl", async (t) => {
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.is(errors.length, 0);
@@ -902,7 +902,7 @@ test("Throw SemanticReleaseError if token doesn't have the push permission on th
     })
     .headOnce(
       "https://api.github.local/installation/repositories?per_page=1",
-      403
+      403,
     );
 
   const {
@@ -920,8 +920,8 @@ test("Throw SemanticReleaseError if token doesn't have the push permission on th
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.is(errors.length, 0);
@@ -942,7 +942,7 @@ test("Do not throw SemanticReleaseError if token doesn't have the push permissio
     })
     .headOnce(
       "https://api.github.local/installation/repositories?per_page=1",
-      200
+      200,
     );
 
   await t.notThrowsAsync(
@@ -958,8 +958,8 @@ test("Do not throw SemanticReleaseError if token doesn't have the push permissio
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.true(fetch.done());
@@ -989,8 +989,8 @@ test("Throw SemanticReleaseError if the repository doesn't exist", async (t) => 
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.is(errors.length, 0);
@@ -1021,8 +1021,8 @@ test("Throw error if github return any other errors", async (t) => {
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.is(error.status, 500);
@@ -1050,8 +1050,8 @@ test('Throw SemanticReleaseError if "proxy" option is not a String or an Object'
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.is(errors.length, 0);
@@ -1080,8 +1080,8 @@ test('Throw SemanticReleaseError if "proxy" option is an Object with invalid pro
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.is(errors.length, 0);
@@ -1116,8 +1116,8 @@ test('Throw SemanticReleaseError if "assets" option is not a String or an Array 
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.is(errors.length, 0);
@@ -1153,8 +1153,8 @@ test('Throw SemanticReleaseError if "assets" option is an Array with invalid ele
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.is(errors.length, 0);
@@ -1190,8 +1190,8 @@ test('Throw SemanticReleaseError if "assets" option is an Object missing the "pa
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.is(errors.length, 0);
@@ -1227,8 +1227,8 @@ test('Throw SemanticReleaseError if "assets" option is an Array with objects mis
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.is(errors.length, 0);
@@ -1264,8 +1264,8 @@ test('Throw SemanticReleaseError if "successComment" option is not a String', as
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.is(errors.length, 0);
@@ -1301,8 +1301,8 @@ test('Throw SemanticReleaseError if "successComment" option is an empty String',
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.is(errors.length, 0);
@@ -1338,8 +1338,8 @@ test('Throw SemanticReleaseError if "successComment" option is a whitespace Stri
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.is(errors.length, 0);
@@ -1375,8 +1375,8 @@ test('Throw SemanticReleaseError if "failTitle" option is not a String', async (
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.is(errors.length, 0);
@@ -1412,8 +1412,8 @@ test('Throw SemanticReleaseError if "failTitle" option is an empty String', asyn
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.is(errors.length, 0);
@@ -1449,8 +1449,8 @@ test('Throw SemanticReleaseError if "failTitle" option is a whitespace String', 
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.is(errors.length, 0);
@@ -1486,8 +1486,8 @@ test('Throw SemanticReleaseError if "failComment" option is not a String', async
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.is(errors.length, 0);
@@ -1523,8 +1523,8 @@ test('Throw SemanticReleaseError if "failComment" option is an empty String', as
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.is(errors.length, 0);
@@ -1560,8 +1560,8 @@ test('Throw SemanticReleaseError if "failComment" option is a whitespace String'
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.is(errors.length, 0);
@@ -1597,8 +1597,8 @@ test('Throw SemanticReleaseError if "labels" option is not a String or an Array 
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.is(errors.length, 0);
@@ -1634,8 +1634,8 @@ test('Throw SemanticReleaseError if "labels" option is an Array with invalid ele
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.is(errors.length, 0);
@@ -1671,8 +1671,8 @@ test('Throw SemanticReleaseError if "labels" option is a whitespace String', asy
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.is(errors.length, 0);
@@ -1708,8 +1708,8 @@ test('Throw SemanticReleaseError if "assignees" option is not a String or an Arr
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.is(errors.length, 0);
@@ -1745,8 +1745,8 @@ test('Throw SemanticReleaseError if "assignees" option is an Array with invalid 
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.is(errors.length, 0);
@@ -1782,8 +1782,8 @@ test('Throw SemanticReleaseError if "assignees" option is a whitespace String', 
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.is(errors.length, 0);
@@ -1819,8 +1819,8 @@ test('Throw SemanticReleaseError if "releasedLabels" option is not a String or a
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.is(errors.length, 0);
@@ -1856,8 +1856,8 @@ test('Throw SemanticReleaseError if "releasedLabels" option is an Array with inv
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.is(errors.length, 0);
@@ -1893,8 +1893,8 @@ test('Throw SemanticReleaseError if "releasedLabels" option is a whitespace Stri
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.is(errors.length, 0);
@@ -1930,8 +1930,8 @@ test('Throw SemanticReleaseError if "addReleases" option is not a valid string (
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.is(errors.length, 0);
@@ -1967,8 +1967,8 @@ test('Throw SemanticReleaseError if "addReleases" option is not a valid string (
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.is(errors.length, 0);
@@ -2004,8 +2004,8 @@ test('Throw SemanticReleaseError if "addReleases" option is not a valid string (
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.is(errors.length, 0);
@@ -2041,8 +2041,8 @@ test('Throw SemanticReleaseError if "draftRelease" option is not a valid boolean
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.is(errors.length, 0);

@@ -15,7 +15,7 @@ test("Comment for release with multiple releases", (t) => {
     comment,
     `This release is also available on:
 - [Http release](https://release.com/release)
-- [npm release](https://npm.com/release)`
+- [npm release](https://npm.com/release)`,
   );
 });
 
@@ -31,7 +31,7 @@ test("Release with missing release URL", (t) => {
     comment,
     `This release is also available on:
 - [Http release](https://release.com/release)
-- \`npm release\``
+- \`npm release\``,
   );
 });
 
@@ -45,7 +45,7 @@ test("Release with one release", (t) => {
   t.is(
     comment,
     `This release is also available on:
-- [Http release](https://release.com/release)`
+- [Http release](https://release.com/release)`,
   );
 });
 
@@ -56,7 +56,7 @@ test("Release with non http releases", (t) => {
   t.is(
     comment,
     `This release is also available on:
-- S3: \`s3://my-bucket/release-asset\``
+- S3: \`s3://my-bucket/release-asset\``,
   );
 });
 

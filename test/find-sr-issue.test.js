@@ -27,18 +27,18 @@ test("Filter out issues without ID", async (t) => {
     .sandbox()
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title"
+        "in:title",
       )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue"
+        "type:issue",
       )}+${encodeURIComponent("state:open")}+${encodeURIComponent(title)}`,
-      { items: issues }
+      { items: issues },
     );
 
   const srIssues = await findSRIssues(
     new TestOctokit({ request: { fetch } }),
     title,
     owner,
-    repo
+    repo,
   );
 
   t.deepEqual(srIssues, [
@@ -66,18 +66,18 @@ test("Return empty array if not issues found", async (t) => {
     .sandbox()
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title"
+        "in:title",
       )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue"
+        "type:issue",
       )}+${encodeURIComponent("state:open")}+${encodeURIComponent(title)}`,
-      { items: issues }
+      { items: issues },
     );
 
   const srIssues = await findSRIssues(
     new TestOctokit({ request: { fetch } }),
     title,
     owner,
-    repo
+    repo,
   );
 
   t.deepEqual(srIssues, []);
@@ -97,18 +97,18 @@ test("Return empty array if not issues has matching ID", async (t) => {
     .sandbox()
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title"
+        "in:title",
       )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue"
+        "type:issue",
       )}+${encodeURIComponent("state:open")}+${encodeURIComponent(title)}`,
-      { items: issues }
+      { items: issues },
     );
 
   const srIssues = await findSRIssues(
     new TestOctokit({ request: { fetch } }),
     title,
     owner,
-    repo
+    repo,
   );
 
   t.deepEqual(srIssues, []);

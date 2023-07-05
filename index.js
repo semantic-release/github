@@ -14,33 +14,33 @@ let verified;
 export async function verifyConditions(
   pluginConfig,
   context,
-  { Octokit = SemanticReleaseOctokit } = {}
+  { Octokit = SemanticReleaseOctokit } = {},
 ) {
   const { options } = context;
   // If the GitHub publish plugin is used and has `assets`, `successComment`, `failComment`, `failTitle`, `labels` or `assignees` configured, validate it now in order to prevent any release if the configuration is wrong
   if (options.publish) {
     const publishPlugin =
       castArray(options.publish).find(
-        (config) => config.path && config.path === "@semantic-release/github"
+        (config) => config.path && config.path === "@semantic-release/github",
       ) || {};
 
     pluginConfig.assets = defaultTo(pluginConfig.assets, publishPlugin.assets);
     pluginConfig.successComment = defaultTo(
       pluginConfig.successComment,
-      publishPlugin.successComment
+      publishPlugin.successComment,
     );
     pluginConfig.failComment = defaultTo(
       pluginConfig.failComment,
-      publishPlugin.failComment
+      publishPlugin.failComment,
     );
     pluginConfig.failTitle = defaultTo(
       pluginConfig.failTitle,
-      publishPlugin.failTitle
+      publishPlugin.failTitle,
     );
     pluginConfig.labels = defaultTo(pluginConfig.labels, publishPlugin.labels);
     pluginConfig.assignees = defaultTo(
       pluginConfig.assignees,
-      publishPlugin.assignees
+      publishPlugin.assignees,
     );
   }
 
@@ -51,7 +51,7 @@ export async function verifyConditions(
 export async function publish(
   pluginConfig,
   context,
-  { Octokit = SemanticReleaseOctokit } = {}
+  { Octokit = SemanticReleaseOctokit } = {},
 ) {
   if (!verified) {
     await verifyGitHub(pluginConfig, context, { Octokit });
@@ -64,7 +64,7 @@ export async function publish(
 export async function addChannel(
   pluginConfig,
   context,
-  { Octokit = SemanticReleaseOctokit } = {}
+  { Octokit = SemanticReleaseOctokit } = {},
 ) {
   if (!verified) {
     await verifyGitHub(pluginConfig, context, { Octokit });
@@ -77,7 +77,7 @@ export async function addChannel(
 export async function success(
   pluginConfig,
   context,
-  { Octokit = SemanticReleaseOctokit } = {}
+  { Octokit = SemanticReleaseOctokit } = {},
 ) {
   if (!verified) {
     await verifyGitHub(pluginConfig, context, { Octokit });
@@ -90,7 +90,7 @@ export async function success(
 export async function fail(
   pluginConfig,
   context,
-  { Octokit = SemanticReleaseOctokit } = {}
+  { Octokit = SemanticReleaseOctokit } = {},
 ) {
   if (!verified) {
     await verifyGitHub(pluginConfig, context, { Octokit });
