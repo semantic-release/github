@@ -31,7 +31,7 @@ test("Retrieve multiple files from path", async (t) => {
 
   t.deepEqual(
     sortAssets(globbedAssets),
-    sortAssets(["upload_other.txt", "upload.txt"])
+    sortAssets(["upload_other.txt", "upload.txt"]),
   );
 });
 
@@ -45,7 +45,7 @@ test("Include missing files as defined, using Object definition", async (t) => {
 
   t.deepEqual(
     sortAssets(globbedAssets),
-    sortAssets(["upload.txt", { path: "miss*.txt", label: "Missing" }])
+    sortAssets(["upload.txt", { path: "miss*.txt", label: "Missing" }]),
   );
 });
 
@@ -62,7 +62,7 @@ test("Retrieve multiple files from Object", async (t) => {
     sortAssets([
       { path: "upload.txt", name: "upload_name", label: "Upload label" },
       "upload_other.txt",
-    ])
+    ]),
   );
 });
 
@@ -80,7 +80,7 @@ test("Retrieve multiple files without duplicates", async (t) => {
 
   t.deepEqual(
     sortAssets(globbedAssets),
-    sortAssets(["upload_other.txt", "upload.txt"])
+    sortAssets(["upload_other.txt", "upload.txt"]),
   );
 });
 
@@ -102,7 +102,7 @@ test("Favor Object over String values when removing duplicates", async (t) => {
     sortAssets([
       { path: "upload.txt", name: "upload_name" },
       { path: "upload_other.txt", name: "upload_other_name" },
-    ])
+    ]),
   );
 });
 
@@ -121,7 +121,7 @@ test("Retrieve multiple files from single glob", async (t) => {
 
   t.deepEqual(
     sortAssets(globbedAssets),
-    sortAssets(["upload_other.txt", "upload.txt"])
+    sortAssets(["upload_other.txt", "upload.txt"]),
   );
 });
 
@@ -135,7 +135,7 @@ test("Accept glob array with one value", async (t) => {
 
   t.deepEqual(
     sortAssets(globbedAssets),
-    sortAssets(["upload_other.txt", "upload.txt"])
+    sortAssets(["upload_other.txt", "upload.txt"]),
   );
 });
 
@@ -148,7 +148,7 @@ test("Include globs that resolve to no files as defined", async (t) => {
 
   t.deepEqual(
     sortAssets(globbedAssets),
-    sortAssets(["!upload.txt", "upload.txt"])
+    sortAssets(["!upload.txt", "upload.txt"]),
   );
 });
 
@@ -162,7 +162,7 @@ test("Accept glob array with one value for missing files", async (t) => {
 
   t.deepEqual(
     sortAssets(globbedAssets),
-    sortAssets(["upload_other.txt", "*missing.txt"])
+    sortAssets(["upload_other.txt", "*missing.txt"]),
   );
 });
 
@@ -182,7 +182,7 @@ test("Replace name by filename for Object that match multiple files", async (t) 
         name: "upload_other.txt",
         label: "Upload label",
       },
-    ])
+    ]),
   );
 });
 
@@ -232,7 +232,7 @@ test("Expand directories", async (t) => {
       "dir/upload_other.txt",
       "dir/upload.txt",
       "dir/.dotfile",
-    ])
+    ]),
   );
 });
 

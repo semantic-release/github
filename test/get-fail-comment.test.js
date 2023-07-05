@@ -14,7 +14,7 @@ test("Comment with mutiple errors", (t) => {
   t.regex(comment, /the `master` branch/);
   t.regex(
     comment,
-    /---\n\n### Error message 1\n\nError 1 details\n\n---\n\n### Error message 2\n\nError 2 details\n\n---\n\n### Error message 3\n\nError 3 details\n\n---/
+    /---\n\n### Error message 1\n\nError 1 details\n\n---\n\n### Error message 2\n\nError 2 details\n\n---\n\n### Error message 3\n\nError 3 details\n\n---/,
   );
 });
 
@@ -37,7 +37,7 @@ test("Comment with missing error details and pluginName", (t) => {
   t.regex(comment, /the `master` branch/);
   t.regex(
     comment,
-    /---\n\n### Error message 1\n\nUnfortunately this error doesn't have any additional information. Feel free to kindly ask the author of the `some-plugin` plugin to add more helpful information.\n\n---/
+    /---\n\n### Error message 1\n\nUnfortunately this error doesn't have any additional information. Feel free to kindly ask the author of the `some-plugin` plugin to add more helpful information.\n\n---/,
   );
 });
 
@@ -49,6 +49,6 @@ test("Comment with missing error details and no pluginName", (t) => {
   t.regex(comment, /the `master` branch/);
   t.regex(
     comment,
-    /---\n\n### Error message 1\n\nUnfortunately this error doesn't have any additional information.\n\n---/
+    /---\n\n### Error message 1\n\nUnfortunately this error doesn't have any additional information.\n\n---/,
   );
 });

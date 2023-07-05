@@ -49,7 +49,7 @@ test("Publish a release", async (t) => {
         body: nextRelease.notes,
         prerelease: false,
       },
-    }
+    },
   );
 
   const result = await publish(
@@ -67,7 +67,7 @@ test("Publish a release", async (t) => {
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.is(result.url, releaseUrl);
@@ -109,7 +109,7 @@ test("Publish a release on a channel", async (t) => {
         body: nextRelease.notes,
         prerelease: true,
       },
-    }
+    },
   );
 
   const result = await publish(
@@ -127,7 +127,7 @@ test("Publish a release on a channel", async (t) => {
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.is(result.url, releaseUrl);
@@ -169,7 +169,7 @@ test("Publish a prerelease", async (t) => {
         body: nextRelease.notes,
         prerelease: true,
       },
-    }
+    },
   );
 
   const result = await publish(
@@ -187,7 +187,7 @@ test("Publish a prerelease", async (t) => {
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.is(result.url, releaseUrl);
@@ -230,7 +230,7 @@ test("Publish a maintenance release", async (t) => {
         body: nextRelease.notes,
         prerelease: false,
       },
-    }
+    },
   );
 
   const result = await publish(
@@ -253,7 +253,7 @@ test("Publish a maintenance release", async (t) => {
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.is(result.url, releaseUrl);
@@ -307,18 +307,18 @@ test("Publish a release with one asset", async (t) => {
           draft: true,
           prerelease: false,
         },
-      }
+      },
     )
     .patchOnce(
       `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
       { upload_url: uploadUrl, html_url: releaseUrl },
-      { body: { draft: false } }
+      { body: { draft: false } },
     )
     .postOnce(
       `${uploadOrigin}${uploadUri}?name=${encodeURIComponent(
-        ".dotfile"
+        ".dotfile",
       )}&label=${encodeURIComponent("A dotfile with no ext")}`,
-      { browser_download_url: assetUrl }
+      { browser_download_url: assetUrl },
     );
 
   const result = await publish(
@@ -336,7 +336,7 @@ test("Publish a release with one asset", async (t) => {
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.is(result.url, releaseUrl);
@@ -394,18 +394,18 @@ test("Publish a release with one asset and custom github url", async (t) => {
           draft: true,
           prerelease: false,
         },
-      }
+      },
     )
     .patchOnce(
       `${env.GH_URL}/prefix/repos/${owner}/${repo}/releases/${releaseId}`,
       { upload_url: uploadUrl, html_url: releaseUrl },
-      { body: { draft: false } }
+      { body: { draft: false } },
     )
     .postOnce(
       `${env.GH_URL}${uploadUri}?name=${encodeURIComponent(
-        "upload.txt"
+        "upload.txt",
       )}&label=${encodeURIComponent("A text file")}`,
-      { browser_download_url: assetUrl }
+      { browser_download_url: assetUrl },
     );
 
   const result = await publish(
@@ -423,7 +423,7 @@ test("Publish a release with one asset and custom github url", async (t) => {
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.is(result.url, releaseUrl);
@@ -473,12 +473,12 @@ test("Publish a release with an array of missing assets", async (t) => {
           draft: true,
           prerelease: false,
         },
-      }
+      },
     )
     .patchOnce(
       `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
       { html_url: releaseUrl },
-      { body: { draft: false } }
+      { body: { draft: false } },
     );
 
   const result = await publish(
@@ -496,7 +496,7 @@ test("Publish a release with an array of missing assets", async (t) => {
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.is(result.url, releaseUrl);
@@ -504,14 +504,14 @@ test("Publish a release with an array of missing assets", async (t) => {
   t.true(
     t.context.error.calledWith(
       "The asset %s cannot be read, and will be ignored.",
-      "missing.txt"
-    )
+      "missing.txt",
+    ),
   );
   t.true(
     t.context.error.calledWith(
       "The asset %s is not a file, and will be ignored.",
-      emptyDirectory
-    )
+      emptyDirectory,
+    ),
   );
   t.true(fetch.done());
 });
@@ -548,7 +548,7 @@ test("Publish a draft release", async (t) => {
         draft: true,
         prerelease: false,
       },
-    }
+    },
   );
 
   const result = await publish(
@@ -566,7 +566,7 @@ test("Publish a draft release", async (t) => {
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.is(result.url, releaseUrl);
@@ -620,13 +620,13 @@ test("Publish a draft release with one asset", async (t) => {
           draft: true,
           prerelease: false,
         },
-      }
+      },
     )
     .postOnce(
       `${uploadOrigin}${uploadUri}?name=${encodeURIComponent(
-        ".dotfile"
+        ".dotfile",
       )}&label=${encodeURIComponent("A dotfile with no ext")}`,
-      { browser_download_url: assetUrl }
+      { browser_download_url: assetUrl },
     );
 
   const result = await publish(
@@ -644,12 +644,12 @@ test("Publish a draft release with one asset", async (t) => {
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.is(result.url, releaseUrl);
   t.true(
-    t.context.log.calledWith("Created GitHub draft release: %s", releaseUrl)
+    t.context.log.calledWith("Created GitHub draft release: %s", releaseUrl),
   );
   t.true(t.context.log.calledWith("Published file %s", assetUrl));
   t.true(fetch.done());
@@ -692,7 +692,7 @@ test("Publish a release when env.GITHUB_URL is set to https://github.com (Defaul
         body: nextRelease.notes,
         prerelease: false,
       },
-    }
+    },
   );
 
   const result = await publish(
@@ -710,7 +710,7 @@ test("Publish a release when env.GITHUB_URL is set to https://github.com (Defaul
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.is(result.url, releaseUrl);

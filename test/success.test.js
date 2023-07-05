@@ -59,67 +59,67 @@ test("Add comment and labels to PRs associated with release commits and issues s
     })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${redirectedOwner}/${redirectedRepo}`
+        `repo:${redirectedOwner}/${redirectedRepo}`,
       )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged"
+        "is:merged",
       )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: prs }
+      { items: prs },
     )
     .getOnce(
       `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/pulls/1/commits`,
-      [{ sha: commits[0].hash }]
+      [{ sha: commits[0].hash }],
     )
     .getOnce(
       `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/pulls/2/commits`,
-      [{ sha: commits[1].hash }]
+      [{ sha: commits[1].hash }],
     )
     .postOnce(
       `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/issues/1/comments`,
       {
         html_url: "https://github.com/successcomment-1",
-      }
+      },
     )
     .postOnce(
       `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/issues/1/labels`,
       {},
-      { body: ["released"] }
+      { body: ["released"] },
     )
     .postOnce(
       `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/issues/2/comments`,
-      { html_url: "https://github.com/successcomment-2" }
+      { html_url: "https://github.com/successcomment-2" },
     )
     .postOnce(
       `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/issues/2/labels`,
       {},
-      { body: ["released"] }
+      { body: ["released"] },
     )
     .postOnce(
       `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/issues/3/comments`,
-      { html_url: "https://github.com/successcomment-3" }
+      { html_url: "https://github.com/successcomment-3" },
     )
     .postOnce(
       `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/issues/3/labels`,
       {},
-      { body: ["released"] }
+      { body: ["released"] },
     )
     .postOnce(
       `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/issues/4/comments`,
-      { html_url: "https://github.com/successcomment-4" }
+      { html_url: "https://github.com/successcomment-4" },
     )
     .postOnce(
       `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/issues/4/labels`,
       {},
-      { body: ["released"] }
+      { body: ["released"] },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title"
+        "in:title",
       )}+${encodeURIComponent(
-        `repo:${redirectedOwner}/${redirectedRepo}`
+        `repo:${redirectedOwner}/${redirectedRepo}`,
       )}+${encodeURIComponent("type:issue")}+${encodeURIComponent(
-        "state:open"
+        "state:open",
       )}+${encodeURIComponent(failTitle)}`,
-      { items: [] }
+      { items: [] },
     );
 
   await success(
@@ -137,48 +137,48 @@ test("Add comment and labels to PRs associated with release commits and issues s
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.true(
     t.context.log.calledWith(
       "Added comment to issue #%d: %s",
       1,
-      "https://github.com/successcomment-1"
-    )
+      "https://github.com/successcomment-1",
+    ),
   );
   t.true(
-    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 1)
+    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 1),
   );
   t.true(
     t.context.log.calledWith(
       "Added comment to issue #%d: %s",
       2,
-      "https://github.com/successcomment-2"
-    )
+      "https://github.com/successcomment-2",
+    ),
   );
   t.true(
-    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 2)
+    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 2),
   );
   t.true(
     t.context.log.calledWith(
       "Added comment to issue #%d: %s",
       3,
-      "https://github.com/successcomment-3"
-    )
+      "https://github.com/successcomment-3",
+    ),
   );
   t.true(
-    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 3)
+    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 3),
   );
   t.true(
     t.context.log.calledWith(
       "Added comment to issue #%d: %s",
       4,
-      "https://github.com/successcomment-4"
-    )
+      "https://github.com/successcomment-4",
+    ),
   );
   t.true(
-    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 4)
+    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 4),
   );
   t.true(fetch.done());
 });
@@ -221,71 +221,71 @@ test("Add comment and labels to PRs associated with release commits and issues c
     })
     .getOnce(
       `https://custom-url.com/prefix/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`
+        `repo:${owner}/${repo}`,
       )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged"
+        "is:merged",
       )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: prs }
+      { items: prs },
     )
     .getOnce(
       `https://custom-url.com/prefix/repos/${owner}/${repo}/pulls/1/commits`,
-      [{ sha: commits[0].hash }]
+      [{ sha: commits[0].hash }],
     )
     .getOnce(
       `https://custom-url.com/prefix/repos/${owner}/${repo}/pulls/2/commits`,
-      [{ sha: commits[1].hash }]
+      [{ sha: commits[1].hash }],
     )
     .postOnce(
       `https://custom-url.com/prefix/repos/${owner}/${repo}/issues/1/comments`,
       {
         html_url: "https://custom-url.com/successcomment-1",
-      }
+      },
     )
     .postOnce(
       `https://custom-url.com/prefix/repos/${owner}/${repo}/issues/1/labels`,
       {},
-      { body: ["released on @next"] }
+      { body: ["released on @next"] },
     )
     .postOnce(
       `https://custom-url.com/prefix/repos/${owner}/${repo}/issues/2/comments`,
       {
         html_url: "https://custom-url.com/successcomment-2",
-      }
+      },
     )
     .postOnce(
       `https://custom-url.com/prefix/repos/${owner}/${repo}/issues/2/labels`,
       {},
-      { body: ["released on @next"] }
+      { body: ["released on @next"] },
     )
     .postOnce(
       `https://custom-url.com/prefix/repos/${owner}/${repo}/issues/3/comments`,
       {
         html_url: "https://custom-url.com/successcomment-3",
-      }
+      },
     )
     .postOnce(
       `https://custom-url.com/prefix/repos/${owner}/${repo}/issues/3/labels`,
       {},
-      { body: ["released on @next"] }
+      { body: ["released on @next"] },
     )
     .postOnce(
       `https://custom-url.com/prefix/repos/${owner}/${repo}/issues/4/comments`,
       {
         html_url: "https://custom-url.com/successcomment-4",
-      }
+      },
     )
     .postOnce(
       `https://custom-url.com/prefix/repos/${owner}/${repo}/issues/4/labels`,
       {},
-      { body: ["released on @next"] }
+      { body: ["released on @next"] },
     )
     .getOnce(
       `https://custom-url.com/prefix/search/issues?q=${encodeURIComponent(
-        "in:title"
+        "in:title",
       )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue"
+        "type:issue",
       )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] }
+      { items: [] },
     );
 
   await success(
@@ -303,64 +303,64 @@ test("Add comment and labels to PRs associated with release commits and issues c
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.true(
     t.context.log.calledWith(
       "Added comment to issue #%d: %s",
       1,
-      "https://custom-url.com/successcomment-1"
-    )
+      "https://custom-url.com/successcomment-1",
+    ),
   );
   t.true(
     t.context.log.calledWith(
       "Added labels %O to issue #%d",
       ["released on @next"],
-      1
-    )
+      1,
+    ),
   );
   t.true(
     t.context.log.calledWith(
       "Added comment to issue #%d: %s",
       2,
-      "https://custom-url.com/successcomment-2"
-    )
+      "https://custom-url.com/successcomment-2",
+    ),
   );
   t.true(
     t.context.log.calledWith(
       "Added labels %O to issue #%d",
       ["released on @next"],
-      2
-    )
+      2,
+    ),
   );
   t.true(
     t.context.log.calledWith(
       "Added comment to issue #%d: %s",
       3,
-      "https://custom-url.com/successcomment-3"
-    )
+      "https://custom-url.com/successcomment-3",
+    ),
   );
   t.true(
     t.context.log.calledWith(
       "Added labels %O to issue #%d",
       ["released on @next"],
-      3
-    )
+      3,
+    ),
   );
   t.true(
     t.context.log.calledWith(
       "Added comment to issue #%d: %s",
       4,
-      "https://custom-url.com/successcomment-4"
-    )
+      "https://custom-url.com/successcomment-4",
+    ),
   );
   t.true(
     t.context.log.calledWith(
       "Added labels %O to issue #%d",
       ["released on @next"],
-      4
-    )
+      4,
+    ),
   );
   t.true(fetch.done());
 });
@@ -404,119 +404,119 @@ test("Make multiple search queries if necessary", async (t) => {
     })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`
+        `repo:${owner}/${repo}`,
       )}+${encodeURIComponent("type:pr")}+${encodeURIComponent("is:merged")}+${
         commits[0].hash
       }+${commits[1].hash}+${commits[2].hash}+${commits[3].hash}+${
         commits[4].hash
       }`,
-      { items: [prs[0], prs[1], prs[2], prs[3], prs[4]] }
+      { items: [prs[0], prs[1], prs[2], prs[3], prs[4]] },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`
+        `repo:${owner}/${repo}`,
       )}+${encodeURIComponent("type:pr")}+${encodeURIComponent("is:merged")}+${
         commits[5].hash
       }+${commits[6].hash}`,
-      { items: [prs[5], prs[1]] }
+      { items: [prs[5], prs[1]] },
     )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
-      [{ sha: commits[0].hash }]
+      [{ sha: commits[0].hash }],
     )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/2/commits`,
-      [{ sha: commits[1].hash }]
+      [{ sha: commits[1].hash }],
     )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/3/commits`,
-      [{ sha: commits[2].hash }]
+      [{ sha: commits[2].hash }],
     )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/4/commits`,
-      [{ sha: commits[3].hash }]
+      [{ sha: commits[3].hash }],
     )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/5/commits`,
-      [{ sha: commits[4].hash }]
+      [{ sha: commits[4].hash }],
     )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/6/commits`,
-      [{ sha: commits[5].hash }]
+      [{ sha: commits[5].hash }],
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
-      { html_url: "https://github.com/successcomment-1" }
+      { html_url: "https://github.com/successcomment-1" },
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
       {},
       {
         body: ["released"],
-      }
+      },
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/2/comments`,
-      { html_url: "https://github.com/successcomment-2" }
+      { html_url: "https://github.com/successcomment-2" },
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/2/labels`,
       {},
       {
         body: ["released"],
-      }
+      },
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/3/comments`,
-      { html_url: "https://github.com/successcomment-3" }
+      { html_url: "https://github.com/successcomment-3" },
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/3/labels`,
       {},
       {
         body: ["released"],
-      }
+      },
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/4/comments`,
-      { html_url: "https://github.com/successcomment-4" }
+      { html_url: "https://github.com/successcomment-4" },
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/4/labels`,
       {},
       {
         body: ["released"],
-      }
+      },
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/5/comments`,
-      { html_url: "https://github.com/successcomment-5" }
+      { html_url: "https://github.com/successcomment-5" },
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/5/labels`,
       {},
       {
         body: ["released"],
-      }
+      },
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/6/comments`,
-      { html_url: "https://github.com/successcomment-6" }
+      { html_url: "https://github.com/successcomment-6" },
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/6/labels`,
       {},
       {
         body: ["released"],
-      }
+      },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title"
+        "in:title",
       )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue"
+        "type:issue",
       )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] }
+      { items: [] },
     );
 
   await success(
@@ -534,68 +534,68 @@ test("Make multiple search queries if necessary", async (t) => {
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.true(
     t.context.log.calledWith(
       "Added comment to issue #%d: %s",
       1,
-      "https://github.com/successcomment-1"
-    )
+      "https://github.com/successcomment-1",
+    ),
   );
   t.true(
-    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 1)
+    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 1),
   );
   t.true(
     t.context.log.calledWith(
       "Added comment to issue #%d: %s",
       2,
-      "https://github.com/successcomment-2"
-    )
+      "https://github.com/successcomment-2",
+    ),
   );
   t.true(
-    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 2)
+    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 2),
   );
   t.true(
     t.context.log.calledWith(
       "Added comment to issue #%d: %s",
       3,
-      "https://github.com/successcomment-3"
-    )
+      "https://github.com/successcomment-3",
+    ),
   );
   t.true(
-    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 3)
+    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 3),
   );
   t.true(
     t.context.log.calledWith(
       "Added comment to issue #%d: %s",
       4,
-      "https://github.com/successcomment-4"
-    )
+      "https://github.com/successcomment-4",
+    ),
   );
   t.true(
-    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 4)
+    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 4),
   );
   t.true(
     t.context.log.calledWith(
       "Added comment to issue #%d: %s",
       5,
-      "https://github.com/successcomment-5"
-    )
+      "https://github.com/successcomment-5",
+    ),
   );
   t.true(
-    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 5)
+    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 5),
   );
   t.true(
     t.context.log.calledWith(
       "Added comment to issue #%d: %s",
       6,
-      "https://github.com/successcomment-6"
-    )
+      "https://github.com/successcomment-6",
+    ),
   );
   t.true(
-    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 6)
+    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 6),
   );
   t.true(fetch.done());
 });
@@ -630,22 +630,22 @@ test("Do not add comment and labels for unrelated PR returned by search (compare
     })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`
+        `repo:${owner}/${repo}`,
       )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged"
+        "is:merged",
       )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: prs }
+      { items: prs },
     )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
-      [{ sha: "rebased_sha" }]
+      [{ sha: "rebased_sha" }],
     )
     .getOnce(`https://api.github.local/repos/${owner}/${repo}/pulls/1`, {
       merge_commit_sha: commits[0].hash,
     })
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/2/commits`,
-      [{ sha: "rebased_sha" }]
+      [{ sha: "rebased_sha" }],
     )
     .getOnce(`https://api.github.local/repos/${owner}/${repo}/pulls/2`, {
       merge_commit_sha: "unrelated_sha",
@@ -654,20 +654,20 @@ test("Do not add comment and labels for unrelated PR returned by search (compare
       `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
       {
         html_url: "https://github.com/successcomment-1",
-      }
+      },
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
       {},
-      { body: ["released"] }
+      { body: ["released"] },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title"
+        "in:title",
       )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue"
+        "type:issue",
       )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] }
+      { items: [] },
     );
 
   await success(
@@ -685,18 +685,18 @@ test("Do not add comment and labels for unrelated PR returned by search (compare
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.true(
     t.context.log.calledWith(
       "Added comment to issue #%d: %s",
       1,
-      "https://github.com/successcomment-1"
-    )
+      "https://github.com/successcomment-1",
+    ),
   );
   t.true(
-    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 1)
+    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 1),
   );
   t.true(fetch.done());
 });
@@ -724,19 +724,19 @@ test("Do not add comment and labels if no PR is associated with release commits"
     })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`
+        `repo:${owner}/${repo}`,
       )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged"
+        "is:merged",
       )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: [] }
+      { items: [] },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title"
+        "in:title",
       )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue"
+        "type:issue",
       )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] }
+      { items: [] },
     );
 
   await success(
@@ -754,7 +754,7 @@ test("Do not add comment and labels if no PR is associated with release commits"
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.true(fetch.done());
@@ -787,28 +787,28 @@ test("Do not add comment and labels to PR/issues from other repo", async (t) => 
     })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`
+        `repo:${owner}/${repo}`,
       )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged"
+        "is:merged",
       )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: [] }
+      { items: [] },
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/2/comments`,
-      { html_url: "https://github.com/successcomment-2" }
+      { html_url: "https://github.com/successcomment-2" },
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/2/labels`,
       {},
-      { body: ["released"] }
+      { body: ["released"] },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title"
+        "in:title",
       )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue"
+        "type:issue",
       )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] }
+      { items: [] },
     );
 
   await success(
@@ -826,18 +826,18 @@ test("Do not add comment and labels to PR/issues from other repo", async (t) => 
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.true(
     t.context.log.calledWith(
       "Added comment to issue #%d: %s",
       2,
-      "https://github.com/successcomment-2"
-    )
+      "https://github.com/successcomment-2",
+    ),
   );
   t.true(
-    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 2)
+    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 2),
   );
   t.true(fetch.done());
 });
@@ -874,66 +874,66 @@ test("Ignore missing and forbidden issues/PRs", async (t) => {
     })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`
+        `repo:${owner}/${repo}`,
       )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged"
+        "is:merged",
       )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: prs }
+      { items: prs },
     )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
-      [{ sha: commits[0].hash }]
+      [{ sha: commits[0].hash }],
     )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/2/commits`,
-      [{ sha: commits[1].hash }]
+      [{ sha: commits[1].hash }],
     )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/3/commits`,
-      [{ sha: commits[2].hash }]
+      [{ sha: commits[2].hash }],
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
-      { html_url: "https://github.com/successcomment-1" }
+      { html_url: "https://github.com/successcomment-1" },
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
       {},
-      { body: ["released"] }
+      { body: ["released"] },
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/2/comments`,
-      404
+      404,
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/3/comments`,
-      403
+      403,
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/4/comments`,
-      { html_url: "https://github.com/successcomment-4" }
+      { html_url: "https://github.com/successcomment-4" },
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/4/labels`,
       {},
-      { body: ["released"] }
+      { body: ["released"] },
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/5/comments`,
-      { html_url: "https://github.com/successcomment-5" }
+      { html_url: "https://github.com/successcomment-5" },
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/5/labels`,
       {},
-      { body: ["released"] }
+      { body: ["released"] },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title"
+        "in:title",
       )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue"
+        "type:issue",
       )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] }
+      { items: [] },
     );
 
   await success(
@@ -951,50 +951,50 @@ test("Ignore missing and forbidden issues/PRs", async (t) => {
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.true(
     t.context.log.calledWith(
       "Added comment to issue #%d: %s",
       1,
-      "https://github.com/successcomment-1"
-    )
+      "https://github.com/successcomment-1",
+    ),
   );
   t.true(
-    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 1)
+    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 1),
   );
   t.true(
     t.context.log.calledWith(
       "Added comment to issue #%d: %s",
       4,
-      "https://github.com/successcomment-4"
-    )
+      "https://github.com/successcomment-4",
+    ),
   );
   t.true(
-    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 4)
+    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 4),
   );
   t.true(
     t.context.log.calledWith(
       "Added comment to issue #%d: %s",
       5,
-      "https://github.com/successcomment-5"
-    )
+      "https://github.com/successcomment-5",
+    ),
   );
   t.true(
-    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 5)
+    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 5),
   );
   t.true(
     t.context.error.calledWith(
       "Failed to add a comment to the issue #%d as it doesn't exist.",
-      2
-    )
+      2,
+    ),
   );
   t.true(
     t.context.error.calledWith(
       "Not allowed to add a comment to the issue #%d.",
-      3
-    )
+      3,
+    ),
   );
   t.true(fetch.done());
 });
@@ -1030,15 +1030,15 @@ test("Add custom comment and labels", async (t) => {
     })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`
+        `repo:${owner}/${repo}`,
       )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged"
+        "is:merged",
       )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: prs }
+      { items: prs },
     )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
-      [{ sha: commits[0].hash }]
+      [{ sha: commits[0].hash }],
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
@@ -1047,20 +1047,20 @@ test("Add custom comment and labels", async (t) => {
         body: {
           body: `last release: ${lastRelease.version} nextRelease: ${nextRelease.version} branch: master commits: 1 releases: 1 PR attribute: PR prop`,
         },
-      }
+      },
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
       {},
-      { body: ["released on @next", "released from master"] }
+      { body: ["released on @next", "released from master"] },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title"
+        "in:title",
       )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue"
+        "type:issue",
       )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] }
+      { items: [] },
     );
 
   await success(
@@ -1080,22 +1080,22 @@ test("Add custom comment and labels", async (t) => {
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.true(
     t.context.log.calledWith(
       "Added comment to issue #%d: %s",
       1,
-      "https://github.com/successcomment-1"
-    )
+      "https://github.com/successcomment-1",
+    ),
   );
   t.true(
     t.context.log.calledWith(
       "Added labels %O to issue #%d",
       ["released on @next", "released from master"],
-      1
-    )
+      1,
+    ),
   );
   t.true(fetch.done());
 });
@@ -1122,32 +1122,32 @@ test("Add custom label", async (t) => {
     })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`
+        `repo:${owner}/${repo}`,
       )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged"
+        "is:merged",
       )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: prs }
+      { items: prs },
     )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
-      [{ sha: commits[0].hash }]
+      [{ sha: commits[0].hash }],
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
-      { html_url: "https://github.com/successcomment-1" }
+      { html_url: "https://github.com/successcomment-1" },
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
       {},
-      { body: ["custom label"] }
+      { body: ["custom label"] },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title"
+        "in:title",
       )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue"
+        "type:issue",
       )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] }
+      { items: [] },
     );
 
   await success(
@@ -1167,22 +1167,22 @@ test("Add custom label", async (t) => {
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.true(
     t.context.log.calledWith(
       "Added comment to issue #%d: %s",
       1,
-      "https://github.com/successcomment-1"
-    )
+      "https://github.com/successcomment-1",
+    ),
   );
   t.true(
     t.context.log.calledWith(
       "Added labels %O to issue #%d",
       ["custom label"],
-      1
-    )
+      1,
+    ),
   );
   t.true(fetch.done());
 });
@@ -1209,27 +1209,27 @@ test("Comment on issue/PR without ading a label", async (t) => {
     })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`
+        `repo:${owner}/${repo}`,
       )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged"
+        "is:merged",
       )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: prs }
+      { items: prs },
     )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
-      [{ sha: commits[0].hash }]
+      [{ sha: commits[0].hash }],
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
-      { html_url: "https://github.com/successcomment-1" }
+      { html_url: "https://github.com/successcomment-1" },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title"
+        "in:title",
       )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue"
+        "type:issue",
       )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] }
+      { items: [] },
     );
 
   await success(
@@ -1249,15 +1249,15 @@ test("Comment on issue/PR without ading a label", async (t) => {
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.true(
     t.context.log.calledWith(
       "Added comment to issue #%d: %s",
       1,
-      "https://github.com/successcomment-1"
-    )
+      "https://github.com/successcomment-1",
+    ),
   );
   t.true(fetch.done());
 });
@@ -1299,27 +1299,27 @@ test("Editing the release to include all release links at the bottom", async (t)
     })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`
+        `repo:${owner}/${repo}`,
       )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged"
+        "is:merged",
       )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: prs }
+      { items: prs },
     )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
-      [{ sha: commits[0].hash }]
+      [{ sha: commits[0].hash }],
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
-      { html_url: "https://github.com/successcomment-1" }
+      { html_url: "https://github.com/successcomment-1" },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title"
+        "in:title",
       )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue"
+        "type:issue",
       )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] }
+      { items: [] },
     )
     .patchOnce(
       `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
@@ -1330,7 +1330,7 @@ test("Editing the release to include all release links at the bottom", async (t)
         body: {
           body: nextRelease.notes.concat("\n---\n", getReleaseLinks(releases)),
         },
-      }
+      },
     );
 
   await success(
@@ -1350,15 +1350,15 @@ test("Editing the release to include all release links at the bottom", async (t)
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.true(
     t.context.log.calledWith(
       "Added comment to issue #%d: %s",
       1,
-      "https://github.com/successcomment-1"
-    )
+      "https://github.com/successcomment-1",
+    ),
   );
   t.true(fetch.done());
 });
@@ -1400,27 +1400,27 @@ test("Editing the release to include all release links at the top", async (t) =>
     })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`
+        `repo:${owner}/${repo}`,
       )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged"
+        "is:merged",
       )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: prs }
+      { items: prs },
     )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
-      [{ sha: commits[0].hash }]
+      [{ sha: commits[0].hash }],
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
-      { html_url: "https://github.com/successcomment-1" }
+      { html_url: "https://github.com/successcomment-1" },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title"
+        "in:title",
       )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue"
+        "type:issue",
       )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] }
+      { items: [] },
     )
     .patchOnce(
       `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
@@ -1431,7 +1431,7 @@ test("Editing the release to include all release links at the top", async (t) =>
         body: {
           body: getReleaseLinks(releases) + "\n---\n" + nextRelease.notes,
         },
-      }
+      },
     );
 
   await success(
@@ -1451,15 +1451,15 @@ test("Editing the release to include all release links at the top", async (t) =>
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.true(
     t.context.log.calledWith(
       "Added comment to issue #%d: %s",
       1,
-      "https://github.com/successcomment-1"
-    )
+      "https://github.com/successcomment-1",
+    ),
   );
   t.true(fetch.done());
 });
@@ -1498,27 +1498,27 @@ test("Editing the release to include all release links with no additional releas
     })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`
+        `repo:${owner}/${repo}`,
       )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged"
+        "is:merged",
       )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: prs }
+      { items: prs },
     )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
-      [{ sha: commits[0].hash }]
+      [{ sha: commits[0].hash }],
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
-      { html_url: "https://github.com/successcomment-1" }
+      { html_url: "https://github.com/successcomment-1" },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title"
+        "in:title",
       )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue"
+        "type:issue",
       )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] }
+      { items: [] },
     );
 
   await success(
@@ -1538,15 +1538,15 @@ test("Editing the release to include all release links with no additional releas
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.true(
     t.context.log.calledWith(
       "Added comment to issue #%d: %s",
       1,
-      "https://github.com/successcomment-1"
-    )
+      "https://github.com/successcomment-1",
+    ),
   );
   t.true(fetch.done());
 });
@@ -1585,27 +1585,27 @@ test("Editing the release to include all release links with no additional releas
     })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`
+        `repo:${owner}/${repo}`,
       )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged"
+        "is:merged",
       )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: prs }
+      { items: prs },
     )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
-      [{ sha: commits[0].hash }]
+      [{ sha: commits[0].hash }],
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
-      { html_url: "https://github.com/successcomment-1" }
+      { html_url: "https://github.com/successcomment-1" },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title"
+        "in:title",
       )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue"
+        "type:issue",
       )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] }
+      { items: [] },
     );
 
   await success(
@@ -1625,15 +1625,15 @@ test("Editing the release to include all release links with no additional releas
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.true(
     t.context.log.calledWith(
       "Added comment to issue #%d: %s",
       1,
-      "https://github.com/successcomment-1"
-    )
+      "https://github.com/successcomment-1",
+    ),
   );
   t.true(fetch.done());
 });
@@ -1665,27 +1665,27 @@ test("Editing the release to include all release links with no releases", async 
     })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`
+        `repo:${owner}/${repo}`,
       )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged"
+        "is:merged",
       )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: prs }
+      { items: prs },
     )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
-      [{ sha: commits[0].hash }]
+      [{ sha: commits[0].hash }],
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
-      { html_url: "https://github.com/successcomment-1" }
+      { html_url: "https://github.com/successcomment-1" },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title"
+        "in:title",
       )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue"
+        "type:issue",
       )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] }
+      { items: [] },
     );
 
   await success(
@@ -1705,15 +1705,15 @@ test("Editing the release to include all release links with no releases", async 
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.true(
     t.context.log.calledWith(
       "Added comment to issue #%d: %s",
       1,
-      "https://github.com/successcomment-1"
-    )
+      "https://github.com/successcomment-1",
+    ),
   );
   t.true(fetch.done());
 });
@@ -1747,27 +1747,27 @@ test("Editing the release with no ID in the release", async (t) => {
     })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`
+        `repo:${owner}/${repo}`,
       )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged"
+        "is:merged",
       )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: prs }
+      { items: prs },
     )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
-      [{ sha: commits[0].hash }]
+      [{ sha: commits[0].hash }],
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
-      { html_url: "https://github.com/successcomment-1" }
+      { html_url: "https://github.com/successcomment-1" },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title"
+        "in:title",
       )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue"
+        "type:issue",
       )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] }
+      { items: [] },
     );
 
   await success(
@@ -1787,15 +1787,15 @@ test("Editing the release with no ID in the release", async (t) => {
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.true(
     t.context.log.calledWith(
       "Added comment to issue #%d: %s",
       1,
-      "https://github.com/successcomment-1"
-    )
+      "https://github.com/successcomment-1",
+    ),
   );
   t.true(fetch.done());
 });
@@ -1834,40 +1834,40 @@ test("Ignore errors when adding comments and closing issues", async (t) => {
     })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`
+        `repo:${owner}/${repo}`,
       )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged"
+        "is:merged",
       )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: prs }
+      { items: prs },
     )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
-      [{ sha: commits[0].hash }]
+      [{ sha: commits[0].hash }],
     )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/2/commits`,
-      [{ sha: commits[1].hash }]
+      [{ sha: commits[1].hash }],
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
-      400
+      400,
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/2/comments`,
-      { html_url: "https://github.com/successcomment-2" }
+      { html_url: "https://github.com/successcomment-2" },
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/2/labels`,
       {},
-      { body: ["released"] }
+      { body: ["released"] },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title"
+        "in:title",
       )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue"
+        "type:issue",
       )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: issues }
+      { items: issues },
     )
     .patchOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/2`,
@@ -1876,7 +1876,7 @@ test("Ignore errors when adding comments and closing issues", async (t) => {
         body: {
           state: "closed",
         },
-      }
+      },
     )
     .patchOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/3`,
@@ -1885,7 +1885,7 @@ test("Ignore errors when adding comments and closing issues", async (t) => {
         body: {
           state: "closed",
         },
-      }
+      },
     );
 
   const {
@@ -1907,29 +1907,29 @@ test("Ignore errors when adding comments and closing issues", async (t) => {
           ...options,
           request: { ...options.request, fetch },
         })),
-      }
-    )
+      },
+    ),
   );
 
   t.is(error1.status, 400);
   t.is(error2.status, 500);
   t.true(
-    t.context.error.calledWith("Failed to add a comment to the issue #%d.", 1)
+    t.context.error.calledWith("Failed to add a comment to the issue #%d.", 1),
   );
   t.true(t.context.error.calledWith("Failed to close the issue #%d.", 2));
   t.true(
     t.context.log.calledWith(
       "Added comment to issue #%d: %s",
       2,
-      "https://github.com/successcomment-2"
-    )
+      "https://github.com/successcomment-2",
+    ),
   );
   t.true(
     t.context.log.calledWith(
       "Closed issue #%d: %s.",
       3,
-      "https://github.com/issues/3"
-    )
+      "https://github.com/issues/3",
+    ),
   );
   t.true(fetch.done());
 });
@@ -1959,19 +1959,19 @@ test("Close open issues when a release is successful", async (t) => {
     })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`
+        `repo:${owner}/${repo}`,
       )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged"
+        "is:merged",
       )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: [] }
+      { items: [] },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title"
+        "in:title",
       )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue"
+        "type:issue",
       )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: issues }
+      { items: issues },
     )
     .patchOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/2`,
@@ -1980,7 +1980,7 @@ test("Close open issues when a release is successful", async (t) => {
         body: {
           state: "closed",
         },
-      }
+      },
     )
     .patchOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/3`,
@@ -1989,7 +1989,7 @@ test("Close open issues when a release is successful", async (t) => {
         body: {
           state: "closed",
         },
-      }
+      },
     );
 
   await success(
@@ -2008,22 +2008,22 @@ test("Close open issues when a release is successful", async (t) => {
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.true(
     t.context.log.calledWith(
       "Closed issue #%d: %s.",
       2,
-      "https://github.com/issues/2"
-    )
+      "https://github.com/issues/2",
+    ),
   );
   t.true(
     t.context.log.calledWith(
       "Closed issue #%d: %s.",
       3,
-      "https://github.com/issues/3"
-    )
+      "https://github.com/issues/3",
+    ),
   );
   t.true(fetch.done());
 });
@@ -2056,11 +2056,11 @@ test('Skip commention on issues/PR if "successComment" is "false"', async (t) =>
     })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title"
+        "in:title",
       )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue"
+        "type:issue",
       )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] }
+      { items: [] },
     );
 
   await success(
@@ -2079,11 +2079,11 @@ test('Skip commention on issues/PR if "successComment" is "false"', async (t) =>
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
 
   t.true(
-    t.context.log.calledWith("Skip commenting on issues and pull requests.")
+    t.context.log.calledWith("Skip commenting on issues and pull requests."),
   );
   t.true(fetch.done());
 });
@@ -2107,11 +2107,11 @@ test('Skip closing issues if "failComment" is "false"', async (t) => {
     })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`
+        `repo:${owner}/${repo}`,
       )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged"
+        "is:merged",
       )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: [] }
+      { items: [] },
     );
 
   await success(
@@ -2130,7 +2130,7 @@ test('Skip closing issues if "failComment" is "false"', async (t) => {
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
   t.true(t.context.log.calledWith("Skip closing issue."));
   t.true(fetch.done());
@@ -2155,11 +2155,11 @@ test('Skip closing issues if "failTitle" is "false"', async (t) => {
     })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`
+        `repo:${owner}/${repo}`,
       )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged"
+        "is:merged",
       )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: [] }
+      { items: [] },
     );
 
   await success(
@@ -2178,7 +2178,7 @@ test('Skip closing issues if "failTitle" is "false"', async (t) => {
         ...options,
         request: { ...options.request, fetch },
       })),
-    }
+    },
   );
   t.true(t.context.log.calledWith("Skip closing issue."));
   t.true(fetch.done());
