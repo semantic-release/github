@@ -42,7 +42,7 @@
     "c8": "8.0.1",
     "cpy": "10.1.0",
     "fetch-mock": "npm:@gr2m/fetch-mock@9.11.0-pull-request-644.1",
-    "prettier": "3.0.0",
+    "prettier": "3.0.1",
     "semantic-release": "21.0.7",
     "sinon": "15.2.0",
     "tempy": "3.1.0"
