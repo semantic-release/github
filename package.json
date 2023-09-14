@@ -25,7 +25,7 @@
     "@octokit/plugin-retry": "^6.0.0",
     "@octokit/plugin-throttling": "^7.0.0",
     "@semantic-release/error": "^4.0.0",
-    "aggregate-error": "^4.0.1",
+    "aggregate-error": "^5.0.0",
     "debug": "^4.3.4",
     "dir-glob": "^3.0.1",
     "globby": "^13.1.4",
