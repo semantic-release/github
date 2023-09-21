@@ -25,6 +25,7 @@ test("Verify package, token and repository access", async (t) => {
   const failTitle = "Test title";
   const failComment = "Test comment";
   const labels = ["semantic-release"];
+  const discussionCategoryName = "Announcements";
 
   const fetch = fetchMock
     .sandbox()
@@ -34,7 +35,15 @@ test("Verify package, token and repository access", async (t) => {
 
   await t.notThrowsAsync(
     verify(
-      { proxy, assets, successComment, failTitle, failComment, labels },
+      {
+        proxy,
+        assets,
+        successComment,
+        failTitle,
+        failComment,
+        labels,
+        discussionCategoryName,
+      },
       {
         env,
         options: {
@@ -53,7 +62,7 @@ test("Verify package, token and repository access", async (t) => {
   t.true(fetch.done());
 });
 
-test('Verify package, token and repository access with "proxy", "asset", "successComment", "failTitle", "failComment" and "label" set to "null"', async (t) => {
+test('Verify package, token and repository access with "proxy", "asset", "discussionCategoryName", "successComment", "failTitle", "failComment" and "label" set to "null"', async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
   const env = { GH_TOKEN: "github_token" };
@@ -63,6 +72,7 @@ test('Verify package, token and repository access with "proxy", "asset", "succes
   const failTitle = null;
   const failComment = null;
   const labels = null;
+  const discussionCategoryName = null;
 
   const fetch = fetchMock
     .sandbox()
@@ -72,7 +82,15 @@ test('Verify package, token and repository access with "proxy", "asset", "succes
 
   await t.notThrowsAsync(
     verify(
-      { proxy, assets, successComment, failTitle, failComment, labels },
+      {
+        proxy,
+        assets,
+        successComment,
+        failTitle,
+        failComment,
+        labels,
+        discussionCategoryName,
+      },
       {
         env,
         options: {
@@ -781,6 +799,7 @@ test("Verify if run in GitHub Action", async (t) => {
   const failTitle = "Test title";
   const failComment = "Test comment";
   const labels = ["semantic-release"];
+  const discussionCategoryName = "Announcements";
 
   await t.notThrowsAsync(
     verify(
@@ -1456,6 +1475,117 @@ test('Throw SemanticReleaseError if "failTitle" option is a whitespace String', 
   t.is(errors.length, 0);
   t.is(error.name, "SemanticReleaseError");
   t.is(error.code, "EINVALIDFAILTITLE");
+  t.true(fetch.done());
+});
+
+test('Throw SemanticReleaseError if "discussionCategoryName" option is not a String', async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GH_TOKEN: "github_token" };
+  const discussionCategoryName = 42;
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      permissions: { push: true },
+    });
+
+  const {
+    errors: [error, ...errors],
+  } = await t.throwsAsync(
+    verify(
+      { discussionCategoryName },
+      {
+        env,
+        options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
+        logger: t.context.logger,
+      },
+      {
+        Octokit: TestOctokit.defaults((options) => ({
+          ...options,
+          request: { ...options.request, fetch },
+        })),
+      },
+    ),
+  );
+
+  t.is(errors.length, 0);
+  t.is(error.name, "SemanticReleaseError");
+  t.is(error.code, "EINVALIDDISCUSSIONCATEGORYNAME");
+  t.true(fetch.done());
+});
+
+test('Throw SemanticReleaseError if "discussionCategoryName" option is an empty String', async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GH_TOKEN: "github_token" };
+  const discussionCategoryName = "";
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      permissions: { push: true },
+    });
+
+  const {
+    errors: [error, ...errors],
+  } = await t.throwsAsync(
+    verify(
+      { discussionCategoryName },
+      {
+        env,
+        options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
+        logger: t.context.logger,
+      },
+      {
+        Octokit: TestOctokit.defaults((options) => ({
+          ...options,
+          request: { ...options.request, fetch },
+        })),
+      },
+    ),
+  );
+
+  t.is(errors.length, 0);
+  t.is(error.name, "SemanticReleaseError");
+  t.is(error.code, "EINVALIDDISCUSSIONCATEGORYNAME");
+  t.true(fetch.done());
+});
+
+test('Throw SemanticReleaseError if "discussionCategoryName" option is a whitespace String', async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GH_TOKEN: "github_token" };
+  const discussionCategoryName = "  \n \r ";
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      permissions: { push: true },
+    });
+
+  const {
+    errors: [error, ...errors],
+  } = await t.throwsAsync(
+    verify(
+      { discussionCategoryName },
+      {
+        env,
+        options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
+        logger: t.context.logger,
+      },
+      {
+        Octokit: TestOctokit.defaults((options) => ({
+          ...options,
+          request: { ...options.request, fetch },
+        })),
+      },
+    ),
+  );
+
+  t.is(errors.length, 0);
+  t.is(error.name, "SemanticReleaseError");
+  t.is(error.code, "EINVALIDDISCUSSIONCATEGORYNAME");
   t.true(fetch.done());
 });
 
