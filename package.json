@@ -21,9 +21,9 @@
   ],
   "dependencies": {
     "@octokit/core": "^5.0.0",
-    "@octokit/plugin-paginate-rest": "^8.0.0",
+    "@octokit/plugin-paginate-rest": "^9.0.0",
     "@octokit/plugin-retry": "^6.0.0",
-    "@octokit/plugin-throttling": "^7.0.0",
+    "@octokit/plugin-throttling": "^8.0.0",
     "@semantic-release/error": "^4.0.0",
     "aggregate-error": "^5.0.0",
     "debug": "^4.3.4",
