@@ -720,3 +720,129 @@ test("Publish a release when env.GITHUB_URL is set to https://github.com (Defaul
   ]);
   t.true(fetch.done());
 });
+
+test("Publish a custom release body", async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GITHUB_TOKEN: "github_token" };
+  const pluginConfig = {
+    releaseBodyTemplate:
+      "To install this run npm install package@<%= nextRelease.name %>\n\n<%= nextRelease.notes %>",
+  };
+  const nextRelease = {
+    gitTag: "v1.0.0",
+    name: "v1.0.0",
+    notes: "Test release note body",
+  };
+  const options = { repositoryUrl: `https://github.com/${owner}/${repo}.git` };
+  const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
+  const releaseId = 1;
+  const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
+  const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
+  const branch = "test_branch";
+
+  const fetch = fetchMock.sandbox().postOnce(
+    `https://api.github.local/repos/${owner}/${repo}/releases`,
+    {
+      upload_url: uploadUrl,
+      html_url: releaseUrl,
+    },
+    {
+      body: {
+        tag_name: nextRelease.gitTag,
+        target_commitish: branch,
+        name: nextRelease.name,
+        body: `To install this run npm install package@${nextRelease.name}\n\n${nextRelease.notes}`,
+        prerelease: false,
+      },
+    },
+  );
+
+  const result = await publish(
+    pluginConfig,
+    {
+      cwd,
+      env,
+      options,
+      branch: { name: branch, type: "release", main: true },
+      nextRelease,
+      logger: t.context.logger,
+    },
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    },
+  );
+
+  t.is(result.url, releaseUrl);
+  t.deepEqual(t.context.log.args[0], [
+    "Published GitHub release: %s",
+    releaseUrl,
+  ]);
+  t.true(fetch.done());
+});
+
+test("Publish a custom release name", async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GITHUB_TOKEN: "github_token" };
+  const pluginConfig = {
+    releaseNameTemplate:
+      "omg its the best release: <%= nextRelease.name %> 🌈🌈",
+  };
+  const nextRelease = {
+    gitTag: "v1.0.0",
+    name: "v1.0.0",
+    notes: "Test release note body",
+  };
+  const options = { repositoryUrl: `https://github.com/${owner}/${repo}.git` };
+  const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
+  const releaseId = 1;
+  const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
+  const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
+  const branch = "test_branch";
+
+  const fetch = fetchMock.sandbox().postOnce(
+    `https://api.github.local/repos/${owner}/${repo}/releases`,
+    {
+      upload_url: uploadUrl,
+      html_url: releaseUrl,
+    },
+    {
+      body: {
+        tag_name: nextRelease.gitTag,
+        target_commitish: branch,
+        name: `omg its the best release: ${nextRelease.name} 🌈🌈`,
+        body: nextRelease.notes,
+        prerelease: false,
+      },
+    },
+  );
+
+  const result = await publish(
+    pluginConfig,
+    {
+      cwd,
+      env,
+      options,
+      branch: { name: branch, type: "release", main: true },
+      nextRelease,
+      logger: t.context.logger,
+    },
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    },
+  );
+
+  t.is(result.url, releaseUrl);
+  t.deepEqual(t.context.log.args[0], [
+    "Published GitHub release: %s",
+    releaseUrl,
+  ]);
+  t.true(fetch.done());
+});
