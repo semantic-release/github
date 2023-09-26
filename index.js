@@ -17,7 +17,7 @@ export async function verifyConditions(
   { Octokit = SemanticReleaseOctokit } = {},
 ) {
   const { options } = context;
-  // If the GitHub publish plugin is used and has `assets`, `successComment`, `failComment`, `failTitle`, `labels` or `assignees` configured, validate it now in order to prevent any release if the configuration is wrong
+  // If the GitHub publish plugin is used and has `assets`, `successComment`, `failComment`, `failTitle`, `labels`, `discussionCategoryName` or `assignees` configured, validate it now in order to prevent any release if the configuration is wrong
   if (options.publish) {
     const publishPlugin =
       castArray(options.publish).find(
@@ -41,6 +41,10 @@ export async function verifyConditions(
     pluginConfig.assignees = defaultTo(
       pluginConfig.assignees,
       publishPlugin.assignees,
+    );
+    pluginConfig.discussionCategoryName = defaultTo(
+      pluginConfig.discussionCategoryName,
+      publishPlugin.discussionCategoryName,
     );
   }
 

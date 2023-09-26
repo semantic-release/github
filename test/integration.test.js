@@ -121,6 +121,7 @@ test("Throw SemanticReleaseError if invalid config", async (t) => {
   const failTitle = 42;
   const labels = 42;
   const assignees = 42;
+  const discussionCategoryName = 42;
   const options = {
     publish: [
       { path: "@semantic-release/npm" },
@@ -132,6 +133,7 @@ test("Throw SemanticReleaseError if invalid config", async (t) => {
         failTitle,
         labels,
         assignees,
+        discussionCategoryName,
       },
     ],
     repositoryUrl: "invalid_url",
@@ -163,9 +165,11 @@ test("Throw SemanticReleaseError if invalid config", async (t) => {
   t.is(errors[5].name, "SemanticReleaseError");
   t.is(errors[5].code, "EINVALIDASSIGNEES");
   t.is(errors[6].name, "SemanticReleaseError");
-  t.is(errors[6].code, "EINVALIDGITHUBURL");
+  t.is(errors[6].code, "EINVALIDDISCUSSIONCATEGORYNAME");
   t.is(errors[7].name, "SemanticReleaseError");
-  t.is(errors[7].code, "ENOGHTOKEN");
+  t.is(errors[7].code, "EINVALIDGITHUBURL");
+  t.is(errors[8].name, "SemanticReleaseError");
+  t.is(errors[8].code, "ENOGHTOKEN");
 });
 
 test("Publish a release with an array of assets", async (t) => {
@@ -219,7 +223,9 @@ test("Publish a release with an array of assets", async (t) => {
       `${uploadOrigin}${uploadUri}?name=${encodeURIComponent(
         "upload_file_name.txt",
       )}&`,
-      { browser_download_url: assetUrl },
+      {
+        browser_download_url: assetUrl,
+      },
     )
     .postOnce(
       `${uploadOrigin}${uploadUri}?name=${encodeURIComponent(
@@ -676,12 +682,16 @@ test("Verify, release and notify success", async (t) => {
       `${uploadOrigin}${uploadUri}?name=other_file.txt&label=${encodeURIComponent(
         "Other File",
       )}`,
-      { browser_download_url: otherAssetUrl },
+      {
+        browser_download_url: otherAssetUrl,
+      },
     )
 
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
-      { html_url: "https://github.com/successcomment-1" },
+      {
+        html_url: "https://github.com/successcomment-1",
+      },
     );
 
   await t.notThrowsAsync(
@@ -804,7 +814,9 @@ test("Verify, update release and notify success", async (t) => {
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
-      { html_url: "https://github.com/successcomment-1" },
+      {
+        html_url: "https://github.com/successcomment-1",
+      },
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
