@@ -2180,3 +2180,75 @@ test('Throw SemanticReleaseError if "draftRelease" option is not a valid boolean
   t.is(error.code, "EINVALIDDRAFTRELEASE");
   t.true(fetch.done());
 });
+
+test('Throw SemanticReleaseError if "releaseBodyTemplate" option is an empty string', async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GH_TOKEN: "github_token" };
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      permissions: { push: true },
+    });
+
+  const {
+    errors: [error, ...errors],
+  } = await t.throwsAsync(
+    verify(
+      { releaseBodyTemplate: "" },
+      {
+        env,
+        options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
+        logger: t.context.logger,
+      },
+      {
+        Octokit: TestOctokit.defaults((options) => ({
+          ...options,
+          request: { ...options.request, fetch },
+        })),
+      },
+    ),
+  );
+
+  t.is(errors.length, 0);
+  t.is(error.name, "SemanticReleaseError");
+  t.is(error.code, "EINVALIDRELEASEBODYTEMPLATE");
+  t.true(fetch.done());
+});
+
+test('Throw SemanticReleaseError if "releaseNameTemplate" option is an empty string', async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GH_TOKEN: "github_token" };
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      permissions: { push: true },
+    });
+
+  const {
+    errors: [error, ...errors],
+  } = await t.throwsAsync(
+    verify(
+      { releaseNameTemplate: "" },
+      {
+        env,
+        options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
+        logger: t.context.logger,
+      },
+      {
+        Octokit: TestOctokit.defaults((options) => ({
+          ...options,
+          request: { ...options.request, fetch },
+        })),
+      },
+    ),
+  );
+
+  t.is(errors.length, 0);
+  t.is(error.name, "SemanticReleaseError");
+  t.is(error.code, "EINVALIDRELEASENAMETEMPLATE");
+  t.true(fetch.done());
+});

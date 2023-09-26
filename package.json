@@ -21,9 +21,9 @@
   ],
   "dependencies": {
     "@octokit/core": "^5.0.0",
-    "@octokit/plugin-paginate-rest": "^8.0.0",
+    "@octokit/plugin-paginate-rest": "^9.0.0",
     "@octokit/plugin-retry": "^6.0.0",
-    "@octokit/plugin-throttling": "^7.0.0",
+    "@octokit/plugin-throttling": "^8.0.0",
     "@semantic-release/error": "^4.0.0",
     "aggregate-error": "^5.0.0",
     "debug": "^4.3.4",
@@ -43,7 +43,7 @@
     "cpy": "10.1.0",
     "fetch-mock": "npm:@gr2m/fetch-mock@9.11.0-pull-request-644.1",
     "prettier": "3.0.3",
-    "semantic-release": "22.0.0",
+    "semantic-release": "22.0.5",
     "sinon": "16.0.0",
     "tempy": "3.1.0"
   },
