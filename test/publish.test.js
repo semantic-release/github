@@ -95,12 +95,15 @@ test("Publish a release and create discussion", async (t) => {
   const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
   const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
   const branch = "test_branch";
+  const discussionId = 1;
+  const discussionUrl = `https://github.com/${owner}/${repo}/discussions/${discussionId}`;
 
   const fetch = fetchMock.sandbox().postOnce(
     `https://api.github.local/repos/${owner}/${repo}/releases`,
     {
       upload_url: uploadUrl,
       html_url: releaseUrl,
+      discussion_url: discussionUrl,
     },
     {
       body: {
@@ -136,6 +139,10 @@ test("Publish a release and create discussion", async (t) => {
   t.deepEqual(t.context.log.args[0], [
     "Published GitHub release: %s",
     releaseUrl,
+  ]);
+  t.deepEqual(t.context.log.args[1], [
+    "Created GitHub release discussion: %s",
+    discussionUrl,
   ]);
   t.true(fetch.done());
 });
@@ -276,12 +283,15 @@ test("Publish a prerelease and create discussion", async (t) => {
   const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
   const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
   const branch = "test_branch";
+  const discussionId = 1;
+  const discussionUrl = `https://github.com/${owner}/${repo}/discussions/${discussionId}`;
 
   const fetch = fetchMock.sandbox().postOnce(
     `https://api.github.local/repos/${owner}/${repo}/releases`,
     {
       upload_url: uploadUrl,
       html_url: releaseUrl,
+      discussion_url: discussionUrl,
     },
     {
       body: {
@@ -317,6 +327,10 @@ test("Publish a prerelease and create discussion", async (t) => {
   t.deepEqual(t.context.log.args[0], [
     "Published GitHub release: %s",
     releaseUrl,
+  ]);
+  t.deepEqual(t.context.log.args[1], [
+    "Created GitHub release discussion: %s",
+    discussionUrl,
   ]);
   t.true(fetch.done());
 });
@@ -638,6 +652,105 @@ test("Publish a release with an array of missing assets", async (t) => {
       emptyDirectory,
     ),
   );
+  t.true(fetch.done());
+});
+
+test("Publish a release with asset and create discussion", async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GITHUB_TOKEN: "github_token" };
+  const pluginConfig = {
+    assets: [
+      ["**", "!**/*.txt"],
+      { path: ".dotfile", label: "A dotfile with no ext" },
+    ],
+    discussionCategoryName: "Announcements",
+  };
+  const nextRelease = {
+    gitTag: "v1.0.0",
+    name: "v1.0.0",
+    notes: "Test release note body",
+  };
+  const options = { repositoryUrl: `https://github.com/${owner}/${repo}.git` };
+  const untaggedReleaseUrl = `https://github.com/${owner}/${repo}/releases/untagged-123`;
+  const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
+  const assetUrl = `https://github.com/${owner}/${repo}/releases/download/${nextRelease.version}/.dotfile`;
+  const releaseId = 1;
+  const uploadOrigin = `https://uploads.github.local`;
+  const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
+  const uploadUrl = `${uploadOrigin}${uploadUri}{?name,label}`;
+  const branch = "test_branch";
+  const discussionId = 1;
+  const discussionUrl = `https://github.com/${owner}/${repo}/discussions/${discussionId}`;
+
+  const fetch = fetchMock
+    .sandbox()
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/releases`,
+      {
+        upload_url: uploadUrl,
+        html_url: untaggedReleaseUrl,
+        id: releaseId,
+      },
+      {
+        body: {
+          tag_name: nextRelease.gitTag,
+          target_commitish: branch,
+          name: nextRelease.name,
+          body: nextRelease.notes,
+          draft: true,
+          prerelease: false,
+        },
+      },
+    )
+    .patchOnce(
+      `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
+      {
+        upload_url: uploadUrl,
+        html_url: releaseUrl,
+        discussion_url: discussionUrl,
+      },
+      {
+        body: {
+          draft: false,
+          discussion_category_name: pluginConfig.discussionCategoryName,
+        },
+      },
+    )
+    .postOnce(
+      `${uploadOrigin}${uploadUri}?name=${encodeURIComponent(
+        ".dotfile",
+      )}&label=${encodeURIComponent("A dotfile with no ext")}`,
+      { browser_download_url: assetUrl },
+    );
+
+  const result = await publish(
+    pluginConfig,
+    {
+      cwd,
+      env,
+      options,
+      branch: { name: branch, type: "release", main: true },
+      nextRelease,
+      logger: t.context.logger,
+    },
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    },
+  );
+
+  t.is(result.url, releaseUrl);
+  t.true(t.context.log.calledWith("Published GitHub release: %s", releaseUrl));
+  t.true(
+    t.context.log.calledWith(
+      "Created GitHub release discussion: %s",
+      discussionUrl,
+    ),
+  );
+  t.true(t.context.log.calledWith("Published file %s", assetUrl));
   t.true(fetch.done());
 });
 
