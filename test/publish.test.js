@@ -95,12 +95,15 @@ test("Publish a release and create discussion", async (t) => {
   const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
   const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
   const branch = "test_branch";
+  const discussionId = 1;
+  const discussionUrl = `https://github.com/${owner}/${repo}/discussions/${discussionId}`;
 
   const fetch = fetchMock.sandbox().postOnce(
     `https://api.github.local/repos/${owner}/${repo}/releases`,
     {
       upload_url: uploadUrl,
       html_url: releaseUrl,
+      discussion_url: discussionUrl,
     },
     {
       body: {
@@ -136,6 +139,10 @@ test("Publish a release and create discussion", async (t) => {
   t.deepEqual(t.context.log.args[0], [
     "Published GitHub release: %s",
     releaseUrl,
+  ]);
+  t.deepEqual(t.context.log.args[1], [
+    "Created GitHub release discussion: %s",
+    discussionUrl,
   ]);
   t.true(fetch.done());
 });
@@ -276,12 +283,15 @@ test("Publish a prerelease and create discussion", async (t) => {
   const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
   const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
   const branch = "test_branch";
+  const discussionId = 1;
+  const discussionUrl = `https://github.com/${owner}/${repo}/discussions/${discussionId}`;
 
   const fetch = fetchMock.sandbox().postOnce(
     `https://api.github.local/repos/${owner}/${repo}/releases`,
     {
       upload_url: uploadUrl,
       html_url: releaseUrl,
+      discussion_url: discussionUrl,
     },
     {
       body: {
@@ -317,6 +327,10 @@ test("Publish a prerelease and create discussion", async (t) => {
   t.deepEqual(t.context.log.args[0], [
     "Published GitHub release: %s",
     releaseUrl,
+  ]);
+  t.deepEqual(t.context.log.args[1], [
+    "Created GitHub release discussion: %s",
+    discussionUrl,
   ]);
   t.true(fetch.done());
 });
@@ -666,6 +680,8 @@ test("Publish a release with asset and create discussion", async (t) => {
   const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
   const uploadUrl = `${uploadOrigin}${uploadUri}{?name,label}`;
   const branch = "test_branch";
+  const discussionId = 1;
+  const discussionUrl = `https://github.com/${owner}/${repo}/discussions/${discussionId}`;
 
   const fetch = fetchMock
     .sandbox()
@@ -689,7 +705,11 @@ test("Publish a release with asset and create discussion", async (t) => {
     )
     .patchOnce(
       `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
-      { upload_url: uploadUrl, html_url: releaseUrl },
+      {
+        upload_url: uploadUrl,
+        html_url: releaseUrl,
+        discussion_url: discussionUrl,
+      },
       {
         body: {
           draft: false,
@@ -724,6 +744,12 @@ test("Publish a release with asset and create discussion", async (t) => {
 
   t.is(result.url, releaseUrl);
   t.true(t.context.log.calledWith("Published GitHub release: %s", releaseUrl));
+  t.true(
+    t.context.log.calledWith(
+      "Created GitHub release discussion: %s",
+      discussionUrl,
+    ),
+  );
   t.true(t.context.log.calledWith("Published file %s", assetUrl));
   t.true(fetch.done());
 });
