@@ -8,6 +8,11 @@ name: Test
     types:
       - opened
       - synchronize
+
+env:
+  FORCE_COLOR: 1
+  NPM_CONFIG_COLOR: always
+
 jobs:
   # verify against ranges defined as supported in engines.node
   test_matrix:
