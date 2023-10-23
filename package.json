@@ -6,7 +6,8 @@
   "author": "Pierre Vanduynslager (https://twitter.com/@pvdlg_)",
   "ava": {
     "files": [
-      "test/**/*.test.js"
+      "test/**/*.test.js",
+      "!test/integration.test.js"
     ],
     "nodeArguments": [
       "--no-warnings"
@@ -17,7 +18,8 @@
   },
   "contributors": [
     "Stephan Bönnemann <stephan@boennemann.me> (http://boennemann.me)",
-    "Gregor Martynus (https://twitter.com/gr2m)"
+    "Gregor Martynus (https://twitter.com/gr2m)",
+    "Matt Travi <npm@travi.org> (https://matt.travi.org/)"
   ],
   "dependencies": {
     "@octokit/core": "^5.0.0",
@@ -41,8 +43,13 @@
     "ava": "5.3.1",
     "c8": "8.0.1",
     "cpy": "10.1.0",
+    "cz-conventional-changelog": "3.3.0",
     "fetch-mock": "npm:@gr2m/fetch-mock@9.11.0-pull-request-644.1",
+    "lockfile-lint": "4.12.1",
+    "ls-engines": "0.9.0",
+    "npm-run-all2": "6.1.1",
     "prettier": "3.0.3",
+    "publint": "0.2.5",
     "semantic-release": "22.0.5",
     "sinon": "17.0.0",
     "tempy": "3.1.0"
@@ -80,6 +87,19 @@
     ],
     "all": true
   },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  },
+  "lockfile-lint": {
+    "path": "package-lock.json",
+    "type": "npm",
+    "validate-https": true,
+    "allowed-hosts": [
+      "npm"
+    ]
+  },
   "peerDependencies": {
     "semantic-release": ">=20.1.0"
   },
@@ -93,10 +113,14 @@
   },
   "scripts": {
     "codecov": "codecov -f coverage/coverage-final.json",
-    "lint": "prettier --check \"{lib,test}/**/*.{js,json,ts}\" \"*.{js,md,json}\" \".github/**/*.yml\"",
-    "lint:fix": "prettier --write \"{lib,test}/**/*.{js,json,ts}\" \"*.{js,md,json}\" \".github/**/*.yml\"",
-    "semantic-release": "semantic-release",
-    "test": "c8 ava -v"
+    "lint:prettier": "prettier --check \"{lib,test}/**/*.{js,json,ts}\" \"*.{js,md,json}\" \".github/**/*.yml\"",
+    "lint:prettier:fix": "prettier --write \"{lib,test}/**/*.{js,json,ts}\" \"*.{js,md,json}\" \".github/**/*.yml\"",
+    "lint:lockfile": "lockfile-lint",
+    "lint:engines": "ls-engines",
+    "lint:publish": "publint --strict",
+    "test": "npm-run-all --print-label --parallel lint:* --parallel test:*",
+    "test:unit": "c8 ava --verbose",
+    "test:integration": "ava --verbose test/integration.test.js"
   },
   "renovate": {
     "extends": [

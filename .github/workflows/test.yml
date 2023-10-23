@@ -8,7 +8,13 @@ name: Test
     types:
       - opened
       - synchronize
+
+env:
+  FORCE_COLOR: 1
+  NPM_CONFIG_COLOR: always
+
 jobs:
+  # verify against ranges defined as supported in engines.node
   test_matrix:
     strategy:
       matrix:
@@ -27,21 +33,39 @@ jobs:
           node-version: "${{ matrix.node-version }}"
           cache: npm
       - run: npm clean-install
+      - run: npm audit signatures
       - run: npm test
-  test:
+
+  # verify against the node version defined for development in the .nvmrc
+  test_dev:
     runs-on: ubuntu-latest
-    needs: test_matrix
+    timeout-minutes: 5
+
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
-      - uses: actions/setup-node@1a4442cacd436585916779262731d5b162bc6ec7 # v3
+      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4
+      - run: git config --global user.name github-actions
+      - run: git config --global user.email github-actions@github.com
+      - name: Use Node.js from .nvmrc
+        uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3
         with:
-          node-version: "lts/*"
+          node-version-file: .nvmrc
           cache: npm
       - run: npm clean-install
       - run: npm audit signatures
-      - name: Ensure dependencies are compatible with the version of node
-        run: npx ls-engines
-      - run: npm run lint
-      # https://github.com/lirantal/lockfile-lint#readme
-      - name: Scan lockfile for security issues
-        run: npx lockfile-lint --path package-lock.json
+      - run: npm test
+
+  # separate job to set as required in branch protection,
+  # as the build names above change each time Node versions change
+  test:
+    runs-on: ubuntu-latest
+    needs:
+      - test_dev
+      - test_matrix
+    if: always()
+    steps:
+      - name: All matrix versions passed
+        if: ${{ !(contains(needs.*.result, 'failure')) }}
+        run: exit 0
+      - name: Some matrix version failed
+        if: ${{ contains(needs.*.result, 'failure') }}
+        run: exit 1
