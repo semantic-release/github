@@ -30,7 +30,7 @@
     "aggregate-error": "^5.0.0",
     "debug": "^4.3.4",
     "dir-glob": "^3.0.1",
-    "globby": "^13.1.4",
+    "globby": "^14.0.0",
     "http-proxy-agent": "^7.0.0",
     "https-proxy-agent": "^7.0.0",
     "issue-parser": "^6.0.0",
