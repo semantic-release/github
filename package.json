@@ -22,10 +22,10 @@
     "Matt Travi <npm@travi.org> (https://matt.travi.org/)"
   ],
   "dependencies": {
-    "@octokit/core": "^5.0.0",
-    "@octokit/plugin-paginate-rest": "^9.0.0",
-    "@octokit/plugin-retry": "^6.0.0",
-    "@octokit/plugin-throttling": "^8.0.0",
+    "@octokit/core": "^6.0.0",
+    "@octokit/plugin-paginate-rest": "^10.0.0",
+    "@octokit/plugin-retry": "^7.0.0",
+    "@octokit/plugin-throttling": "^9.0.0",
     "@semantic-release/error": "^4.0.0",
     "aggregate-error": "^5.0.0",
     "debug": "^4.3.4",
