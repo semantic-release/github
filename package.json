@@ -45,7 +45,7 @@
     "cpy": "10.1.0",
     "cz-conventional-changelog": "3.3.0",
     "fetch-mock": "npm:@gr2m/fetch-mock@9.11.0-pull-request-644.1",
-    "lockfile-lint": "4.12.1",
+    "lockfile-lint": "4.13.2",
     "ls-engines": "0.9.1",
     "npm-run-all2": "6.1.2",
     "prettier": "3.2.5",
