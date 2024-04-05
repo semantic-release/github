@@ -820,7 +820,7 @@ test("Publish a draft release with one asset", async (t) => {
   const repo = "test_repo";
   const env = { GITHUB_TOKEN: "github_token" };
   const pluginConfig = {
-    assets: [
+    githubReleaseAssets: [
       ["**", "!**/*.txt"],
       { path: ".dotfile", label: "A dotfile with no ext" },
     ],
