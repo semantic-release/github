@@ -71,18 +71,20 @@ When using the _GITHUB_TOKEN_, the **minimum required permissions** are:
 
 ### Environment variables
 
-| Variable                                     | Description                                               |
-| -------------------------------------------- | --------------------------------------------------------- |
-| `GH_TOKEN` or `GITHUB_TOKEN`                 | **Required.** The token used to authenticate with GitHub. |
-| `GITHUB_API_URL` or `GH_URL` or `GITHUB_URL` | The GitHub Enterprise endpoint.                           |
-| `GH_PREFIX` or `GITHUB_PREFIX`               | The GitHub Enterprise API prefix.                         |
+| Variable                       | Description                                                         |
+| ------------------------------ | ------------------------------------------------------------------- |
+| `GITHUB_TOKEN` or `GH_TOKEN`   | **Required.** The token used to authenticate with GitHub.           |
+| `GITHUB_URL` or `GH_URL`       | The GitHub server endpoint.                                         |
+| `GITHUB_PREFIX` or `GH_PREFIX` | The GitHub API prefix, relative to `GITHUB_URL`.                    |
+| `GITHUB_API_URL`               | The GitHub API endpoint. Note that this overwrites `GITHUB_PREFIX`. |
 
 ### Options
 
 | Option                   | Description                                                                                                                                                                                            | Default                                                                                                                                              |
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `githubUrl`              | The GitHub Enterprise endpoint.                                                                                                                                                                        | `GH_URL` or `GITHUB_URL` environment variable.                                                                                                       |
-| `githubApiPathPrefix`    | The GitHub Enterprise API prefix.                                                                                                                                                                      | `GH_PREFIX` or `GITHUB_PREFIX` environment variable.                                                                                                 |
+| `githubUrl`              | The GitHub server endpoint.                                                                                                                                                                            | `GH_URL` or `GITHUB_URL` environment variable.                                                                                                       |
+| `githubApiPathPrefix`    | The GitHub API prefix, relative to `githubUrl`.                                                                                                                                                        | `GH_PREFIX` or `GITHUB_PREFIX` environment variable.                                                                                                 |
+| `githubApiUrl`           | The GitHub API endpoint. Note that this overwrites `githubApiPathPrefix`.                                                                                                                              | `GITHUB_API_URL` environment variable.                                                                                                               |
 | `proxy`                  | The proxy to use to access the GitHub API. Set to `false` to disable usage of proxy. See [proxy](#proxy).                                                                                              | `HTTP_PROXY` environment variable.                                                                                                                   |
 | `assets`                 | An array of files to upload to the release. See [assets](#assets).                                                                                                                                     | -                                                                                                                                                    |
 | `successComment`         | The comment to add to each issue and pull request resolved by the release. Set to `false` to disable commenting on issues and pull requests. See [successComment](#successcomment).                    | `:tada: This issue has been resolved in version ${nextRelease.version} :tada:\n\nThe release is available on [GitHub release](<github_release_url>)` |
