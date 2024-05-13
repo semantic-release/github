@@ -35,7 +35,7 @@ The plugin can be configured in the [**semantic-release** configuration file](ht
     [
       "@semantic-release/github",
       {
-        "assets": [
+        "githubReleaseAssets": [
           { "path": "dist/asset.min.css", "label": "CSS distribution" },
           { "path": "dist/asset.min.js", "label": "JS distribution" }
         ]
@@ -80,11 +80,12 @@ When using the _GITHUB_TOKEN_, the **minimum required permissions** are:
 ### Options
 
 | Option                   | Description                                                                                                                                                                                            | Default                                                                                                                                              |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+|--------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `githubUrl`              | The GitHub Enterprise endpoint.                                                                                                                                                                        | `GH_URL` or `GITHUB_URL` environment variable.                                                                                                       |
 | `githubApiPathPrefix`    | The GitHub Enterprise API prefix.                                                                                                                                                                      | `GH_PREFIX` or `GITHUB_PREFIX` environment variable.                                                                                                 |
 | `proxy`                  | The proxy to use to access the GitHub API. Set to `false` to disable usage of proxy. See [proxy](#proxy).                                                                                              | `HTTP_PROXY` environment variable.                                                                                                                   |
-| `assets`                 | An array of files to upload to the release. See [assets](#assets).                                                                                                                                     | -                                                                                                                                                    |
+| `githubReleaseAssets`                 | An array of files to upload to the release. See [githubReleaseAssets](#githubreleaseassets).                                                                                                                        | -                                                                                                                                                    |
+| `assets`    | (deprecated) An alias of [githubReleaseAssets](#githubreleaseassets).                                                                                                                                                                         | -                                                                                                                                                    |
 | `successComment`         | The comment to add to each issue and pull request resolved by the release. Set to `false` to disable commenting on issues and pull requests. See [successComment](#successcomment).                    | `:tada: This issue has been resolved in version ${nextRelease.version} :tada:\n\nThe release is available on [GitHub release](<github_release_url>)` |
 | `failComment`            | The content of the issue created when a release fails. Set to `false` to disable opening an issue when a release fails. See [failComment](#failcomment).                                               | Friendly message with links to **semantic-release** documentation and support, with the list of errors that caused the release to fail.              |
 | `failTitle`              | The title of the issue created when a release fails. Set to `false` to disable opening an issue when a release fails.                                                                                  | `The automated release is failing 🚨`                                                                                                                |
@@ -115,7 +116,7 @@ See [node-https-proxy-agent](https://github.com/TooTallNate/node-https-proxy-age
 `'http://168.63.76.32:3128'`: use the proxy running on host `168.63.76.32` and port `3128` for each GitHub API request.
 `{host: '168.63.76.32', port: 3128, headers: {Foo: 'bar'}}`: use the proxy running on host `168.63.76.32` and port `3128` for each GitHub API request, setting the `Foo` header value to `bar`.
 
-#### assets
+#### githubReleaseAssets
 
 Can be a [glob](https://github.com/isaacs/node-glob#glob-primer) or and `Array` of
 [globs](https://github.com/isaacs/node-glob#glob-primer) and `Object`s with the following properties:
@@ -126,7 +127,7 @@ Can be a [glob](https://github.com/isaacs/node-glob#glob-primer) or and `Array` 
 | `name`   | The name of the downloadable file on the GitHub release.                                                 | File name extracted from the `path`. |
 | `label`  | Short description of the file displayed on the GitHub release.                                           | -                                    |
 
-Each entry in the `assets` `Array` is globbed individually. A [glob](https://github.com/isaacs/node-glob#glob-primer)
+Each entry in the `githubReleaseAssets` `Array` is globbed individually. A [glob](https://github.com/isaacs/node-glob#glob-primer)
 can be a `String` (`"dist/**/*.js"` or `"dist/mylib.js"`) or an `Array` of `String`s that will be globbed together
 (`["dist/**", "!**/*.css"]`).
 
@@ -141,9 +142,9 @@ The `name` and `label` for each assets are generated with [Lodash template](http
 | `nextRelease` | `Object` with `version`, `gitTag`, `gitHead` and `notes` of the release being done. |
 | `commits`     | `Array` of commit `Object`s with `hash`, `subject`, `body` `message` and `author`.  |
 
-**Note**: If a file has a match in `assets` it will be included even if it also has a match in `.gitignore`.
+**Note**: If a file has a match in `githubReleaseAssets` it will be included even if it also has a match in `.gitignore`.
 
-##### assets examples
+##### release assets examples
 
 `'dist/*.js'`: include all the `js` files in the `dist` directory, but not in its sub-directories.
 
