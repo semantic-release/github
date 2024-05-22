@@ -52,3 +52,18 @@ test("Do not use a proxy if set to false", async (t) => {
   });
   t.is(request.agent, undefined);
 });
+
+test("githubUrl with trailing slash", async (t) => {
+  const options = toOctokitOptions({
+    githubUrl: "http://localhost:10001/",
+    githubApiPathPrefix: "",
+  });
+  t.is(options.baseUrl, "http://localhost:10001");
+});
+
+test("githubApiUrl with trailing slash", async (t) => {
+  const options = toOctokitOptions({
+    githubApiUrl: "http://api.localhost:10001/",
+  });
+  t.is(options.baseUrl, "http://api.localhost:10001");
+});
