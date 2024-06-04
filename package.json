@@ -61,7 +61,7 @@
     "lib",
     "index.js"
   ],
-  "homepage": "https://github.com/semantic-release/github#readme",
+  "homepage": "https://github.com/semantic-release/github",
   "keywords": [
     "git",
     "github",
