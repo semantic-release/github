@@ -2,6 +2,8 @@ import { repeat } from "lodash-es";
 import sinon from "sinon";
 import test from "ava";
 import fetchMock from "fetch-mock";
+import assert from "assert";
+import { graphql } from "@octokit/graphql";
 
 import { ISSUE_ID } from "../lib/definitions/constants.js";
 import getReleaseLinks from "../lib/get-release-links.js";
@@ -9,7 +11,7 @@ import { TestOctokit } from "./helpers/test-octokit.js";
 
 /* eslint camelcase: ["error", {properties: "never"}] */
 
-import success from "../lib/success.js";
+import success, { loadAssociatedPRsQuery } from "../lib/success.js";
 
 test.beforeEach((t) => {
   // Mock logger
@@ -57,14 +59,37 @@ test("Add comment and labels to PRs associated with release commits and issues s
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${redirectedOwner}/${redirectedRepo}`,
     })
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${redirectedOwner}/${redirectedRepo}`,
-      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged",
-      )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: prs },
-    )
+    .postOnce("https://api.github.local/graphql", (url, options) => {
+      assert.strictEqual(options.headers.authorization, "token github_token");
+      assert.strictEqual(
+        options.body,
+        `${loadAssociatedPRsQuery(commits.map(c => c.hash))}`,
+      );
+      return {
+        data: {
+          repository: {
+            com1: {
+              associatedPullRequests: {
+                nodes: [
+                  {
+                    "number": 2
+                  }
+                ]
+              }
+            },
+            com2: {
+              associatedPullRequests: {
+                nodes: [
+                  {
+                    "number": 2
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    })
     .getOnce(
       `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/pulls/1/commits`,
       [{ sha: commits[0].hash }],
