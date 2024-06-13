@@ -41,7 +41,7 @@
   },
   "devDependencies": {
     "ava": "6.1.3",
-    "c8": "10.1.1",
+    "c8": "10.1.2",
     "cpy": "11.0.1",
     "cz-conventional-changelog": "3.3.0",
     "fetch-mock": "npm:@gr2m/fetch-mock@9.11.0-pull-request-644.1",
