@@ -63,16 +63,12 @@ test("Add comment and labels to PRs associated with release commits and issues s
         repository: {
           commit123: {
             associatedPullRequests: {
-              nodes: [
-                prs[0],
-              ],
+              nodes: [prs[0]],
             },
           },
           commit456: {
             associatedPullRequests: {
-              nodes: [
-                prs[1],
-              ],
+              nodes: [prs[1]],
             },
           },
         },
@@ -237,16 +233,12 @@ test("Add comment and labels to PRs associated with release commits and issues c
         repository: {
           commit123: {
             associatedPullRequests: {
-              nodes: [
-                prs[0],
-              ],
+              nodes: [prs[0]],
             },
           },
           commit456: {
             associatedPullRequests: {
-              nodes: [
-                prs[1],
-              ],
+              nodes: [prs[1]],
             },
           },
         },
@@ -432,44 +424,32 @@ test("Make multiple search queries if necessary", async (t) => {
         repository: {
           commitaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa: {
             associatedPullRequests: {
-              nodes: [
-                prs[0],
-              ],
+              nodes: [prs[0]],
             },
           },
           commitbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb: {
             associatedPullRequests: {
-              nodes: [
-                prs[1],
-              ],
+              nodes: [prs[1]],
             },
           },
           commitcccccccccccccccccccccccccccccccccccccccccc: {
             associatedPullRequests: {
-              nodes: [
-                prs[2],
-              ],
+              nodes: [prs[2]],
             },
           },
           commiteeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee: {
             associatedPullRequests: {
-              nodes: [
-                prs[3],
-              ],
+              nodes: [prs[3]],
             },
           },
           commitffffffffffffffffffffffffffffffffffffffffff: {
             associatedPullRequests: {
-              nodes: [
-                prs[4],
-              ],
+              nodes: [prs[4]],
             },
           },
           commitgggggggggggggggggggggggggggggggggggggggggg: {
             associatedPullRequests: {
-              nodes: [
-                prs[5],
-              ],
+              nodes: [prs[5]],
             },
           },
         },
@@ -688,18 +668,14 @@ test("Do not add comment and labels for unrelated PR returned by search (compare
         repository: {
           commit123: {
             associatedPullRequests: {
-              nodes: [
-                prs[0],
-              ],
+              nodes: [prs[0]],
             },
           },
           commit456: {
             associatedPullRequests: {
-              nodes: [
-                prs[1],
-              ],
+              nodes: [prs[1]],
             },
-          }
+          },
         },
       },
     })
@@ -796,7 +772,7 @@ test("Do not add comment and labels if no PR is associated with release commits"
             associatedPullRequests: {
               nodes: [],
             },
-          }
+          },
         },
       },
     })
@@ -872,7 +848,7 @@ test("Do not add comment and labels to PR/issues from other repo", async (t) => 
             associatedPullRequests: {
               nodes: [],
             },
-          }
+          },
         },
       },
     })
@@ -960,25 +936,19 @@ test("Ignore missing and forbidden issues/PRs", async (t) => {
         repository: {
           commit123: {
             associatedPullRequests: {
-              nodes: [
-                prs[0]
-              ],
+              nodes: [prs[0]],
             },
           },
           commit456: {
             associatedPullRequests: {
-              nodes: [
-                prs[1]
-              ],
+              nodes: [prs[1]],
             },
           },
           commit789: {
             associatedPullRequests: {
-              nodes: [
-                prs[2]
-              ],
+              nodes: [prs[2]],
             },
-          }
+          },
         },
       },
     })
@@ -1135,11 +1105,9 @@ test("Add custom comment and labels", async (t) => {
         repository: {
           commit123: {
             associatedPullRequests: {
-              nodes: [
-                prs[0]
-              ],
+              nodes: [prs[0]],
             },
-          }
+          },
         },
       },
     })
@@ -1232,11 +1200,9 @@ test("Add custom label", async (t) => {
         repository: {
           commit123: {
             associatedPullRequests: {
-              nodes: [
-                prs[0]
-              ],
+              nodes: [prs[0]],
             },
-          }
+          },
         },
       },
     })
@@ -1324,11 +1290,9 @@ test("Comment on issue/PR without ading a label", async (t) => {
         repository: {
           commit123: {
             associatedPullRequests: {
-              nodes: [
-                prs[0]
-              ],
+              nodes: [prs[0]],
             },
-          }
+          },
         },
       },
     })
@@ -1419,11 +1383,9 @@ test("Editing the release to include all release links at the bottom", async (t)
         repository: {
           commit123: {
             associatedPullRequests: {
-              nodes: [
-                prs[0]
-              ],
+              nodes: [prs[0]],
             },
-          }
+          },
         },
       },
     })
@@ -1525,11 +1487,9 @@ test("Editing the release to include all release links at the top", async (t) =>
         repository: {
           commit123: {
             associatedPullRequests: {
-              nodes: [
-                prs[0]
-              ],
+              nodes: [prs[0]],
             },
-          }
+          },
         },
       },
     })
@@ -1628,11 +1588,9 @@ test("Editing the release to include all release links with no additional releas
         repository: {
           commit123: {
             associatedPullRequests: {
-              nodes: [
-                prs[0]
-              ],
+              nodes: [prs[0]],
             },
-          }
+          },
         },
       },
     })
@@ -1720,11 +1678,9 @@ test("Editing the release to include all release links with no additional releas
         repository: {
           commit123: {
             associatedPullRequests: {
-              nodes: [
-                prs[0]
-              ],
+              nodes: [prs[0]],
             },
-          }
+          },
         },
       },
     })
@@ -1805,11 +1761,9 @@ test("Editing the release to include all release links with no releases", async 
         repository: {
           commit123: {
             associatedPullRequests: {
-              nodes: [
-                prs[0]
-              ],
+              nodes: [prs[0]],
             },
-          }
+          },
         },
       },
     })
@@ -1892,11 +1846,9 @@ test("Editing the release with no ID in the release", async (t) => {
         repository: {
           commit123: {
             associatedPullRequests: {
-              nodes: [
-                prs[0]
-              ],
+              nodes: [prs[0]],
             },
-          }
+          },
         },
       },
     })
@@ -1984,18 +1936,14 @@ test("Ignore errors when adding comments and closing issues", async (t) => {
         repository: {
           commit123: {
             associatedPullRequests: {
-              nodes: [
-                prs[0]
-              ],
+              nodes: [prs[0]],
             },
           },
           commit456: {
             associatedPullRequests: {
-              nodes: [
-                prs[1]
-              ],
+              nodes: [prs[1]],
             },
-          }
+          },
         },
       },
     })
@@ -2123,7 +2071,7 @@ test("Close open issues when a release is successful", async (t) => {
             associatedPullRequests: {
               nodes: [],
             },
-          }
+          },
         },
       },
     })
@@ -2274,7 +2222,7 @@ test('Skip closing issues if "failComment" is "false"', async (t) => {
             associatedPullRequests: {
               nodes: [],
             },
-          }
+          },
         },
       },
     });
@@ -2325,7 +2273,7 @@ test('Skip closing issues if "failTitle" is "false"', async (t) => {
             associatedPullRequests: {
               nodes: [],
             },
-          }
+          },
         },
       },
     });

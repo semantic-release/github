@@ -437,11 +437,9 @@ test("Comment and add labels on PR included in the releases", async (t) => {
         repository: {
           commit123: {
             associatedPullRequests: {
-              nodes: [
-                prs[0],
-              ],
+              nodes: [prs[0]],
             },
-          }
+          },
         },
       },
     })
@@ -659,11 +657,9 @@ test("Verify, release and notify success", async (t) => {
         repository: {
           commit123: {
             associatedPullRequests: {
-              nodes: [
-                prs[0],
-              ],
+              nodes: [prs[0]],
             },
-          }
+          },
         },
       },
     })
@@ -806,7 +802,7 @@ test("Verify, update release and notify success", async (t) => {
           tag_name: nextRelease.gitTag,
           name: nextRelease.name,
           prerelease: false,
-        }
+        },
       },
     )
     .postOnce("https://api.github.local/graphql", {
@@ -814,11 +810,9 @@ test("Verify, update release and notify success", async (t) => {
         repository: {
           commit123: {
             associatedPullRequests: {
-              nodes: [
-                prs[0],
-              ],
+              nodes: [prs[0]],
             },
-          }
+          },
         },
       },
     })
