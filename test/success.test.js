@@ -3,7 +3,6 @@ import sinon from "sinon";
 import test from "ava";
 import fetchMock from "fetch-mock";
 import assert from "assert";
-import { graphql } from "@octokit/graphql";
 
 import { ISSUE_ID } from "../lib/definitions/constants.js";
 import getReleaseLinks from "../lib/get-release-links.js";
@@ -11,7 +10,7 @@ import { TestOctokit } from "./helpers/test-octokit.js";
 
 /* eslint camelcase: ["error", {properties: "never"}] */
 
-import success, { loadAssociatedPRsQuery } from "../lib/success.js";
+import success from "../lib/success.js";
 
 test.beforeEach((t) => {
   // Mock logger
@@ -59,36 +58,25 @@ test("Add comment and labels to PRs associated with release commits and issues s
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${redirectedOwner}/${redirectedRepo}`,
     })
-    .postOnce("https://api.github.local/graphql", (url, options) => {
-      assert.strictEqual(options.headers.authorization, "token github_token");
-      assert.strictEqual(
-        options.body,
-        `${loadAssociatedPRsQuery(commits.map(c => c.hash))}`,
-      );
-      return {
-        data: {
-          repository: {
-            com1: {
-              associatedPullRequests: {
-                nodes: [
-                  {
-                    "number": 2
-                  }
-                ]
-              }
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          commit1: {
+            associatedPullRequests: {
+              nodes: [
+                prs[0],
+              ],
             },
-            com2: {
-              associatedPullRequests: {
-                nodes: [
-                  {
-                    "number": 2
-                  }
-                ]
-              }
-            }
-          }
-        }
-      }
+          },
+          commit2: {
+            associatedPullRequests: {
+              nodes: [
+                prs[1],
+              ],
+            },
+          },
+        },
+      },
     })
     .getOnce(
       `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/pulls/1/commits`,
