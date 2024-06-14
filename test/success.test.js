@@ -437,6 +437,47 @@ test("Make multiple search queries if necessary", async (t) => {
       }`,
       { items: [prs[0], prs[1], prs[2], prs[3], prs[4]] },
     )
+    // .postOnce("https://api.github.local/graphql", {
+    //   data: {
+    //     repository: {
+    //       commit1: {
+    //         associatedPullRequests: {
+    //           nodes: [
+    //             prs[0],
+    //           ],
+    //         },
+    //       },
+    //       commit2: {
+    //         associatedPullRequests: {
+    //           nodes: [
+    //             prs[1],
+    //           ],
+    //         },
+    //       },
+    //       commit3: {
+    //         associatedPullRequests: {
+    //           nodes: [
+    //             prs[2],
+    //           ],
+    //         },
+    //       },
+    //       commit4: {
+    //         associatedPullRequests: {
+    //           nodes: [
+    //             prs[3],
+    //           ],
+    //         },
+    //       },
+    //       commit5: {
+    //         associatedPullRequests: {
+    //           nodes: [
+    //             prs[4],
+    //           ],
+    //         },
+    //       },
+    //     },
+    //   },
+    // })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
         `repo:${owner}/${repo}`,
@@ -445,6 +486,26 @@ test("Make multiple search queries if necessary", async (t) => {
       }+${commits[6].hash}`,
       { items: [prs[5], prs[1]] },
     )
+    // .postOnce("https://api.github.local/graphql", {
+    //   data: {
+    //     repository: {
+    //       commit1: {
+    //         associatedPullRequests: {
+    //           nodes: [
+    //             prs[5],
+    //           ],
+    //         },
+    //       },
+    //       commit2: {
+    //         associatedPullRequests: {
+    //           nodes: [
+    //             prs[1],
+    //           ],
+    //         },
+    //       }
+    //     },
+    //   },
+    // }, { overwriteRoutes: true })
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
       [{ sha: commits[0].hash }],
@@ -653,14 +714,26 @@ test("Do not add comment and labels for unrelated PR returned by search (compare
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
     })
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`,
-      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged",
-      )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: prs },
-    )
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          commit1: {
+            associatedPullRequests: {
+              nodes: [
+                prs[0],
+              ],
+            },
+          },
+          commit2: {
+            associatedPullRequests: {
+              nodes: [
+                prs[1],
+              ],
+            },
+          }
+        },
+      },
+    })
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
       [{ sha: "rebased_sha" }],
