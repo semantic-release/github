@@ -61,14 +61,14 @@ test("Add comment and labels to PRs associated with release commits and issues s
     .postOnce("https://api.github.local/graphql", {
       data: {
         repository: {
-          commit1: {
+          commit123: {
             associatedPullRequests: {
               nodes: [
                 prs[0],
               ],
             },
           },
-          commit2: {
+          commit456: {
             associatedPullRequests: {
               nodes: [
                 prs[1],
@@ -235,14 +235,14 @@ test("Add comment and labels to PRs associated with release commits and issues c
     .postOnce("https://custom-url.com/prefix/graphql", {
       data: {
         repository: {
-          commit1: {
+          commit123: {
             associatedPullRequests: {
               nodes: [
                 prs[0],
               ],
             },
           },
-          commit2: {
+          commit456: {
             associatedPullRequests: {
               nodes: [
                 prs[1],
@@ -427,85 +427,54 @@ test("Make multiple search queries if necessary", async (t) => {
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
     })
-    // .getOnce(
-    //   `https://api.github.local/search/issues?q=${encodeURIComponent(
-    //     `repo:${owner}/${repo}`,
-    //   )}+${encodeURIComponent("type:pr")}+${encodeURIComponent("is:merged")}+${
-    //     commits[0].hash
-    //   }+${commits[1].hash}+${commits[2].hash}+${commits[3].hash}+${
-    //     commits[4].hash
-    //   }`,
-    //   { items: [prs[0], prs[1], prs[2], prs[3], prs[4]] },
-    // )
-    .postOnce("https://api.github.local/graphql", {
+    .post("https://api.github.local/graphql", {
       data: {
         repository: {
-          commit1: {
+          commitaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa: {
             associatedPullRequests: {
               nodes: [
                 prs[0],
               ],
             },
           },
-          commit2: {
+          commitbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb: {
             associatedPullRequests: {
               nodes: [
                 prs[1],
               ],
             },
           },
-          commit3: {
+          commitcccccccccccccccccccccccccccccccccccccccccc: {
             associatedPullRequests: {
               nodes: [
                 prs[2],
               ],
             },
           },
-          commit4: {
+          commiteeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee: {
             associatedPullRequests: {
               nodes: [
                 prs[3],
               ],
             },
           },
-          commit5: {
+          commitffffffffffffffffffffffffffffffffffffffffff: {
             associatedPullRequests: {
               nodes: [
                 prs[4],
               ],
             },
           },
-        },
-      },
-    })
-    // .getOnce(
-    //   `https://api.github.local/search/issues?q=${encodeURIComponent(
-    //     `repo:${owner}/${repo}`,
-    //   )}+${encodeURIComponent("type:pr")}+${encodeURIComponent("is:merged")}+${
-    //     commits[5].hash
-    //   }+${commits[6].hash}`,
-    //   { items: [prs[5], prs[1]] },
-    // )
-    .postOnce("https://api.github.local/graphql", {
-      data: {
-        repository: {
-          commit1: {
+          commitgggggggggggggggggggggggggggggggggggggggggg: {
             associatedPullRequests: {
               nodes: [
                 prs[5],
               ],
             },
           },
-          commit2: {
-            associatedPullRequests: {
-              nodes: [
-                prs[1],
-              ],
-            },
-          }
         },
       },
-    }, { overwriteRoutes: true })
+    })
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
       [{ sha: commits[0].hash }],
@@ -717,14 +686,14 @@ test("Do not add comment and labels for unrelated PR returned by search (compare
     .postOnce("https://api.github.local/graphql", {
       data: {
         repository: {
-          commit1: {
+          commit123: {
             associatedPullRequests: {
               nodes: [
                 prs[0],
               ],
             },
           },
-          commit2: {
+          commit456: {
             associatedPullRequests: {
               nodes: [
                 prs[1],
