@@ -820,14 +820,17 @@ test("Do not add comment and labels if no PR is associated with release commits"
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
     })
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`,
-      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged",
-      )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: [] },
-    )
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          commit123: {
+            associatedPullRequests: {
+              nodes: [],
+            },
+          }
+        },
+      },
+    })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
         "in:title",
