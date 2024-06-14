@@ -232,14 +232,26 @@ test("Add comment and labels to PRs associated with release commits and issues c
     .getOnce(`https://custom-url.com/prefix/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
     })
-    .getOnce(
-      `https://custom-url.com/prefix/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`,
-      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged",
-      )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: prs },
-    )
+    .postOnce("https://custom-url.com/prefix/graphql", {
+      data: {
+        repository: {
+          commit1: {
+            associatedPullRequests: {
+              nodes: [
+                prs[0],
+              ],
+            },
+          },
+          commit2: {
+            associatedPullRequests: {
+              nodes: [
+                prs[1],
+              ],
+            },
+          },
+        },
+      },
+    })
     .getOnce(
       `https://custom-url.com/prefix/repos/${owner}/${repo}/pulls/1/commits`,
       [{ sha: commits[0].hash }],
