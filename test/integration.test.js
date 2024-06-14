@@ -432,14 +432,19 @@ test("Comment and add labels on PR included in the releases", async (t) => {
         repeat: 2,
       },
     )
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`,
-      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged",
-      )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: prs },
-    )
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          commit123: {
+            associatedPullRequests: {
+              nodes: [
+                prs[0],
+              ],
+            },
+          }
+        },
+      },
+    })
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
       [{ sha: commits[0].hash }],
@@ -649,14 +654,19 @@ test("Verify, release and notify success", async (t) => {
       { html_url: releaseUrl },
       { body: { draft: false } },
     )
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`,
-      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged",
-      )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: prs },
-    )
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          commit123: {
+            associatedPullRequests: {
+              nodes: [
+                prs[0],
+              ],
+            },
+          }
+        },
+      },
+    })
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
       [{ sha: commits[0].hash }],
@@ -686,7 +696,6 @@ test("Verify, release and notify success", async (t) => {
         browser_download_url: otherAssetUrl,
       },
     )
-
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
       {
@@ -797,17 +806,22 @@ test("Verify, update release and notify success", async (t) => {
           tag_name: nextRelease.gitTag,
           name: nextRelease.name,
           prerelease: false,
-        },
+        }
       },
     )
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`,
-      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged",
-      )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: prs },
-    )
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          commit123: {
+            associatedPullRequests: {
+              nodes: [
+                prs[0],
+              ],
+            },
+          }
+        },
+      },
+    })
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
       [{ sha: commits[0].hash }],
