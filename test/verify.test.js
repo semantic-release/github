@@ -263,7 +263,7 @@ test("Verify package, token and repository with environment variables", async (t
   ]);
 });
 
-test("Verify package, token and repository access with alternative environment varialbes", async (t) => {
+test("Verify package, token and repository access with alternative environment variables", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
   const env = {
@@ -275,6 +275,79 @@ test("Verify package, token and repository access with alternative environment v
   const fetch = fetchMock
     .sandbox()
     .getOnce(`https://othertesturl.com:443/prefix/repos/${owner}/${repo}`, {
+      permissions: { push: true },
+    });
+
+  await t.notThrowsAsync(
+    verify(
+      {},
+      {
+        env,
+        options: {
+          repositoryUrl: `git@othertesturl.com:${owner}/${repo}.git`,
+        },
+        logger: t.context.logger,
+      },
+      {
+        Octokit: TestOctokit.defaults((options) => ({
+          ...options,
+          request: { ...options.request, fetch },
+        })),
+      },
+    ),
+  );
+  t.true(fetch.done());
+});
+
+test("Verify package, token and repository access with custom API URL", async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GH_TOKEN: "github_token" };
+  const githubUrl = "https://othertesturl.com:9090";
+  const githubApiUrl = "https://api.othertesturl.com:9090";
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.othertesturl.com:9090/repos/${owner}/${repo}`, {
+      permissions: { push: true },
+    });
+
+  await t.notThrowsAsync(
+    verify(
+      { githubUrl, githubApiUrl },
+      {
+        env,
+        options: { repositoryUrl: `github:${owner}/${repo}` },
+        logger: t.context.logger,
+      },
+      {
+        Octokit: TestOctokit.defaults((options) => ({
+          ...options,
+          request: { ...options.request, fetch },
+        })),
+      },
+    ),
+  );
+
+  t.true(fetch.done());
+  t.deepEqual(t.context.log.args[0], [
+    "Verify GitHub authentication (%s)",
+    "https://api.othertesturl.com:9090",
+  ]);
+});
+
+test("Verify package, token and repository access with API URL in environment variable", async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = {
+    GITHUB_URL: "https://othertesturl.com:443",
+    GITHUB_API_URL: "https://api.othertesturl.com:443",
+    GITHUB_TOKEN: "github_token",
+  };
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.othertesturl.com:443/repos/${owner}/${repo}`, {
       permissions: { push: true },
     });
 
