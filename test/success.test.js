@@ -2,6 +2,7 @@ import { repeat } from "lodash-es";
 import sinon from "sinon";
 import test from "ava";
 import fetchMock from "fetch-mock";
+import assert from "assert";
 
 import { ISSUE_ID } from "../lib/definitions/constants.js";
 import getReleaseLinks from "../lib/get-release-links.js";
@@ -57,14 +58,22 @@ test("Add comment and labels to PRs associated with release commits and issues s
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${redirectedOwner}/${redirectedRepo}`,
     })
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${redirectedOwner}/${redirectedRepo}`,
-      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged",
-      )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: prs },
-    )
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          commit123: {
+            associatedPullRequests: {
+              nodes: [prs[0]],
+            },
+          },
+          commit456: {
+            associatedPullRequests: {
+              nodes: [prs[1]],
+            },
+          },
+        },
+      },
+    })
     .getOnce(
       `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/pulls/1/commits`,
       [{ sha: commits[0].hash }],
@@ -219,14 +228,22 @@ test("Add comment and labels to PRs associated with release commits and issues c
     .getOnce(`https://custom-url.com/prefix/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
     })
-    .getOnce(
-      `https://custom-url.com/prefix/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`,
-      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged",
-      )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: prs },
-    )
+    .postOnce("https://custom-url.com/prefix/graphql", {
+      data: {
+        repository: {
+          commit123: {
+            associatedPullRequests: {
+              nodes: [prs[0]],
+            },
+          },
+          commit456: {
+            associatedPullRequests: {
+              nodes: [prs[1]],
+            },
+          },
+        },
+      },
+    })
     .getOnce(
       `https://custom-url.com/prefix/repos/${owner}/${repo}/pulls/1/commits`,
       [{ sha: commits[0].hash }],
@@ -402,24 +419,42 @@ test("Make multiple search queries if necessary", async (t) => {
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
     })
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`,
-      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent("is:merged")}+${
-        commits[0].hash
-      }+${commits[1].hash}+${commits[2].hash}+${commits[3].hash}+${
-        commits[4].hash
-      }`,
-      { items: [prs[0], prs[1], prs[2], prs[3], prs[4]] },
-    )
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`,
-      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent("is:merged")}+${
-        commits[5].hash
-      }+${commits[6].hash}`,
-      { items: [prs[5], prs[1]] },
-    )
+    .post("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          commitaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa: {
+            associatedPullRequests: {
+              nodes: [prs[0]],
+            },
+          },
+          commitbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb: {
+            associatedPullRequests: {
+              nodes: [prs[1]],
+            },
+          },
+          commitcccccccccccccccccccccccccccccccccccccccccc: {
+            associatedPullRequests: {
+              nodes: [prs[2]],
+            },
+          },
+          commiteeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee: {
+            associatedPullRequests: {
+              nodes: [prs[3]],
+            },
+          },
+          commitffffffffffffffffffffffffffffffffffffffffff: {
+            associatedPullRequests: {
+              nodes: [prs[4]],
+            },
+          },
+          commitgggggggggggggggggggggggggggggggggggggggggg: {
+            associatedPullRequests: {
+              nodes: [prs[5]],
+            },
+          },
+        },
+      },
+    })
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
       [{ sha: commits[0].hash }],
@@ -628,14 +663,22 @@ test("Do not add comment and labels for unrelated PR returned by search (compare
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
     })
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`,
-      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged",
-      )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: prs },
-    )
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          commit123: {
+            associatedPullRequests: {
+              nodes: [prs[0]],
+            },
+          },
+          commit456: {
+            associatedPullRequests: {
+              nodes: [prs[1]],
+            },
+          },
+        },
+      },
+    })
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
       [{ sha: "rebased_sha" }],
@@ -722,14 +765,17 @@ test("Do not add comment and labels if no PR is associated with release commits"
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
     })
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`,
-      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged",
-      )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: [] },
-    )
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          commit123: {
+            associatedPullRequests: {
+              nodes: [],
+            },
+          },
+        },
+      },
+    })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
         "in:title",
@@ -785,14 +831,27 @@ test("Do not add comment and labels to PR/issues from other repo", async (t) => 
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
     })
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`,
-      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged",
-      )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: [] },
-    )
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          commit123: {
+            associatedPullRequests: {
+              nodes: [],
+            },
+          },
+          commit456: {
+            associatedPullRequests: {
+              nodes: [],
+            },
+          },
+          commit789: {
+            associatedPullRequests: {
+              nodes: [],
+            },
+          },
+        },
+      },
+    })
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/2/comments`,
       { html_url: "https://github.com/successcomment-2" },
@@ -872,14 +931,27 @@ test("Ignore missing and forbidden issues/PRs", async (t) => {
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
     })
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`,
-      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged",
-      )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: prs },
-    )
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          commit123: {
+            associatedPullRequests: {
+              nodes: [prs[0]],
+            },
+          },
+          commit456: {
+            associatedPullRequests: {
+              nodes: [prs[1]],
+            },
+          },
+          commit789: {
+            associatedPullRequests: {
+              nodes: [prs[2]],
+            },
+          },
+        },
+      },
+    })
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
       [{ sha: commits[0].hash }],
@@ -1028,14 +1100,17 @@ test("Add custom comment and labels", async (t) => {
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
     })
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`,
-      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged",
-      )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: prs },
-    )
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          commit123: {
+            associatedPullRequests: {
+              nodes: [prs[0]],
+            },
+          },
+        },
+      },
+    })
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
       [{ sha: commits[0].hash }],
@@ -1120,14 +1195,17 @@ test("Add custom label", async (t) => {
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
     })
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`,
-      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged",
-      )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: prs },
-    )
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          commit123: {
+            associatedPullRequests: {
+              nodes: [prs[0]],
+            },
+          },
+        },
+      },
+    })
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
       [{ sha: commits[0].hash }],
@@ -1207,14 +1285,17 @@ test("Comment on issue/PR without ading a label", async (t) => {
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
     })
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`,
-      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged",
-      )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: prs },
-    )
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          commit123: {
+            associatedPullRequests: {
+              nodes: [prs[0]],
+            },
+          },
+        },
+      },
+    })
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
       [{ sha: commits[0].hash }],
@@ -1297,14 +1378,17 @@ test("Editing the release to include all release links at the bottom", async (t)
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
     })
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`,
-      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged",
-      )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: prs },
-    )
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          commit123: {
+            associatedPullRequests: {
+              nodes: [prs[0]],
+            },
+          },
+        },
+      },
+    })
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
       [{ sha: commits[0].hash }],
@@ -1398,14 +1482,17 @@ test("Editing the release to include all release links at the top", async (t) =>
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
     })
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`,
-      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged",
-      )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: prs },
-    )
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          commit123: {
+            associatedPullRequests: {
+              nodes: [prs[0]],
+            },
+          },
+        },
+      },
+    })
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
       [{ sha: commits[0].hash }],
@@ -1496,14 +1583,17 @@ test("Editing the release to include all release links with no additional releas
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
     })
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`,
-      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged",
-      )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: prs },
-    )
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          commit123: {
+            associatedPullRequests: {
+              nodes: [prs[0]],
+            },
+          },
+        },
+      },
+    })
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
       [{ sha: commits[0].hash }],
@@ -1583,14 +1673,17 @@ test("Editing the release to include all release links with no additional releas
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
     })
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`,
-      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged",
-      )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: prs },
-    )
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          commit123: {
+            associatedPullRequests: {
+              nodes: [prs[0]],
+            },
+          },
+        },
+      },
+    })
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
       [{ sha: commits[0].hash }],
@@ -1663,14 +1756,17 @@ test("Editing the release to include all release links with no releases", async 
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
     })
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`,
-      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged",
-      )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: prs },
-    )
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          commit123: {
+            associatedPullRequests: {
+              nodes: [prs[0]],
+            },
+          },
+        },
+      },
+    })
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
       [{ sha: commits[0].hash }],
@@ -1745,14 +1841,17 @@ test("Editing the release with no ID in the release", async (t) => {
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
     })
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`,
-      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged",
-      )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: prs },
-    )
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          commit123: {
+            associatedPullRequests: {
+              nodes: [prs[0]],
+            },
+          },
+        },
+      },
+    })
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
       [{ sha: commits[0].hash }],
@@ -1832,14 +1931,22 @@ test("Ignore errors when adding comments and closing issues", async (t) => {
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
     })
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`,
-      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged",
-      )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: prs },
-    )
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          commit123: {
+            associatedPullRequests: {
+              nodes: [prs[0]],
+            },
+          },
+          commit456: {
+            associatedPullRequests: {
+              nodes: [prs[1]],
+            },
+          },
+        },
+      },
+    })
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
       [{ sha: commits[0].hash }],
@@ -1957,14 +2064,17 @@ test("Close open issues when a release is successful", async (t) => {
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
     })
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`,
-      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged",
-      )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: [] },
-    )
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          commit123: {
+            associatedPullRequests: {
+              nodes: [],
+            },
+          },
+        },
+      },
+    })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
         "in:title",
@@ -2105,14 +2215,17 @@ test('Skip closing issues if "failComment" is "false"', async (t) => {
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
     })
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`,
-      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged",
-      )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: [] },
-    );
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          commit123: {
+            associatedPullRequests: {
+              nodes: [],
+            },
+          },
+        },
+      },
+    });
 
   await success(
     pluginConfig,
@@ -2153,14 +2266,17 @@ test('Skip closing issues if "failTitle" is "false"', async (t) => {
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
     })
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        `repo:${owner}/${repo}`,
-      )}+${encodeURIComponent("type:pr")}+${encodeURIComponent(
-        "is:merged",
-      )}+${commits.map((commit) => commit.hash).join("+")}`,
-      { items: [] },
-    );
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          commit123: {
+            associatedPullRequests: {
+              nodes: [],
+            },
+          },
+        },
+      },
+    });
 
   await success(
     pluginConfig,
