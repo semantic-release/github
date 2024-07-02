@@ -91,7 +91,7 @@ test("Add comment and labels to PRs associated with release commits and issues s
     .postOnce(
       `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/issues/1/labels`,
       {},
-      { body: ["released"] },
+      { labels: ["released"] },
     )
     .postOnce(
       `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/issues/2/comments`,
@@ -100,7 +100,7 @@ test("Add comment and labels to PRs associated with release commits and issues s
     .postOnce(
       `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/issues/2/labels`,
       {},
-      { body: ["released"] },
+      { labels: ["released"] },
     )
     .postOnce(
       `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/issues/3/comments`,
@@ -109,7 +109,7 @@ test("Add comment and labels to PRs associated with release commits and issues s
     .postOnce(
       `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/issues/3/labels`,
       {},
-      { body: ["released"] },
+      { labels: ["released"] },
     )
     .postOnce(
       `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/issues/4/comments`,
@@ -118,7 +118,7 @@ test("Add comment and labels to PRs associated with release commits and issues s
     .postOnce(
       `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/issues/4/labels`,
       {},
-      { body: ["released"] },
+      { labels: ["released"] },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
@@ -261,7 +261,7 @@ test("Add comment and labels to PRs associated with release commits and issues c
     .postOnce(
       `https://custom-url.com/prefix/repos/${owner}/${repo}/issues/1/labels`,
       {},
-      { body: ["released on @next"] },
+      { labels: ["released on @next"] },
     )
     .postOnce(
       `https://custom-url.com/prefix/repos/${owner}/${repo}/issues/2/comments`,
@@ -272,7 +272,7 @@ test("Add comment and labels to PRs associated with release commits and issues c
     .postOnce(
       `https://custom-url.com/prefix/repos/${owner}/${repo}/issues/2/labels`,
       {},
-      { body: ["released on @next"] },
+      { labels: ["released on @next"] },
     )
     .postOnce(
       `https://custom-url.com/prefix/repos/${owner}/${repo}/issues/3/comments`,
@@ -283,7 +283,7 @@ test("Add comment and labels to PRs associated with release commits and issues c
     .postOnce(
       `https://custom-url.com/prefix/repos/${owner}/${repo}/issues/3/labels`,
       {},
-      { body: ["released on @next"] },
+      { labels: ["released on @next"] },
     )
     .postOnce(
       `https://custom-url.com/prefix/repos/${owner}/${repo}/issues/4/comments`,
@@ -294,7 +294,7 @@ test("Add comment and labels to PRs associated with release commits and issues c
     .postOnce(
       `https://custom-url.com/prefix/repos/${owner}/${repo}/issues/4/labels`,
       {},
-      { body: ["released on @next"] },
+      { labels: ["released on @next"] },
     )
     .getOnce(
       `https://custom-url.com/prefix/search/issues?q=${encodeURIComponent(
@@ -487,7 +487,7 @@ test("Make multiple search queries if necessary", async (t) => {
       `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
       {},
       {
-        body: ["released"],
+        labels: ["released"],
       },
     )
     .postOnce(
@@ -498,7 +498,7 @@ test("Make multiple search queries if necessary", async (t) => {
       `https://api.github.local/repos/${owner}/${repo}/issues/2/labels`,
       {},
       {
-        body: ["released"],
+        labels: ["released"],
       },
     )
     .postOnce(
@@ -509,7 +509,7 @@ test("Make multiple search queries if necessary", async (t) => {
       `https://api.github.local/repos/${owner}/${repo}/issues/3/labels`,
       {},
       {
-        body: ["released"],
+        labels: ["released"],
       },
     )
     .postOnce(
@@ -520,7 +520,7 @@ test("Make multiple search queries if necessary", async (t) => {
       `https://api.github.local/repos/${owner}/${repo}/issues/4/labels`,
       {},
       {
-        body: ["released"],
+        labels: ["released"],
       },
     )
     .postOnce(
@@ -531,7 +531,7 @@ test("Make multiple search queries if necessary", async (t) => {
       `https://api.github.local/repos/${owner}/${repo}/issues/5/labels`,
       {},
       {
-        body: ["released"],
+        labels: ["released"],
       },
     )
     .postOnce(
@@ -542,7 +542,7 @@ test("Make multiple search queries if necessary", async (t) => {
       `https://api.github.local/repos/${owner}/${repo}/issues/6/labels`,
       {},
       {
-        body: ["released"],
+        labels: ["released"],
       },
     )
     .getOnce(
@@ -702,7 +702,7 @@ test("Do not add comment and labels for unrelated PR returned by search (compare
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
       {},
-      { body: ["released"] },
+      { labels: ["released"] },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
@@ -859,7 +859,7 @@ test("Do not add comment and labels to PR/issues from other repo", async (t) => 
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/2/labels`,
       {},
-      { body: ["released"] },
+      { labels: ["released"] },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
@@ -971,7 +971,7 @@ test("Ignore missing and forbidden issues/PRs", async (t) => {
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
       {},
-      { body: ["released"] },
+      { labels: ["released"] },
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/2/comments`,
@@ -988,7 +988,7 @@ test("Ignore missing and forbidden issues/PRs", async (t) => {
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/4/labels`,
       {},
-      { body: ["released"] },
+      { labels: ["released"] },
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/5/comments`,
@@ -997,7 +997,7 @@ test("Ignore missing and forbidden issues/PRs", async (t) => {
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/5/labels`,
       {},
-      { body: ["released"] },
+      { labels: ["released"] },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
@@ -1058,13 +1058,13 @@ test("Ignore missing and forbidden issues/PRs", async (t) => {
   );
   t.true(
     t.context.error.calledWith(
-      "Failed to add a comment to the issue #%d as it doesn't exist.",
+      "Failed to add comment/label to the issue #%d as it doesn't exist.",
       2,
     ),
   );
   t.true(
     t.context.error.calledWith(
-      "Not allowed to add a comment to the issue #%d.",
+      "Not allowed to add comment/label to the issue #%d.",
       3,
     ),
   );
@@ -1127,7 +1127,7 @@ test("Add custom comment and labels", async (t) => {
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
       {},
-      { body: ["released on @next", "released from master"] },
+      { labels: ["released on @next", "released from master"] },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
@@ -1217,7 +1217,7 @@ test("Add custom label", async (t) => {
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
       {},
-      { body: ["custom label"] },
+      { labels: ["custom label"] },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
@@ -1265,7 +1265,7 @@ test("Add custom label", async (t) => {
   t.true(fetch.done());
 });
 
-test("Comment on issue/PR without ading a label", async (t) => {
+test("Comment on issue/PR without adding a label", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
   const env = { GITHUB_TOKEN: "github_token" };
@@ -1966,7 +1966,7 @@ test("Ignore errors when adding comments and closing issues", async (t) => {
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/2/labels`,
       {},
-      { body: ["released"] },
+      { labels: ["released"] },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
@@ -2021,7 +2021,16 @@ test("Ignore errors when adding comments and closing issues", async (t) => {
   t.is(error1.status, 400);
   t.is(error2.status, 500);
   t.true(
-    t.context.error.calledWith("Failed to add a comment to the issue #%d.", 1),
+    t.context.error.calledWith(
+      "Failed to add comment/label to the issue #%d.",
+      1,
+    ),
+  );
+  t.true(
+    t.context.error.calledWith(
+      "Failed to add comment/label to the issue #%d.",
+      1,
+    ),
   );
   t.true(t.context.error.calledWith("Failed to close the issue #%d.", 2));
   t.true(
@@ -2138,13 +2147,191 @@ test("Close open issues when a release is successful", async (t) => {
   t.true(fetch.done());
 });
 
-test('Skip commention on issues/PR if "successComment" is "false"', async (t) => {
+test('Add comment on issues/PR and skip label if "successComment" is unset / "releasedLabels" is "false"', async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GITHUB_TOKEN: "github_token" };
+  const failTitle = "The automated release is failing 🚨";
+  const pluginConfig = { failTitle, releasedLabels: false };
+  const prs = [{ number: 1, pull_request: {}, state: "closed" }];
+  const options = {
+    branch: "master",
+    repositoryUrl: `https://github.com/${owner}/${repo}.git`,
+  };
+  const commits = [
+    {
+      hash: "123",
+      message: "Commit 1 message\n\n Fix #1",
+      tree: { long: "aaa" },
+    },
+  ];
+  const nextRelease = { version: "1.0.0" };
+  const releases = [
+    { name: "GitHub release", url: "https://github.com/release" },
+  ];
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      full_name: `${owner}/${repo}`,
+    })
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          commit123: {
+            associatedPullRequests: {
+              nodes: [prs[0]],
+            },
+          },
+        },
+      },
+    })
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
+      [{ sha: commits[0].hash }],
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
+      {
+        html_url: "https://github.com/successcomment-1",
+      },
+    )
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
+        "in:title",
+      )}+${encodeURIComponent(
+        `repo:${owner}/${repo}`,
+      )}+${encodeURIComponent("type:issue")}+${encodeURIComponent(
+        "state:open",
+      )}+${encodeURIComponent(failTitle)}`,
+      { items: [] },
+    );
+
+  await success(
+    pluginConfig,
+    {
+      env,
+      options,
+      commits,
+      nextRelease,
+      releases,
+      logger: t.context.logger,
+    },
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    },
+  );
+
+  t.true(
+    t.context.log.calledWith(
+      "Added comment to issue #%d: %s",
+      1,
+      "https://github.com/successcomment-1",
+    ),
+  );
+
+  t.true(fetch.done());
+});
+
+test('Skip comment on issues/PR and add label if "successComment" is "false" / "releasedLabels" is unset', async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
   const env = { GITHUB_TOKEN: "github_token" };
   const failTitle = "The automated release is failing 🚨";
   const pluginConfig = { failTitle, successComment: false };
+  const prs = [{ number: 1, pull_request: {}, state: "closed" }];
   const options = {
+    branch: "master",
+    repositoryUrl: `https://github.com/${owner}/${repo}.git`,
+  };
+  const commits = [
+    {
+      hash: "123",
+      message: "Commit 1 message\n\n Fix #1",
+      tree: { long: "aaa" },
+    },
+  ];
+  const nextRelease = { version: "1.0.0" };
+  const releases = [
+    { name: "GitHub release", url: "https://github.com/release" },
+  ];
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      full_name: `${owner}/${repo}`,
+    })
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          commit123: {
+            associatedPullRequests: {
+              nodes: [prs[0]],
+            },
+          },
+        },
+      },
+    })
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
+      [{ sha: commits[0].hash }],
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
+      {},
+      { labels: ["released"] },
+    )
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
+        "in:title",
+      )}+${encodeURIComponent(
+        `repo:${owner}/${repo}`,
+      )}+${encodeURIComponent("type:issue")}+${encodeURIComponent(
+        "state:open",
+      )}+${encodeURIComponent(failTitle)}`,
+      { items: [] },
+    );
+
+  await success(
+    pluginConfig,
+    {
+      env,
+      options,
+      commits,
+      nextRelease,
+      releases,
+      logger: t.context.logger,
+    },
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    },
+  );
+
+  t.true(
+    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 1),
+  );
+
+  t.true(fetch.done());
+});
+
+test('Skip comment on issues/PR and skip label if "successComment" is "false" / "releasedLabels" is "false"', async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GITHUB_TOKEN: "github_token" };
+  const failTitle = "The automated release is failing 🚨";
+  const pluginConfig = {
+    failTitle,
+    successComment: false,
+    releasedLabels: false,
+  };
+  const options = {
+    branch: "master",
     repositoryUrl: `https://github.com/${owner}/${repo}.git`,
   };
   const commits = [
@@ -2167,9 +2354,11 @@ test('Skip commention on issues/PR if "successComment" is "false"', async (t) =>
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
         "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
+      )}+${encodeURIComponent(
+        `repo:${owner}/${repo}`,
+      )}+${encodeURIComponent("type:issue")}+${encodeURIComponent(
+        "state:open",
+      )}+${encodeURIComponent(failTitle)}`,
       { items: [] },
     );
 
@@ -2178,7 +2367,6 @@ test('Skip commention on issues/PR if "successComment" is "false"', async (t) =>
     {
       env,
       options,
-      branch: { name: "master" },
       commits,
       nextRelease,
       releases,
@@ -2192,9 +2380,6 @@ test('Skip commention on issues/PR if "successComment" is "false"', async (t) =>
     },
   );
 
-  t.true(
-    t.context.log.calledWith("Skip commenting on issues and pull requests."),
-  );
   t.true(fetch.done());
 });
 
