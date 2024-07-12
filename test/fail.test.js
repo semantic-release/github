@@ -447,3 +447,29 @@ test('Skip if "failTitle" is "false"', async (t) => {
 
   t.true(t.context.log.calledWith("Skip issue creation."));
 });
+
+test('Does not post comments if "failCommentCondition" is "false"', async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GITHUB_TOKEN: "github_token" };
+  const pluginConfig = { failCommentCondition: false };
+  const options = { repositoryUrl: `https://github.com/${owner}/${repo}.git` };
+
+  await fail(
+    pluginConfig,
+    {
+      env,
+      options,
+      branch: { name: "master" },
+      logger: t.context.logger,
+    },
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    },
+  );
+
+  t.true(t.context.log.calledWith("Skip issue creation."));
+});
