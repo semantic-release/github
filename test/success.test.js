@@ -855,6 +855,10 @@ test("Do not add comment and labels if no commits is found for release", async (
   );
 
   t.true(fetch.done());
+  t.true(t.context.log.calledWith("No commits found in release"));
+  t.true(
+    t.context.log.calledWith("Skip commenting on issues and pull requests."),
+  );
 });
 
 test("Do not add comment and labels to PR/issues from other repo", async (t) => {
