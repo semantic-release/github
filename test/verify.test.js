@@ -1123,6 +1123,43 @@ test("Throw SemanticReleaseError if the repository doesn't exist", async (t) => 
   t.true(fetch.done());
 });
 
+test("Throw SemanticReleaseError if the repository name has been changed", async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GH_TOKEN: "github_token" };
+
+  const fetch = fetchMock
+    .sandbox()
+    .get(`https://api.github.local/repos/${owner}/${repo}`, {
+      permissions: { push: true },
+      clone_url: `https://github.com/${owner}/new-repo-name.git`,
+    });
+
+  const {
+    errors: [error, ...errors],
+  } = await t.throwsAsync(
+    verify(
+      {},
+      {
+        env,
+        options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
+        logger: t.context.logger,
+      },
+      {
+        Octokit: TestOctokit.defaults((options) => ({
+          ...options,
+          request: { ...options.request, fetch },
+        })),
+      },
+    ),
+  );
+
+  t.is(errors.length, 0);
+  t.is(error.name, "SemanticReleaseError");
+  t.is(error.code, "EMISMATCHGITHUBURL");
+  t.true(fetch.done());
+});
+
 test("Throw error if github return any other errors", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
