@@ -526,3 +526,70 @@ test('Does not post comments on existing issues when "failCommentCondition" is "
   t.true(fetch.done());
   t.true(t.context.log.calledWith("Skip commenting on or creating an issue."));
 });
+
+test(`Post new issue if none exists yet, but don't comment on existing issues when "failCommentCondition" is disallows it`, async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GITHUB_TOKEN: "github_token" };
+  const errors = [{ message: "An error occured" }];
+  const failTitle = "The automated release is failing 🚨";
+  const pluginConfig = {
+    failTitle,
+    failComment: `Error: Release for branch \${branch.name} failed with error: \${errors.map(error => error.message).join(';')}`,
+    failCommentCondition: "<% return !issue; %>",
+  };
+  const options = {
+    repositoryUrl: `https://github.com/${owner}/${repo}.git`,
+  };
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      full_name: `${owner}/${repo}`,
+    })
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
+        "in:title",
+      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
+        "type:issue",
+      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
+      { items: [] },
+    )
+    .postOnce(
+      (url, { body }) => {
+        t.is(url, `https://api.github.local/repos/${owner}/${repo}/issues`);
+        t.regex(
+          JSON.parse(body).body,
+          /Error: Release for branch master failed with error: An error occured\n\n<!-- semantic-release:github -->/,
+        );
+        return true;
+      },
+      { html_url: "https://github.com/issues/2", number: 2 },
+    );
+
+  await fail(
+    pluginConfig,
+    {
+      env,
+      options,
+      branch: { name: "master" },
+      errors,
+      logger: t.context.logger,
+    },
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    },
+  );
+
+  t.true(fetch.done());
+  t.true(
+    t.context.log.calledWith(
+      "Created issue #%d: %s.",
+      2,
+      "https://github.com/issues/2",
+    ),
+  );
+});
