@@ -2198,7 +2198,7 @@ test('Skip comment on on issues/PR if "successComment" is "false"', async (t) =>
   t.true(fetch.done());
 });
 
-test('Does not comment on issues/PR if "successCommentCondition" is "false"', async (t) => {
+test('Does not comment/label on issues/PR if "successCommentCondition" is "false"', async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
   const env = { GITHUB_TOKEN: "github_token" };
@@ -2254,6 +2254,140 @@ test('Does not comment on issues/PR if "successCommentCondition" is "false"', as
 
   t.true(
     t.context.log.calledWith("Skip commenting on issues and pull requests."),
+  );
+  t.true(fetch.done());
+});
+
+test('Add comment and label to found issues/associatedPR using the "successCommentCondition"', async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GITHUB_TOKEN: "github_token" };
+  const failTitle = "The automated release is failing 🚨";
+  const pluginConfig = {
+    failTitle,
+    // Issues with the label "semantic-release-relevant" will be commented and labeled
+    successCommentCondition:
+      "<% return issue.labels?.includes('semantic-release-relevant'); %>",
+  };
+  const options = {
+    repositoryUrl: `https://github.com/${owner}/${repo}.git`,
+  };
+  const commits = [
+    { hash: "123", message: "Commit 1 message" },
+    { hash: "456", message: "Commit 2 message" },
+  ];
+  const nextRelease = { version: "1.0.0" };
+  const releases = [
+    { name: "GitHub release", url: "https://github.com/release" },
+  ];
+  const issues = [
+    { number: 1, body: "Issue 1 body", title: failTitle },
+    { number: 2, body: `Issue 2 body\n\n${ISSUE_ID}`, title: failTitle },
+    { number: 3, body: `Issue 3 body\n\n${ISSUE_ID}`, title: failTitle },
+  ];
+  const prs = [
+    { number: 4, pull_request: {}, state: "closed" },
+    {
+      number: 5,
+      pull_request: {},
+      state: "closed",
+      labels: ["semantic-release-relevant"],
+    },
+  ];
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      full_name: `${owner}/${repo}`,
+    })
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          commit123: {
+            associatedPullRequests: {
+              nodes: [prs[0]],
+            },
+          },
+          commit456: {
+            associatedPullRequests: {
+              nodes: [prs[1]],
+            },
+          },
+        },
+      },
+    })
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/pulls/4/commits`,
+      [{ sha: commits[0].hash }],
+    )
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/pulls/5/commits`,
+      [{ sha: commits[1].hash }],
+    )
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
+        "in:title",
+      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
+        "type:issue",
+      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
+      { items: issues },
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/5/comments`,
+      { html_url: "https://github.com/successcomment-5" },
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/5/labels`,
+      {},
+      { body: ["released"] },
+    )
+    .patchOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/2`,
+      { html_url: "https://github.com/issues/2" },
+      {
+        body: {
+          state: "closed",
+        },
+      },
+    )
+    .patchOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/3`,
+      { html_url: "https://github.com/issues/3" },
+      {
+        body: {
+          state: "closed",
+        },
+      },
+    );
+
+  await success(
+    pluginConfig,
+    {
+      env,
+      options,
+      branch: { name: "master" },
+      commits,
+      nextRelease,
+      releases,
+      logger: t.context.logger,
+    },
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    },
+  );
+
+  t.true(
+    t.context.log.calledWith(
+      "Added comment to issue #%d: %s",
+      5,
+      "https://github.com/successcomment-5",
+    ),
+  );
+  t.true(
+    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 5),
   );
   t.true(fetch.done());
 });
