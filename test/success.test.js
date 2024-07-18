@@ -2399,6 +2399,7 @@ test('Does not comment/label found associatedPR when "successCommentCondition" d
   const failTitle = "The automated release is failing 🚨";
   const pluginConfig = {
     failTitle,
+    // Only issues will be commented and labeled (not PRs)
     successCommentCondition: "<% return !issue.pull_request; %>",
   };
   const options = {
@@ -2414,9 +2415,15 @@ test('Does not comment/label found associatedPR when "successCommentCondition" d
   ];
   const issues = [
     { number: 1, body: `Issue 1 body\n\n${ISSUE_ID}`, title: failTitle },
+    {
+      number: 4,
+      body: `Issue 4 body`,
+      title: "Issue 4 title",
+      state: "closed",
+    },
   ];
   const prs = [
-    { number: 2, pull_request: {}, state: "closed" },
+    { number: 2, pull_request: {}, body: "Fixes #4", state: "closed" },
     { number: 3, pull_request: {}, state: "closed" },
   ];
 
@@ -2448,6 +2455,15 @@ test('Does not comment/label found associatedPR when "successCommentCondition" d
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/3/commits`,
       [{ sha: commits[1].hash }],
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/4/comments`,
+      { html_url: "https://github.com/successcomment-4" },
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/4/labels`,
+      {},
+      { body: ["released"] },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
@@ -2492,6 +2508,16 @@ test('Does not comment/label found associatedPR when "successCommentCondition" d
       1,
       "https://github.com/issues/1",
     ),
+  );
+  t.true(
+    t.context.log.calledWith(
+      "Added comment to issue #%d: %s",
+      4,
+      "https://github.com/successcomment-4",
+    ),
+  );
+  t.true(
+    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 4),
   );
   t.true(fetch.done());
 });
