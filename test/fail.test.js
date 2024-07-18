@@ -527,7 +527,7 @@ test('Does not post comments on existing issues when "failCommentCondition" is "
   t.true(t.context.log.calledWith("Skip commenting on or creating an issue."));
 });
 
-test(`Post new issue if none exists yet, but don't comment on existing issues when "failCommentCondition" is disallows it`, async (t) => {
+test(`Post new issue if none exists yet, but don't comment on existing issues when "failCommentCondition" disallows it`, async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
   const env = { GITHUB_TOKEN: "github_token" };
