@@ -2392,6 +2392,110 @@ test('Add comment and label to found issues/associatedPR using the "successComme
   t.true(fetch.done());
 });
 
+test('Does not comment/label found associatedPR when "successCommentCondition" disables it', async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GITHUB_TOKEN: "github_token" };
+  const failTitle = "The automated release is failing 🚨";
+  const pluginConfig = {
+    failTitle,
+    successCommentCondition: "<% return !issue.pull_request; %>",
+  };
+  const options = {
+    repositoryUrl: `https://github.com/${owner}/${repo}.git`,
+  };
+  const commits = [
+    { hash: "123", message: "Commit 1 message" },
+    { hash: "456", message: "Commit 2 message" },
+  ];
+  const nextRelease = { version: "1.0.0" };
+  const releases = [
+    { name: "GitHub release", url: "https://github.com/release" },
+  ];
+  const issues = [
+    { number: 1, body: `Issue 1 body\n\n${ISSUE_ID}`, title: failTitle },
+  ];
+  const prs = [
+    { number: 2, pull_request: {}, state: "closed" },
+    { number: 3, pull_request: {}, state: "closed" },
+  ];
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      full_name: `${owner}/${repo}`,
+    })
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          commit123: {
+            associatedPullRequests: {
+              nodes: [prs[0]],
+            },
+          },
+          commit456: {
+            associatedPullRequests: {
+              nodes: [prs[1]],
+            },
+          },
+        },
+      },
+    })
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/pulls/2/commits`,
+      [{ sha: commits[0].hash }],
+    )
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/pulls/3/commits`,
+      [{ sha: commits[1].hash }],
+    )
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
+        "in:title",
+      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
+        "type:issue",
+      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
+      { items: issues },
+    )
+    .patchOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/1`,
+      { html_url: "https://github.com/issues/1" },
+      {
+        body: {
+          state: "closed",
+        },
+      },
+    );
+
+  await success(
+    pluginConfig,
+    {
+      env,
+      options,
+      branch: { name: "master" },
+      commits,
+      nextRelease,
+      releases,
+      logger: t.context.logger,
+    },
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    },
+  );
+
+  t.true(
+    t.context.log.calledWith(
+      "Closed issue #%d: %s.",
+      1,
+      "https://github.com/issues/1",
+    ),
+  );
+  t.true(fetch.done());
+});
+
 test('Skip closing issues if "failComment" is "false"', async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
