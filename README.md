@@ -238,8 +238,6 @@ The message for the issue content is generated with [Lodash template](https://lo
 
 ##### failCommentCondition example
 
-The `failComment` `This release from branch ${branch.name} had failed due to the following errors:\n- ${errors.map(err => err.message).join('\\n- ')}` will generate the comment:
-
 - do not create any comments at all: set to `false` or templating: `"<% return false; %>"`
 - to only comment on main branch: `"<% return branch.name === 'main' %>"`
 - you can use labels to filter issues, i.e. to not comment if the issue is labeled with `wip`: `"<% return !issue.labels?.includes('wip') %>"`
