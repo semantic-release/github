@@ -24,11 +24,16 @@ test("Verify GitHub auth", async (t) => {
     repositoryUrl: `git+https://othertesturl.com/${owner}/${repo}.git`,
   };
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+  const fetch = fetchMock.sandbox().get(
+    `https://api.github.local/repos/${owner}/${repo}`,
+    {
       permissions: { push: true },
-    });
+      clone_url: `git+https://othertesturl.com/${owner}/${repo}.git`,
+    },
+    {
+      repeat: 2,
+    },
+  );
 
   await t.notThrowsAsync(
     t.context.m.verifyConditions(
@@ -54,11 +59,16 @@ test("Verify GitHub auth with publish options", async (t) => {
     publish: { path: "@semantic-release/github" },
     repositoryUrl: `git+https://othertesturl.com/${owner}/${repo}.git`,
   };
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+  const fetch = fetchMock.sandbox().get(
+    `https://api.github.local/repos/${owner}/${repo}`,
+    {
       permissions: { push: true },
-    });
+      clone_url: `git+https://othertesturl.com/${owner}/${repo}.git`,
+    },
+    {
+      repeat: 2,
+    },
+  );
 
   await t.notThrowsAsync(
     t.context.m.verifyConditions(
@@ -91,11 +101,16 @@ test("Verify GitHub auth and assets config", async (t) => {
     publish: [{ path: "@semantic-release/npm" }],
     repositoryUrl: `git+https://othertesturl.com/${owner}/${repo}.git`,
   };
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+  const fetch = fetchMock.sandbox().get(
+    `https://api.github.local/repos/${owner}/${repo}`,
+    {
       permissions: { push: true },
-    });
+      clone_url: `git+https://othertesturl.com/${owner}/${repo}.git`,
+    },
+    {
+      repeat: 2,
+    },
+  );
 
   await t.notThrowsAsync(
     t.context.m.verifyConditions(
@@ -196,9 +211,16 @@ test("Publish a release with an array of assets", async (t) => {
 
   const fetch = fetchMock
     .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
-      permissions: { push: true },
-    })
+    .get(
+      `https://api.github.local/repos/${owner}/${repo}`,
+      {
+        permissions: { push: true },
+        clone_url: `https://github.com/${owner}/${repo}.git`,
+      },
+      {
+        repeat: 2,
+      },
+    )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/releases`,
       { upload_url: uploadUrl, html_url: releaseUrl, id: releaseId },
@@ -288,9 +310,16 @@ test("Publish a release with release information in assets", async (t) => {
 
   const fetch = fetchMock
     .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
-      permissions: { push: true },
-    })
+    .get(
+      `https://api.github.local/repos/${owner}/${repo}`,
+      {
+        permissions: { push: true },
+        clone_url: `https://github.com/${owner}/${repo}.git`,
+      },
+      {
+        repeat: 2,
+      },
+    )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/releases`,
       { upload_url: uploadUrl, html_url: releaseUrl, id: releaseId },
@@ -358,9 +387,16 @@ test("Update a release", async (t) => {
 
   const fetch = fetchMock
     .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
-      permissions: { push: true },
-    })
+    .get(
+      `https://api.github.local/repos/${owner}/${repo}`,
+      {
+        permissions: { push: true },
+        clone_url: `https://github.com/${owner}/${repo}.git`,
+      },
+      {
+        repeat: 2,
+      },
+    )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`,
       { id: releaseId },
@@ -426,10 +462,10 @@ test("Comment and add labels on PR included in the releases", async (t) => {
       {
         permissions: { push: true },
         full_name: `${owner}/${repo}`,
+        clone_url: `https://github.com/${owner}/${repo}.git`,
       },
       {
-        // TODO: why do we call the same endpoint twice?
-        repeat: 2,
+        repeat: 3,
       },
     )
     .postOnce("https://api.github.local/graphql", {
@@ -529,9 +565,10 @@ test("Open a new issue with the list of errors", async (t) => {
       {
         permissions: { push: true },
         full_name: `${owner}/${repo}`,
+        clone_url: `https://github.com/${owner}/${repo}.git`,
       },
       {
-        repeat: 2,
+        repeat: 3,
       },
     )
     .getOnce(
@@ -625,9 +662,10 @@ test("Verify, release and notify success", async (t) => {
       {
         permissions: { push: true },
         full_name: `${owner}/${repo}`,
+        clone_url: `https://github.com/${owner}/${repo}.git`,
       },
       {
-        repeat: 2,
+        repeat: 3,
       },
     )
     .postOnce(
@@ -785,9 +823,10 @@ test("Verify, update release and notify success", async (t) => {
       {
         permissions: { push: true },
         full_name: `${owner}/${repo}`,
+        clone_url: `https://github.com/${owner}/${repo}.git`,
       },
       {
-        repeat: 2,
+        repeat: 3,
       },
     )
     .getOnce(
@@ -917,9 +956,10 @@ test("Verify and notify failure", async (t) => {
       {
         permissions: { push: true },
         full_name: `${owner}/${repo}`,
+        clone_url: `https://github.com/${owner}/${repo}.git`,
       },
       {
-        repeat: 2,
+        repeat: 3,
       },
     )
     .getOnce(
