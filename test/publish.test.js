@@ -48,7 +48,7 @@ test("Publish a release without creating discussion", async (t) => {
         name: nextRelease.name,
         body: nextRelease.notes,
         prerelease: false,
-        make_latest: true
+        make_latest: true,
       },
     },
   );
@@ -179,7 +179,7 @@ test("Publish a release on a channel", async (t) => {
         name: nextRelease.name,
         body: nextRelease.notes,
         prerelease: true,
-        make_latest: false
+        make_latest: false,
       },
     },
   );
@@ -240,7 +240,7 @@ test("Publish a prerelease without creating discussion", async (t) => {
         name: nextRelease.name,
         body: nextRelease.notes,
         prerelease: true,
-        make_latest: false
+        make_latest: false,
       },
     },
   );
@@ -449,7 +449,7 @@ test("Publish a release with one asset", async (t) => {
           body: nextRelease.notes,
           draft: true,
           prerelease: false,
-          make_latest: true
+          make_latest: true,
         },
       },
     )
@@ -537,7 +537,7 @@ test("Publish a release with one asset and custom github url", async (t) => {
           body: nextRelease.notes,
           draft: true,
           prerelease: false,
-          make_latest: true
+          make_latest: true,
         },
       },
     )
@@ -619,7 +619,7 @@ test("Publish a release with an array of missing assets", async (t) => {
           body: nextRelease.notes,
           draft: true,
           prerelease: false,
-          make_latest: true
+          make_latest: true,
         },
       },
     )
@@ -709,7 +709,7 @@ test("Publish a release with asset and create discussion", async (t) => {
           body: nextRelease.notes,
           draft: true,
           prerelease: false,
-          make_latest: true
+          make_latest: true,
         },
       },
     )
@@ -795,7 +795,7 @@ test("Publish a draft release", async (t) => {
         body: nextRelease.notes,
         draft: true,
         prerelease: false,
-        make_latest: true
+        make_latest: true,
       },
     },
   );
@@ -868,7 +868,7 @@ test("Publish a draft release with one asset", async (t) => {
           body: nextRelease.notes,
           draft: true,
           prerelease: false,
-          make_latest: true
+          make_latest: true,
         },
       },
     )
@@ -941,7 +941,7 @@ test("Publish a release when env.GITHUB_URL is set to https://github.com (Defaul
         name: nextRelease.name,
         body: nextRelease.notes,
         prerelease: false,
-        make_latest: true
+        make_latest: true,
       },
     },
   );
@@ -1005,7 +1005,7 @@ test("Publish a custom release body", async (t) => {
         name: nextRelease.name,
         body: `To install this run npm install package@${nextRelease.name}\n\n${nextRelease.notes}`,
         prerelease: false,
-        make_latest: true
+        make_latest: true,
       },
     },
   );
@@ -1069,7 +1069,7 @@ test("Publish a custom release name", async (t) => {
         name: `omg its the best release: ${nextRelease.name} 🌈🌈`,
         body: nextRelease.notes,
         prerelease: false,
-        make_latest: true
+        make_latest: true,
       },
     },
   );
