@@ -949,9 +949,6 @@ test("Verify if run in GitHub Action", async (t) => {
   const fetch = fetchMock
     .sandbox()
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
-      permissions: {
-        push: false,
-      },
       git_url: `https://api.github.local/${owner}/${repo}.git`,
     });
 
@@ -996,9 +993,6 @@ test("Verify if run in GitHub Action and repo is renamed", async (t) => {
   const fetch = fetchMock
     .sandbox()
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
-      permissions: {
-        push: false,
-      },
       git_url: `https://api.github.local/${owner}/${repo}2.git`,
     });
 
