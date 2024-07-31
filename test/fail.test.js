@@ -115,6 +115,7 @@ test("Open a new issue with the list of errors and custom title and comment", as
     .sandbox()
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
+      git_url: `https://api.github.local/${owner}/${repo}.git`,
     })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
@@ -182,6 +183,7 @@ test("Open a new issue with assignees and the list of errors", async (t) => {
     .sandbox()
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
+      git_url: `https://api.github.local/${owner}/${repo}.git`,
     })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
@@ -254,6 +256,7 @@ test("Open a new issue without labels and the list of errors", async (t) => {
     .sandbox()
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
+      git_url: `https://api.github.local/${owner}/${repo}.git`,
     })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
@@ -330,6 +333,7 @@ test("Update the first existing issue with the list of errors", async (t) => {
     .sandbox()
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
+      git_url: `https://api.github.local/${owner}/${repo}.git`,
     })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
