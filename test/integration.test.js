@@ -447,7 +447,6 @@ test("Comment and add labels on PR included in the releases", async (t) => {
         git_url: `htttps://api.github.local/${owner}/${repo}.git`,
       },
       {
-        // TODO: why do we call the same endpoint three times?
         repeat: 2,
       },
     )
