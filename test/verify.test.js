@@ -1023,6 +1023,49 @@ test("Verify if run in GitHub Action and repo is renamed", async (t) => {
   t.true(fetch.done());
 });
 
+test("Verify if token is a Github installation token and repo is renamed", async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GH_TOKEN: "github_token" };
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      permissions: {
+        push: false,
+      },
+      git_url: `https://api.github.local/${owner}/${repo}2.git`,
+    })
+    .headOnce(
+      "https://api.github.local/installation/repositories?per_page=1",
+      200,
+    );
+
+  const {
+    errors: [error, ...errors],
+  } = await t.throwsAsync(
+    verify(
+      {},
+      {
+        env,
+        options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
+        logger: t.context.logger,
+      },
+      {
+        Octokit: TestOctokit.defaults((options) => ({
+          ...options,
+          request: { ...options.request, fetch },
+        })),
+      },
+    ),
+  );
+
+  t.is(errors.length, 0);
+  t.is(error.name, "SemanticReleaseError");
+  t.is(error.code, "EMISMATCHGITHUBURL");
+  t.true(fetch.done());
+});
+
 test("Throw SemanticReleaseError for missing github token", async (t) => {
   const {
     errors: [error, ...errors],
