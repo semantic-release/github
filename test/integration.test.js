@@ -460,7 +460,7 @@ test("Comment and add labels on PR included in the releases", async (t) => {
       {
         permissions: { push: true },
         full_name: `${owner}/${repo}`,
-        git_url: `https://github.com/${owner}/${repo}.git`,
+        git_url: `htttps://api.github.local/${owner}/${repo}.git`,
       },
       {
         // TODO: why do we call the same endpoint three times?
@@ -564,7 +564,7 @@ test("Open a new issue with the list of errors", async (t) => {
       {
         permissions: { push: true },
         full_name: `${owner}/${repo}`,
-        git_url: `https://github.com/${owner}/${repo}.git`,
+        git_url: `htttps://api.github.local/${owner}/${repo}.git`,
       },
       {
         repeat: 3,
@@ -661,7 +661,7 @@ test("Verify, release and notify success", async (t) => {
       {
         permissions: { push: true },
         full_name: `${owner}/${repo}`,
-        git_url: `https://github.com/${owner}/${repo}.git`,
+        git_url: `htttps://api.github.local/${owner}/${repo}.git`,
       },
       {
         repeat: 3,
@@ -822,7 +822,7 @@ test("Verify, update release and notify success", async (t) => {
       {
         permissions: { push: true },
         full_name: `${owner}/${repo}`,
-        git_url: `https://github.com/${owner}/${repo}.git`,
+        git_url: `htttps://api.github.local/${owner}/${repo}.git`,
       },
       {
         repeat: 3,
@@ -955,7 +955,7 @@ test("Verify and notify failure", async (t) => {
       {
         permissions: { push: true },
         full_name: `${owner}/${repo}`,
-        git_url: `https://github.com/${owner}/${repo}.git`,
+        git_url: `htttps://api.github.local/${owner}/${repo}.git`,
       },
       {
         repeat: 3,

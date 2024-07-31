@@ -268,7 +268,7 @@ test("Verify package, token and repository with environment variables", async (t
     `https://othertesturl.com:443/prefix/repos/${owner}/${repo}`,
     {
       permissions: { push: true },
-      git_url: `https://github.com/${owner}/${repo}.git`,
+      git_url: `htttps://api.github.local/${owner}/${repo}.git`,
     },
     { repeat: 2 },
   );
@@ -312,7 +312,7 @@ test("Verify package, token and repository access with alternative environment v
     `https://othertesturl.com:443/prefix/repos/${owner}/${repo}`,
     {
       permissions: { push: true },
-      git_url: `https://github.com/${owner}/${repo}.git`,
+      git_url: `htttps://api.github.local/${owner}/${repo}.git`,
     },
     { repeat: 2 },
   );
@@ -349,7 +349,7 @@ test("Verify package, token and repository access with custom API URL", async (t
     `https://api.othertesturl.com:9090/repos/${owner}/${repo}`,
     {
       permissions: { push: true },
-      git_url: `https://github.com/${owner}/${repo}.git`,
+      git_url: `htttps://api.github.local/${owner}/${repo}.git`,
     },
     { repeat: 2 },
   );
@@ -391,7 +391,7 @@ test("Verify package, token and repository access with API URL in environment va
     `https://api.othertesturl.com:443/repos/${owner}/${repo}`,
     {
       permissions: { push: true },
-      git_url: `https://github.com/${owner}/${repo}.git`,
+      git_url: `htttps://api.github.local/${owner}/${repo}.git`,
     },
     { repeat: 2 },
   );
