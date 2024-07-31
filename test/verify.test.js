@@ -1251,7 +1251,9 @@ test("Don't throw an error if git_url differs from repositoryUrl but owner/repo 
       {},
       {
         env,
-        options: { repositoryUrl: `git+https://github.com/${owner}/${repo}.git` },
+        options: {
+          repositoryUrl: `git+https://github.com/${owner}/${repo}.git`,
+        },
         logger: t.context.logger,
       },
       {
