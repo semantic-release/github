@@ -62,12 +62,22 @@ test("Add comment and labels to PRs associated with release commits and issues s
       data: {
         repository: {
           commit123: {
+            oid: "123",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [prs[0]],
             },
           },
           commit456: {
+            oid: "456",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [prs[1]],
             },
           },
@@ -232,12 +242,22 @@ test("Add comment and labels to PRs associated with release commits and issues c
       data: {
         repository: {
           commit123: {
+            oid: "123",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [prs[0]],
             },
           },
           commit456: {
+            oid: "456",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [prs[1]],
             },
           },
@@ -423,32 +443,62 @@ test("Make multiple search queries if necessary", async (t) => {
       data: {
         repository: {
           commitaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa: {
+            oid: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [prs[0]],
             },
           },
           commitbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb: {
+            oid: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [prs[1]],
             },
           },
           commitcccccccccccccccccccccccccccccccccccccccccc: {
+            oid: "cccccccccccccccccccccccccccccccccccccccccc",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [prs[2]],
             },
           },
           commiteeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee: {
+            oid: "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [prs[3]],
             },
           },
           commitffffffffffffffffffffffffffffffffffffffffff: {
+            oid: "ffffffffffffffffffffffffffffffffffffffffff",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [prs[4]],
             },
           },
           commitgggggggggggggggggggggggggggggggggggggggggg: {
+            oid: "gggggggggggggggggggggggggggggggggggggggggg",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [prs[5]],
             },
           },
@@ -667,12 +717,22 @@ test("Do not add comment and labels for unrelated PR returned by search (compare
       data: {
         repository: {
           commit123: {
+            oid: "123",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [prs[0]],
             },
           },
           commit456: {
+            oid: "456",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [prs[1]],
             },
           },
@@ -769,7 +829,12 @@ test("Do not add comment and labels if no PR is associated with release commits"
       data: {
         repository: {
           commit123: {
+            oid: "123",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [],
             },
           },
@@ -890,17 +955,32 @@ test("Do not add comment and labels to PR/issues from other repo", async (t) => 
       data: {
         repository: {
           commit123: {
+            oid: "123",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [],
             },
           },
           commit456: {
+            oid: "456",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [],
             },
           },
           commit789: {
+            oid: "789",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [],
             },
           },
@@ -990,17 +1070,32 @@ test("Ignore missing and forbidden issues/PRs", async (t) => {
       data: {
         repository: {
           commit123: {
+            oid: "123",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [prs[0]],
             },
           },
           commit456: {
+            oid: "456",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [prs[1]],
             },
           },
           commit789: {
+            oid: "789",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [prs[2]],
             },
           },
@@ -1159,7 +1254,12 @@ test("Add custom comment and labels", async (t) => {
       data: {
         repository: {
           commit123: {
+            oid: "123",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [prs[0]],
             },
           },
@@ -1254,7 +1354,12 @@ test("Add custom label", async (t) => {
       data: {
         repository: {
           commit123: {
+            oid: "123",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [prs[0]],
             },
           },
@@ -1344,7 +1449,12 @@ test("Comment on issue/PR without ading a label", async (t) => {
       data: {
         repository: {
           commit123: {
+            oid: "123",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [prs[0]],
             },
           },
@@ -1437,7 +1547,12 @@ test("Editing the release to include all release links at the bottom", async (t)
       data: {
         repository: {
           commit123: {
+            oid: "123",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [prs[0]],
             },
           },
@@ -1541,7 +1656,12 @@ test("Editing the release to include all release links at the top", async (t) =>
       data: {
         repository: {
           commit123: {
+            oid: "123",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [prs[0]],
             },
           },
@@ -1642,7 +1762,12 @@ test("Editing the release to include all release links with no additional releas
       data: {
         repository: {
           commit123: {
+            oid: "123",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [prs[0]],
             },
           },
@@ -1732,7 +1857,12 @@ test("Editing the release to include all release links with no additional releas
       data: {
         repository: {
           commit123: {
+            oid: "123",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [prs[0]],
             },
           },
@@ -1815,7 +1945,12 @@ test("Editing the release to include all release links with no releases", async 
       data: {
         repository: {
           commit123: {
+            oid: "123",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [prs[0]],
             },
           },
@@ -1900,7 +2035,12 @@ test("Editing the release with no ID in the release", async (t) => {
       data: {
         repository: {
           commit123: {
+            oid: "123",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [prs[0]],
             },
           },
@@ -1990,12 +2130,22 @@ test("Ignore errors when adding comments and closing issues", async (t) => {
       data: {
         repository: {
           commit123: {
+            oid: "123",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [prs[0]],
             },
           },
           commit456: {
+            oid: "456",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [prs[1]],
             },
           },
@@ -2123,7 +2273,12 @@ test("Close open issues when a release is successful", async (t) => {
       data: {
         repository: {
           commit123: {
+            oid: "123",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [],
             },
           },
@@ -2274,7 +2429,12 @@ test('Skip closing issues if "failComment" is "false"', async (t) => {
       data: {
         repository: {
           commit123: {
+            oid: "123",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [],
             },
           },
@@ -2325,7 +2485,12 @@ test('Skip closing issues if "failTitle" is "false"', async (t) => {
       data: {
         repository: {
           commit123: {
+            oid: "123",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [],
             },
           },
