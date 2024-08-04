@@ -57,7 +57,7 @@ test("Add comment and labels to PRs associated with release commits and issues s
     .sandbox()
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${redirectedOwner}/${redirectedRepo}`,
-      git_url: `https://api.github.local/${owner}/${repo}.git`,
+      clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
     .postOnce("https://api.github.local/graphql", {
       data: {
@@ -419,7 +419,7 @@ test("Make multiple search queries if necessary", async (t) => {
     .sandbox()
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
-      git_url: `https://api.github.local/${owner}/${repo}.git`,
+      clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
     .post("https://api.github.local/graphql", {
       data: {
@@ -664,7 +664,7 @@ test("Do not add comment and labels for unrelated PR returned by search (compare
     .sandbox()
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
-      git_url: `https://api.github.local/${owner}/${repo}.git`,
+      clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
     .postOnce("https://api.github.local/graphql", {
       data: {
@@ -767,7 +767,7 @@ test("Do not add comment and labels if no PR is associated with release commits"
     .sandbox()
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
-      git_url: `https://api.github.local/${owner}/${repo}.git`,
+      clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
     .postOnce("https://api.github.local/graphql", {
       data: {
@@ -830,7 +830,7 @@ test("Do not add comment and labels if no commits is found for release", async (
     .sandbox()
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
-      git_url: `https://api.github.local/${owner}/${repo}.git`,
+      clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
@@ -890,7 +890,7 @@ test("Do not add comment and labels to PR/issues from other repo", async (t) => 
     .sandbox()
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
-      git_url: `https://api.github.local/${owner}/${repo}.git`,
+      clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
     .postOnce("https://api.github.local/graphql", {
       data: {
@@ -991,7 +991,7 @@ test("Ignore missing and forbidden issues/PRs", async (t) => {
     .sandbox()
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
-      git_url: `https://api.github.local/${owner}/${repo}.git`,
+      clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
     .postOnce("https://api.github.local/graphql", {
       data: {
@@ -1161,7 +1161,7 @@ test("Add custom comment and labels", async (t) => {
     .sandbox()
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
-      git_url: `https://api.github.local/${owner}/${repo}.git`,
+      clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
     .postOnce("https://api.github.local/graphql", {
       data: {
@@ -1257,7 +1257,7 @@ test("Add custom label", async (t) => {
     .sandbox()
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
-      git_url: `https://api.github.local/${owner}/${repo}.git`,
+      clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
     .postOnce("https://api.github.local/graphql", {
       data: {
@@ -1348,7 +1348,7 @@ test("Comment on issue/PR without ading a label", async (t) => {
     .sandbox()
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
-      git_url: `https://api.github.local/${owner}/${repo}.git`,
+      clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
     .postOnce("https://api.github.local/graphql", {
       data: {
@@ -1442,7 +1442,7 @@ test("Editing the release to include all release links at the bottom", async (t)
     .sandbox()
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
-      git_url: `https://api.github.local/${owner}/${repo}.git`,
+      clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
     .postOnce("https://api.github.local/graphql", {
       data: {
@@ -1547,7 +1547,7 @@ test("Editing the release to include all release links at the top", async (t) =>
     .sandbox()
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
-      git_url: `https://api.github.local/${owner}/${repo}.git`,
+      clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
     .postOnce("https://api.github.local/graphql", {
       data: {
@@ -1649,7 +1649,7 @@ test("Editing the release to include all release links with no additional releas
     .sandbox()
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
-      git_url: `https://api.github.local/${owner}/${repo}.git`,
+      clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
     .postOnce("https://api.github.local/graphql", {
       data: {
@@ -1740,7 +1740,7 @@ test("Editing the release to include all release links with no additional releas
     .sandbox()
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
-      git_url: `https://api.github.local/${owner}/${repo}.git`,
+      clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
     .postOnce("https://api.github.local/graphql", {
       data: {
@@ -1824,7 +1824,7 @@ test("Editing the release to include all release links with no releases", async 
     .sandbox()
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
-      git_url: `https://api.github.local/${owner}/${repo}.git`,
+      clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
     .postOnce("https://api.github.local/graphql", {
       data: {
@@ -1910,7 +1910,7 @@ test("Editing the release with no ID in the release", async (t) => {
     .sandbox()
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
-      git_url: `https://api.github.local/${owner}/${repo}.git`,
+      clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
     .postOnce("https://api.github.local/graphql", {
       data: {
@@ -2001,7 +2001,7 @@ test("Ignore errors when adding comments and closing issues", async (t) => {
     .sandbox()
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
-      git_url: `https://api.github.local/${owner}/${repo}.git`,
+      clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
     .postOnce("https://api.github.local/graphql", {
       data: {
@@ -2135,7 +2135,7 @@ test("Close open issues when a release is successful", async (t) => {
     .sandbox()
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
-      git_url: `https://api.github.local/${owner}/${repo}.git`,
+      clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
     .postOnce("https://api.github.local/graphql", {
       data: {
@@ -2236,7 +2236,7 @@ test('Skip commention on issues/PR if "successComment" is "false"', async (t) =>
     .sandbox()
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
-      git_url: `https://api.github.local/${owner}/${repo}.git`,
+      clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
@@ -2288,7 +2288,7 @@ test('Skip closing issues if "failComment" is "false"', async (t) => {
     .sandbox()
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
-      git_url: `https://api.github.local/${owner}/${repo}.git`,
+      clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
     .postOnce("https://api.github.local/graphql", {
       data: {
@@ -2340,7 +2340,7 @@ test('Skip closing issues if "failTitle" is "false"', async (t) => {
     .sandbox()
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
-      git_url: `https://api.github.local/${owner}/${repo}.git`,
+      clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
     .postOnce("https://api.github.local/graphql", {
       data: {
