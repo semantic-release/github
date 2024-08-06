@@ -194,7 +194,7 @@ The message for the issue comments is generated with [Lodash template](https://l
 | `nextRelease` | `Object` with `version`, `channel`, `gitTag`, `gitHead` and `notes` of the release being done.                                                                                                                                                                                |
 | `commits`     | `Array` of commit `Object`s with `hash`, `subject`, `body` `message` and `author`.                                                                                                                                                                                            |
 | `releases`    | `Array` with a release `Object`s for each release published, with optional release data such as `name` and `url`.                                                                                                                                                             |
-| `issue`       | A [GitHub API pull request object](https://developer.github.com/v3/search/#search-issues) for pull requests related to a commit, or an `Object` with the `number` property for issues resolved via [keywords](https://help.github.com/articles/closing-issues-using-keywords) |
+| `issue`       | A [GitHub API Pull Request object](https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#get-a-pull-request) for pull requests related to a commit, or an `Object` with the `number` property for issues resolved via [keywords](https://help.github.com/articles/closing-issues-using-keywords) |
 
 ##### successCommentCondition example
 
@@ -203,7 +203,7 @@ The message for the issue comments is generated with [Lodash template](https://l
 - to only comment on pull requests: `"<% return issue.pull_request; %>"`
 - you can use labels to filter issues: `"<% return issue.labels?.includes('semantic-release-relevant'); %>"`
 
-> check the [GitHub API pull request object](https://developer.github.com/v3/search/#search-issues) or the [GitHub API Issue Object](https://docs.github.com/en/rest/issues/issues?apiVersion=2022-11-28#get-an-issue) for properties which can be used for the filter
+> check the [GitHub API pull request object](https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#get-a-pull-request) for properties which can be used for the filter
 
 #### failComment
 
@@ -234,7 +234,7 @@ The message for the issue content is generated with [Lodash template](https://lo
 | `nextRelease` | `Object` with `version`, `channel`, `gitTag`, `gitHead` and `notes` of the release being done.                                                                                                                                                                                |
 | `commits`     | `Array` of commit `Object`s with `hash`, `subject`, `body` `message` and `author`.                                                                                                                                                                                            |
 | `releases`    | `Array` with a release `Object`s for each release published, with optional release data such as `name` and `url`.                                                                                                                                                             |
-| `issue`       | A [GitHub API pull request object](https://developer.github.com/v3/search/#search-issues) for pull requests related to a commit, or an `Object` with the `number` property for issues resolved via [keywords](https://help.github.com/articles/closing-issues-using-keywords) |
+| `issue`       | A [GitHub API pull request object](https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#get-a-pull-request) for pull requests related to a commit, or an `Object` with the `number` property for issues resolved via [keywords](https://help.github.com/articles/closing-issues-using-keywords) |
 
 ##### failCommentCondition example
 
@@ -242,7 +242,7 @@ The message for the issue content is generated with [Lodash template](https://lo
 - to only comment on main branch: `"<% return branch.name === 'main' %>"`
 - you can use labels to filter issues, i.e. to not comment if the issue is labeled with `wip`: `"<% return !issue.labels?.includes('wip') %>"`
 
-> check the [GitHub API Issue Object](https://docs.github.com/en/rest/issues/issues?apiVersion=2022-11-28#get-an-issue) for properties which can be used for the filter
+> check the [GitHub API Pull Request Object](https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#get-a-pull-request) for properties which can be used for the filter
 
 #### releasedLabels
 
