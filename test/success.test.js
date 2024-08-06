@@ -1172,11 +1172,9 @@ test("Add custom comment and labels", async (t) => {
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
-      { html_url: "https://github.com/successcomment-1" },
       {
-        body: {
-          body: `last release: ${lastRelease.version} nextRelease: ${nextRelease.version} branch: master commits: 1 releases: 1 PR attribute: PR prop`,
-        },
+        html_url: "https://github.com/successcomment-1",
+        body: `last release: ${lastRelease.version} nextRelease: ${nextRelease.version} branch: master commits: 1 releases: 1 PR attribute: PR prop`,
       },
     )
     .postOnce(
