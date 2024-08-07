@@ -409,7 +409,7 @@ test("Comment and add labels on PR included in the releases", async (t) => {
   const repo = "test_repo";
   const env = { GITHUB_TOKEN: "github_token" };
   const failTitle = "The automated release is failing 🚨";
-  const prs = [{ number: 1, pull_request: {}, state: "closed" }];
+  const prs = [{ number: 1, pull_request: true, state: "closed" }];
   const options = {
     repositoryUrl: `https://github.com/${owner}/${repo}.git`,
   };
@@ -615,7 +615,7 @@ test("Verify, release and notify success", async (t) => {
   const uploadOrigin = "https://github.com";
   const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
   const uploadUrl = `${uploadOrigin}${uploadUri}{?name,label}`;
-  const prs = [{ number: 1, pull_request: {}, state: "closed" }];
+  const prs = [{ number: 1, pull_request: true, state: "closed" }];
   const commits = [{ hash: "123", message: "Commit 1 message" }];
 
   const fetch = fetchMock
@@ -773,7 +773,7 @@ test("Verify, update release and notify success", async (t) => {
   };
   const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
   const releaseId = 1;
-  const prs = [{ number: 1, pull_request: {}, state: "closed" }];
+  const prs = [{ number: 1, pull_request: true, state: "closed" }];
   const commits = [
     { hash: "123", message: "Commit 1 message", tree: { long: "aaa" } },
   ];
