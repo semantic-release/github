@@ -2339,12 +2339,21 @@ test('Add comment and label to found issues/associatedPR using the "successComme
     { number: 3, body: `Issue 3 body\n\n${ISSUE_ID}`, title: failTitle },
   ];
   const prs = [
-    { number: 4, pull_request: {}, state: "closed" },
+    { number: 4, pull_request: true, state: "closed" },
     {
       number: 5,
-      pull_request: {},
+      pull_request: true,
       state: "closed",
-      labels: ["semantic-release-relevant"],
+      labels: {
+        nodes: [
+          {
+            id: 123,
+            color: "000000",
+            name: "semantic-release-relevant",
+            url: `https://github.com/${owner}/${repo}/labels/semantic-release-relevant`,
+          },
+        ],
+      },
     },
   ];
 
