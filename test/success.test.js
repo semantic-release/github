@@ -1172,11 +1172,9 @@ test("Add custom comment and labels", async (t) => {
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
-      { html_url: "https://github.com/successcomment-1" },
       {
-        body: {
-          body: `last release: ${lastRelease.version} nextRelease: ${nextRelease.version} branch: master commits: 1 releases: 1 PR attribute: PR prop`,
-        },
+        html_url: "https://github.com/successcomment-1",
+        body: `last release: ${lastRelease.version} nextRelease: ${nextRelease.version} branch: master commits: 1 releases: 1 PR attribute: PR prop`,
       },
     )
     .postOnce(
@@ -2193,7 +2191,7 @@ test("Close open issues when a release is successful", async (t) => {
   t.true(fetch.done());
 });
 
-test('Skip commention on issues/PR if "successComment" is "false"', async (t) => {
+test('Skip comment on on issues/PR if "successComment" is "false"', async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
   const env = { GITHUB_TOKEN: "github_token" };
@@ -2249,6 +2247,339 @@ test('Skip commention on issues/PR if "successComment" is "false"', async (t) =>
 
   t.true(
     t.context.log.calledWith("Skip commenting on issues and pull requests."),
+  );
+  t.true(fetch.done());
+});
+
+test('Does not comment/label on issues/PR if "successCommentCondition" is "false"', async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GITHUB_TOKEN: "github_token" };
+  const failTitle = "The automated release is failing 🚨";
+  const pluginConfig = { failTitle, successCommentCondition: false };
+  const options = {
+    repositoryUrl: `https://github.com/${owner}/${repo}.git`,
+  };
+  const commits = [
+    {
+      hash: "123",
+      message: "Commit 1 message\n\n Fix #1",
+      tree: { long: "aaa" },
+    },
+  ];
+  const nextRelease = { version: "1.0.0" };
+  const releases = [
+    { name: "GitHub release", url: "https://github.com/release" },
+  ];
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      full_name: `${owner}/${repo}`,
+    })
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
+        "in:title",
+      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
+        "type:issue",
+      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
+      { items: [] },
+    );
+
+  await success(
+    pluginConfig,
+    {
+      env,
+      options,
+      branch: { name: "master" },
+      commits,
+      nextRelease,
+      releases,
+      logger: t.context.logger,
+    },
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    },
+  );
+
+  t.true(
+    t.context.log.calledWith("Skip commenting on issues and pull requests."),
+  );
+  t.true(fetch.done());
+});
+
+test('Add comment and label to found issues/associatedPR using the "successCommentCondition"', async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GITHUB_TOKEN: "github_token" };
+  const failTitle = "The automated release is failing 🚨";
+  const pluginConfig = {
+    failTitle,
+    // Issues with the label "semantic-release-relevant" will be commented and labeled
+    successCommentCondition:
+      "<% return issue.labels?.includes('semantic-release-relevant'); %>",
+  };
+  const options = {
+    repositoryUrl: `https://github.com/${owner}/${repo}.git`,
+  };
+  const commits = [
+    { hash: "123", message: "Commit 1 message" },
+    { hash: "456", message: "Commit 2 message" },
+  ];
+  const nextRelease = { version: "1.0.0" };
+  const releases = [
+    { name: "GitHub release", url: "https://github.com/release" },
+  ];
+  const issues = [
+    { number: 1, body: "Issue 1 body", title: failTitle },
+    { number: 2, body: `Issue 2 body\n\n${ISSUE_ID}`, title: failTitle },
+    { number: 3, body: `Issue 3 body\n\n${ISSUE_ID}`, title: failTitle },
+  ];
+  const prs = [
+    { number: 4, pull_request: true, state: "closed" },
+    {
+      number: 5,
+      pull_request: true,
+      state: "closed",
+      labels: {
+        nodes: [
+          {
+            id: 123,
+            color: "000000",
+            name: "semantic-release-relevant",
+            url: `https://github.com/${owner}/${repo}/labels/semantic-release-relevant`,
+          },
+        ],
+      },
+    },
+  ];
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      full_name: `${owner}/${repo}`,
+    })
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          commit123: {
+            associatedPullRequests: {
+              nodes: [prs[0]],
+            },
+          },
+          commit456: {
+            associatedPullRequests: {
+              nodes: [prs[1]],
+            },
+          },
+        },
+      },
+    })
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/pulls/4/commits`,
+      [{ sha: commits[0].hash }],
+    )
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/pulls/5/commits`,
+      [{ sha: commits[1].hash }],
+    )
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
+        "in:title",
+      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
+        "type:issue",
+      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
+      { items: issues },
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/5/comments`,
+      { html_url: "https://github.com/successcomment-5" },
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/5/labels`,
+      {},
+      { body: ["released"] },
+    )
+    .patchOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/2`,
+      { html_url: "https://github.com/issues/2" },
+      {
+        body: {
+          state: "closed",
+        },
+      },
+    )
+    .patchOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/3`,
+      { html_url: "https://github.com/issues/3" },
+      {
+        body: {
+          state: "closed",
+        },
+      },
+    );
+
+  await success(
+    pluginConfig,
+    {
+      env,
+      options,
+      branch: { name: "master" },
+      commits,
+      nextRelease,
+      releases,
+      logger: t.context.logger,
+    },
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    },
+  );
+
+  t.true(
+    t.context.log.calledWith(
+      "Added comment to issue #%d: %s",
+      5,
+      "https://github.com/successcomment-5",
+    ),
+  );
+  t.true(
+    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 5),
+  );
+  t.true(fetch.done());
+});
+
+test('Does not comment/label found associatedPR when "successCommentCondition" disables it', async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GITHUB_TOKEN: "github_token" };
+  const failTitle = "The automated release is failing 🚨";
+  const pluginConfig = {
+    failTitle,
+    // Only issues will be commented and labeled (not PRs)
+    successCommentCondition: "<% return !issue.pull_request; %>",
+  };
+  const options = {
+    repositoryUrl: `https://github.com/${owner}/${repo}.git`,
+  };
+  const commits = [
+    { hash: "123", message: "Commit 1 message" },
+    { hash: "456", message: "Commit 2 message" },
+  ];
+  const nextRelease = { version: "1.0.0" };
+  const releases = [
+    { name: "GitHub release", url: "https://github.com/release" },
+  ];
+  const issues = [
+    { number: 1, body: `Issue 1 body\n\n${ISSUE_ID}`, title: failTitle },
+    {
+      number: 4,
+      body: `Issue 4 body`,
+      title: "Issue 4 title",
+      state: "closed",
+    },
+  ];
+  const prs = [
+    { number: 2, pull_request: {}, body: "Fixes #4", state: "closed" },
+    { number: 3, pull_request: {}, state: "closed" },
+  ];
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      full_name: `${owner}/${repo}`,
+    })
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          commit123: {
+            associatedPullRequests: {
+              nodes: [prs[0]],
+            },
+          },
+          commit456: {
+            associatedPullRequests: {
+              nodes: [prs[1]],
+            },
+          },
+        },
+      },
+    })
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/pulls/2/commits`,
+      [{ sha: commits[0].hash }],
+    )
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/pulls/3/commits`,
+      [{ sha: commits[1].hash }],
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/4/comments`,
+      { html_url: "https://github.com/successcomment-4" },
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/4/labels`,
+      {},
+      { body: ["released"] },
+    )
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
+        "in:title",
+      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
+        "type:issue",
+      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
+      { items: issues },
+    )
+    .patchOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/1`,
+      { html_url: "https://github.com/issues/1" },
+      {
+        body: {
+          state: "closed",
+        },
+      },
+    );
+
+  await success(
+    pluginConfig,
+    {
+      env,
+      options,
+      branch: { name: "master" },
+      commits,
+      nextRelease,
+      releases,
+      logger: t.context.logger,
+    },
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    },
+  );
+
+  t.true(
+    t.context.log.calledWith(
+      "Closed issue #%d: %s.",
+      1,
+      "https://github.com/issues/1",
+    ),
+  );
+  t.true(
+    t.context.log.calledWith(
+      "Added comment to issue #%d: %s",
+      4,
+      "https://github.com/successcomment-4",
+    ),
+  );
+  t.true(
+    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 4),
   );
   t.true(fetch.done());
 });
