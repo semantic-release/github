@@ -465,7 +465,7 @@ test("Comment and add labels on PR included in the releases", async (t) => {
       `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
       {},
       {
-        body: ["released"],
+        labels: ["released"],
       },
     )
     .getOnce(
@@ -670,7 +670,7 @@ test("Verify, release and notify success", async (t) => {
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
       {},
-      { body: ["released"] },
+      { labels: ["released"] },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
@@ -830,7 +830,7 @@ test("Verify, update release and notify success", async (t) => {
       `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
       {},
       {
-        body: ["released"],
+        labels: ["released"],
       },
     )
     .getOnce(
