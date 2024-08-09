@@ -202,6 +202,197 @@ test("Add comment and labels to PRs associated with release commits and issues s
   t.true(fetch.done());
 });
 
+test("Add comment and labels to PRs associated with release commits and issues (multipaged associatedPRs)", async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GITHUB_TOKEN: "github_token" };
+  const failTitle = "The automated release is failing 🚨";
+  const pluginConfig = { failTitle };
+  const prs = [
+    { number: 1, pull_request: {}, state: "closed" },
+    { number: 2, pull_request: {}, body: "Fixes #3", state: "closed" },
+    { number: 5, pull_request: {}, state: "closed" },
+    { number: 6, pull_request: {}, state: "closed" },
+  ];
+  const options = {
+    branch: "master",
+    repositoryUrl: `https://github.com/${owner}/${repo}.git`,
+  };
+  const commits = [
+    {
+      hash: "123",
+      message: "Commit 1 message\n\n Fix #1",
+      tree: { long: "aaa" },
+    },
+    { hash: "456", message: "Commit 2 message", tree: { long: "ccc" } },
+    {
+      hash: "789",
+      message: `Commit 3 message Closes https://github.com/${owner}/${repo}/issues/4`,
+      tree: { long: "ccc" },
+    },
+  ];
+  const nextRelease = { version: "1.0.0" };
+  const releases = [
+    { name: "GitHub release", url: "https://github.com/release" },
+  ];
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      full_name: `${owner}/${repo}`,
+    })
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          commit123: {
+            oid: "123",
+            associatedPullRequests: {
+              pageInfo: {
+                endCursor: "YE",
+                hasNextPage: true,
+              },
+              nodes: [prs[0]],
+            },
+          },
+          commit456: {
+            oid: "456",
+            associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
+              nodes: [prs[1]],
+            },
+          },
+          commit789: {
+            oid: "789",
+            associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
+              nodes: [prs[2]],
+            },
+          },
+        },
+      },
+    })
+    .postOnce(
+      "https://api.github.local/graphql",
+      {
+        data: {
+          repository: {
+            commit: {
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NE",
+                  hasNextPage: false,
+                },
+                nodes: [prs[3]],
+              },
+            },
+          },
+        },
+      },
+      {
+        overwriteRoutes: true,
+      },
+    )
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/pulls/6/commits`,
+      [{ sha: commits[0].hash }],
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
+      {
+        html_url: "https://github.com/successcomment-1",
+      },
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
+      {},
+      { body: ["released"] },
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/4/comments`,
+      { html_url: "https://github.com/successcomment-4" },
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/4/labels`,
+      {},
+      { body: ["released"] },
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/6/comments`,
+      { html_url: "https://github.com/successcomment-6" },
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/6/labels`,
+      {},
+      { body: ["released"] },
+    )
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
+        "in:title",
+      )}+${encodeURIComponent(
+        `repo:${owner}/${repo}`,
+      )}+${encodeURIComponent("type:issue")}+${encodeURIComponent(
+        "state:open",
+      )}+${encodeURIComponent(failTitle)}`,
+      { items: [] },
+    );
+
+  await success(
+    pluginConfig,
+    {
+      env,
+      options,
+      commits,
+      nextRelease,
+      releases,
+      logger: t.context.logger,
+    },
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    },
+  );
+
+  t.true(
+    t.context.log.calledWith(
+      "Added comment to issue #%d: %s",
+      1,
+      "https://github.com/successcomment-1",
+    ),
+  );
+  t.true(
+    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 1),
+  );
+  t.true(
+    t.context.log.calledWith(
+      "Added comment to issue #%d: %s",
+      4,
+      "https://github.com/successcomment-4",
+    ),
+  );
+  t.true(
+    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 4),
+  );
+  t.true(
+    t.context.log.calledWith(
+      "Added comment to issue #%d: %s",
+      6,
+      "https://github.com/successcomment-6",
+    ),
+  );
+  t.true(
+    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 6),
+  );
+  t.true(fetch.done());
+});
+
 test("Add comment and labels to PRs associated with release commits and issues closed by PR/commits comments with custom URL", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
