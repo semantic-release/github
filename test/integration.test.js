@@ -27,7 +27,10 @@ test("Verify GitHub auth", async (t) => {
   const fetch = fetchMock
     .sandbox()
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
-      permissions: { push: true },
+      permissions: {
+        push: true,
+      },
+      clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
 
   await t.notThrowsAsync(
@@ -56,8 +59,11 @@ test("Verify GitHub auth with publish options", async (t) => {
   };
   const fetch = fetchMock
     .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
-      permissions: { push: true },
+    .get(`https://api.github.local/repos/${owner}/${repo}`, {
+      permissions: {
+        push: true,
+      },
+      clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
 
   await t.notThrowsAsync(
@@ -94,7 +100,10 @@ test("Verify GitHub auth and assets config", async (t) => {
   const fetch = fetchMock
     .sandbox()
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
-      permissions: { push: true },
+      permissions: {
+        push: true,
+      },
+      clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
 
   await t.notThrowsAsync(
@@ -197,7 +206,10 @@ test("Publish a release with an array of assets", async (t) => {
   const fetch = fetchMock
     .sandbox()
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
-      permissions: { push: true },
+      permissions: {
+        push: true,
+      },
+      clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/releases`,
@@ -289,7 +301,10 @@ test("Publish a release with release information in assets", async (t) => {
   const fetch = fetchMock
     .sandbox()
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
-      permissions: { push: true },
+      permissions: {
+        push: true,
+      },
+      clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/releases`,
@@ -359,7 +374,10 @@ test("Update a release", async (t) => {
   const fetch = fetchMock
     .sandbox()
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
-      permissions: { push: true },
+      permissions: {
+        push: true,
+      },
+      clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`,
@@ -426,9 +444,9 @@ test("Comment and add labels on PR included in the releases", async (t) => {
       {
         permissions: { push: true },
         full_name: `${owner}/${repo}`,
+        clone_url: `htttps://api.github.local/${owner}/${repo}.git`,
       },
       {
-        // TODO: why do we call the same endpoint twice?
         repeat: 2,
       },
     )
@@ -529,10 +547,9 @@ test("Open a new issue with the list of errors", async (t) => {
       {
         permissions: { push: true },
         full_name: `${owner}/${repo}`,
+        clone_url: `htttps://api.github.local/${owner}/${repo}.git`,
       },
-      {
-        repeat: 2,
-      },
+      { repeat: 2 },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
@@ -625,6 +642,7 @@ test("Verify, release and notify success", async (t) => {
       {
         permissions: { push: true },
         full_name: `${owner}/${repo}`,
+        clone_url: `htttps://api.github.local/${owner}/${repo}.git`,
       },
       {
         repeat: 2,
@@ -785,6 +803,7 @@ test("Verify, update release and notify success", async (t) => {
       {
         permissions: { push: true },
         full_name: `${owner}/${repo}`,
+        clone_url: `htttps://api.github.local/${owner}/${repo}.git`,
       },
       {
         repeat: 2,
@@ -917,6 +936,7 @@ test("Verify and notify failure", async (t) => {
       {
         permissions: { push: true },
         full_name: `${owner}/${repo}`,
+        clone_url: `htttps://api.github.local/${owner}/${repo}.git`,
       },
       {
         repeat: 2,
