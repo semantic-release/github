@@ -2676,7 +2676,7 @@ test('Does not comment/label on issues/PR if "successCommentCondition" is "false
   t.true(fetch.done());
 });
 
-test('Add comment and label to found issues/associatedPR using the "successCommentCondition"', async (t) => {
+test('Add comment and label to found issues/associatedPR using the "successCommentCondition": if specific label is found', async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
   const env = { GITHUB_TOKEN: "github_token" };
@@ -2827,7 +2827,178 @@ test('Add comment and label to found issues/associatedPR using the "successComme
   t.true(fetch.done());
 });
 
-test('Does not comment/label found associatedPR when "successCommentCondition" disables it', async (t) => {
+test('Does not comment/label associatedPR created by "Bots"', async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GITHUB_TOKEN: "github_token" };
+  const failTitle = "The automated release is failing 🚨";
+  const pluginConfig = {
+    failTitle,
+    // Only issues will be commented and labeled (not PRs)
+    successCommentCondition:
+      "<% return !issue.user || issue.user.type !== 'Bot'; %>",
+  };
+  const options = {
+    repositoryUrl: `https://github.com/${owner}/${repo}.git`,
+  };
+  const commits = [
+    { hash: "123", message: "Commit 1 message" },
+    { hash: "456", message: "Commit 2 message" },
+  ];
+  const nextRelease = { version: "1.0.0" };
+  const releases = [
+    { name: "GitHub release", url: "https://github.com/release" },
+  ];
+  const issues = [
+    { number: 1, body: `Issue 1 body\n\n${ISSUE_ID}`, title: failTitle },
+    {
+      number: 4,
+      body: `Issue 4 body`,
+      title: "Issue 4 title",
+      state: "closed",
+    },
+  ];
+  const prs = [
+    {
+      number: 2,
+      pull_request: {},
+      body: "Fixes #4",
+      state: "closed",
+      user: {
+        login: "user_login",
+        type: "User",
+        avatar_url: "https://some_url.link",
+        html_url: "https://some_url.link",
+      },
+    },
+    {
+      number: 3,
+      pull_request: {},
+      state: "closed",
+      user: {
+        login: "bot_user_login",
+        type: "Bot",
+        avatar_url: "https://some_url.link",
+        html_url: "https://some_url.link",
+      },
+    },
+  ];
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      full_name: `${owner}/${repo}`,
+    })
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          commit123: {
+            oid: "123",
+            associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
+              nodes: [prs[0]],
+            },
+          },
+          commit456: {
+            oid: "456",
+            associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
+              nodes: [prs[1]],
+            },
+          },
+        },
+      },
+    })
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/pulls/2/commits`,
+      [{ sha: commits[0].hash }],
+    )
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/pulls/3/commits`,
+      [{ sha: commits[1].hash }],
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/4/comments`,
+      { html_url: "https://github.com/successcomment-4" },
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/4/labels`,
+      {},
+      { body: ["released"] },
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/2/comments`,
+      { html_url: "https://github.com/successcomment-2" },
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/2/labels`,
+      {},
+      { body: ["released"] },
+    )
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
+        "in:title",
+      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
+        "type:issue",
+      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
+      { items: issues },
+    )
+    .patchOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/1`,
+      { html_url: "https://github.com/issues/1" },
+      {
+        body: {
+          state: "closed",
+        },
+      },
+    );
+
+  await success(
+    pluginConfig,
+    {
+      env,
+      options,
+      branch: { name: "master" },
+      commits,
+      nextRelease,
+      releases,
+      logger: t.context.logger,
+    },
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    },
+  );
+
+  t.true(
+    t.context.log.calledWith(
+      "Closed issue #%d: %s.",
+      1,
+      "https://github.com/issues/1",
+    ),
+  );
+  t.true(
+    t.context.log.calledWith(
+      "Added comment to issue #%d: %s",
+      4,
+      "https://github.com/successcomment-4",
+    ),
+  );
+  t.true(
+    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 4),
+  );
+  t.true(fetch.done());
+});
+
+test('Does not comment/label some associatedPR when "successCommentCondition" disables it: Don\'t comment on PRs created by BOTs', async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
   const env = { GITHUB_TOKEN: "github_token" };
