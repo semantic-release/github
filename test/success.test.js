@@ -2685,7 +2685,7 @@ test('Add comment and label to found issues/associatedPR using the "successComme
     failTitle,
     // Issues with the label "semantic-release-relevant" will be commented and labeled
     successCommentCondition:
-      "<% return issue.labels?.includes('semantic-release-relevant'); %>",
+      "<% return issue.labels.includes('semantic-release-relevant'); %>",
   };
   const options = {
     repositoryUrl: `https://github.com/${owner}/${repo}.git`,
@@ -2704,23 +2704,21 @@ test('Add comment and label to found issues/associatedPR using the "successComme
     { number: 3, body: `Issue 3 body\n\n${ISSUE_ID}`, title: failTitle },
   ];
   const prs = [
-    { number: 4, pull_request: true, state: "closed" },
+    {
+      number: 4,
+      pull_request: true,
+      state: "closed",
+      labels: [],
+    },
     {
       number: 5,
       pull_request: true,
       state: "closed",
-      labels: {
-        nodes: [
-          {
-            id: 123,
-            color: "000000",
-            name: "semantic-release-relevant",
-            url: `https://github.com/${owner}/${repo}/labels/semantic-release-relevant`,
-          },
-        ],
-      },
+      labels: ["semantic-release-relevant"],
     },
   ];
+
+  // t.log(prs);
 
   const fetch = fetchMock
     .sandbox()
@@ -2731,12 +2729,22 @@ test('Add comment and label to found issues/associatedPR using the "successComme
       data: {
         repository: {
           commit123: {
+            oid: "123",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [prs[0]],
             },
           },
           commit456: {
+            oid: "456",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [prs[1]],
             },
           },
@@ -2863,12 +2871,22 @@ test('Does not comment/label found associatedPR when "successCommentCondition" d
       data: {
         repository: {
           commit123: {
+            oid: "123",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [prs[0]],
             },
           },
           commit456: {
+            oid: "456",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [prs[1]],
             },
           },
