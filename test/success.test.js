@@ -28,8 +28,8 @@ test("Add comment and labels to PRs associated with release commits and issues s
   const failTitle = "The automated release is failing 🚨";
   const pluginConfig = { failTitle };
   const prs = [
-    { number: 1, pull_request: {}, state: "closed" },
-    { number: 2, pull_request: {}, body: "Fixes #3", state: "closed" },
+    { number: 1, pull_request: true, state: "closed" },
+    { number: 2, pull_request: true, body: "Fixes #3", state: "closed" },
   ];
   const options = {
     branch: "master",
@@ -210,10 +210,10 @@ test("Add comment and labels to PRs associated with release commits and issues (
   const failTitle = "The automated release is failing 🚨";
   const pluginConfig = { failTitle };
   const prs = [
-    { number: 1, pull_request: {}, state: "closed" },
-    { number: 2, pull_request: {}, body: "Fixes #3", state: "closed" },
-    { number: 5, pull_request: {}, state: "closed" },
-    { number: 6, pull_request: {}, state: "closed" },
+    { number: 1, pull_request: true, state: "closed" },
+    { number: 2, pull_request: true, body: "Fixes #3", state: "closed" },
+    { number: 5, pull_request: true, state: "closed" },
+    { number: 6, pull_request: true, state: "closed" },
   ];
   const options = {
     branch: "master",
@@ -405,8 +405,8 @@ test("Add comment and labels to PRs associated with release commits and issues c
   const failTitle = "The automated release is failing 🚨";
   const pluginConfig = { failTitle };
   const prs = [
-    { number: 1, pull_request: {}, state: "closed" },
-    { number: 2, pull_request: {}, body: "Fixes #3", state: "closed" },
+    { number: 1, pull_request: true, state: "closed" },
+    { number: 2, pull_request: true, body: "Fixes #3", state: "closed" },
   ];
   const options = {
     branch: "master",
@@ -601,12 +601,12 @@ test("Make multiple search queries if necessary", async (t) => {
   const failTitle = "The automated release is failing 🚨";
   const pluginConfig = { failTitle };
   const prs = [
-    { number: 1, pull_request: {}, state: "closed" },
-    { number: 2, pull_request: {}, state: "closed" },
-    { number: 3, pull_request: {}, state: "closed" },
-    { number: 4, pull_request: {}, state: "closed" },
-    { number: 5, pull_request: {}, state: "closed" },
-    { number: 6, pull_request: {}, state: "closed" },
+    { number: 1, pull_request: true, state: "closed" },
+    { number: 2, pull_request: true, state: "closed" },
+    { number: 3, pull_request: true, state: "closed" },
+    { number: 4, pull_request: true, state: "closed" },
+    { number: 5, pull_request: true, state: "closed" },
+    { number: 6, pull_request: true, state: "closed" },
   ];
   const options = {
     branch: "master",
@@ -885,8 +885,8 @@ test("Do not add comment and labels for unrelated PR returned by search (compare
   const failTitle = "The automated release is failing 🚨";
   const pluginConfig = { failTitle };
   const prs = [
-    { number: 1, pull_request: {}, state: "closed" },
-    { number: 2, pull_request: {}, state: "closed" },
+    { number: 1, pull_request: true, state: "closed" },
+    { number: 2, pull_request: true, state: "closed" },
   ];
   const options = {
     branch: "master",
@@ -1240,9 +1240,9 @@ test("Ignore missing and forbidden issues/PRs", async (t) => {
   const failTitle = "The automated release is failing 🚨";
   const pluginConfig = { failTitle };
   const prs = [
-    { number: 1, pull_request: {}, state: "closed" },
-    { number: 2, pull_request: {}, body: "Fixes #4", state: "closed" },
-    { number: 3, pull_request: {}, body: "Fixes #5", state: "closed" },
+    { number: 1, pull_request: true, state: "closed" },
+    { number: 2, pull_request: true, body: "Fixes #4", state: "closed" },
+    { number: 3, pull_request: true, body: "Fixes #5", state: "closed" },
   ];
   const options = {
     branch: "master",
@@ -1433,7 +1433,7 @@ test("Add custom comment and labels", async (t) => {
     ],
   };
   const prs = [
-    { number: 1, prop: "PR prop", pull_request: {}, state: "closed" },
+    { number: 1, prop: "PR prop", pull_request: true, state: "closed" },
   ];
   const options = { repositoryUrl: `https://github.com/${owner}/${repo}.git` };
   const lastRelease = { version: "1.0.0" };
@@ -1533,7 +1533,7 @@ test("Add custom label", async (t) => {
   const env = { GITHUB_TOKEN: "github_token" };
   const failTitle = "The automated release is failing 🚨";
   const pluginConfig = { releasedLabels: ["custom label"], failTitle };
-  const prs = [{ number: 1, pull_request: {}, state: "closed" }];
+  const prs = [{ number: 1, pull_request: true, state: "closed" }];
   const options = { repositoryUrl: `https://github.com/${owner}/${repo}.git` };
   const lastRelease = { version: "1.0.0" };
   const commits = [{ hash: "123", message: "Commit 1 message" }];
@@ -1629,7 +1629,7 @@ test("Comment on issue/PR without ading a label", async (t) => {
   const env = { GITHUB_TOKEN: "github_token" };
   const failTitle = "The automated release is failing 🚨";
   const pluginConfig = { releasedLabels: false, failTitle };
-  const prs = [{ number: 1, pull_request: {}, state: "closed" }];
+  const prs = [{ number: 1, pull_request: true, state: "closed" }];
   const options = { repositoryUrl: `https://github.com/${owner}/${repo}.git` };
   const lastRelease = { version: "1.0.0" };
   const commits = [{ hash: "123", message: "Commit 1 message" }];
@@ -1713,7 +1713,7 @@ test("Editing the release to include all release links at the bottom", async (t)
   const env = { GITHUB_TOKEN: "github_token" };
   const failTitle = "The automated release is failing 🚨";
   const pluginConfig = { releasedLabels: false, addReleases: "bottom" };
-  const prs = [{ number: 1, pull_request: {}, state: "closed" }];
+  const prs = [{ number: 1, pull_request: true, state: "closed" }];
   const options = {
     repositoryUrl: `https://github.com/${owner}/${repo}.git`,
   };
@@ -1823,7 +1823,7 @@ test("Editing the release to include all release links at the top", async (t) =>
   const env = { GITHUB_TOKEN: "github_token" };
   const failTitle = "The automated release is failing 🚨";
   const pluginConfig = { releasedLabels: false, addReleases: "top" };
-  const prs = [{ number: 1, pull_request: {}, state: "closed" }];
+  const prs = [{ number: 1, pull_request: true, state: "closed" }];
   const options = {
     repositoryUrl: `https://github.com/${owner}/${repo}.git`,
   };
@@ -1933,7 +1933,7 @@ test("Editing the release to include all release links with no additional releas
   const env = { GITHUB_TOKEN: "github_token" };
   const failTitle = "The automated release is failing 🚨";
   const pluginConfig = { releasedLabels: false, addReleases: "top" };
-  const prs = [{ number: 1, pull_request: {}, state: "closed" }];
+  const prs = [{ number: 1, pull_request: true, state: "closed" }];
   const options = {
     repositoryUrl: `https://github.com/${owner}/${repo}.git`,
   };
@@ -2029,7 +2029,7 @@ test("Editing the release to include all release links with no additional releas
   const env = { GITHUB_TOKEN: "github_token" };
   const failTitle = "The automated release is failing 🚨";
   const pluginConfig = { releasedLabels: false, addReleases: "bottom" };
-  const prs = [{ number: 1, pull_request: {}, state: "closed" }];
+  const prs = [{ number: 1, pull_request: true, state: "closed" }];
   const options = {
     repositoryUrl: `https://github.com/${owner}/${repo}.git`,
   };
@@ -2125,7 +2125,7 @@ test("Editing the release to include all release links with no releases", async 
   const env = { GITHUB_TOKEN: "github_token" };
   const failTitle = "The automated release is failing 🚨";
   const pluginConfig = { releasedLabels: false, addReleases: "bottom" };
-  const prs = [{ number: 1, pull_request: {}, state: "closed" }];
+  const prs = [{ number: 1, pull_request: true, state: "closed" }];
   const options = {
     repositoryUrl: `https://github.com/${owner}/${repo}.git`,
   };
@@ -2214,7 +2214,7 @@ test("Editing the release with no ID in the release", async (t) => {
   const env = { GITHUB_TOKEN: "github_token" };
   const failTitle = "The automated release is failing 🚨";
   const pluginConfig = { releasedLabels: false, addReleases: "bottom" };
-  const prs = [{ number: 1, pull_request: {}, state: "closed" }];
+  const prs = [{ number: 1, pull_request: true, state: "closed" }];
   const options = { repositoryUrl: `https://github.com/${owner}/${repo}.git` };
   const nextRelease = {
     version: "2.0.0",
@@ -2311,8 +2311,8 @@ test("Ignore errors when adding comments and closing issues", async (t) => {
     { number: 3, body: `Issue 3 body\n\n${ISSUE_ID}`, title: failTitle },
   ];
   const prs = [
-    { number: 1, pull_request: {}, state: "closed" },
-    { number: 2, pull_request: {}, state: "closed" },
+    { number: 1, pull_request: true, state: "closed" },
+    { number: 2, pull_request: true, state: "closed" },
   ];
   const options = {
     repositoryUrl: `https://github.com/${owner}/${repo}.git`,
@@ -2861,7 +2861,7 @@ test('Does not comment/label associatedPR created by "Bots"', async (t) => {
   const prs = [
     {
       number: 2,
-      pull_request: {},
+      pull_request: true,
       body: "Fixes #4",
       state: "closed",
       user: {
@@ -2873,7 +2873,7 @@ test('Does not comment/label associatedPR created by "Bots"', async (t) => {
     },
     {
       number: 3,
-      pull_request: {},
+      pull_request: true,
       state: "closed",
       user: {
         login: "bot_user_login",
@@ -3029,8 +3029,8 @@ test('Does not comment/label some associatedPR when "successCommentCondition" di
     },
   ];
   const prs = [
-    { number: 2, pull_request: {}, body: "Fixes #4", state: "closed" },
-    { number: 3, pull_request: {}, state: "closed" },
+    { number: 2, pull_request: true, body: "Fixes #4", state: "closed" },
+    { number: 3, pull_request: true, state: "closed" },
   ];
 
   const fetch = fetchMock
