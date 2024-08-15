@@ -2718,8 +2718,6 @@ test('Add comment and label to found issues/associatedPR using the "successComme
     },
   ];
 
-  // t.log(prs);
-
   const fetch = fetchMock
     .sandbox()
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
