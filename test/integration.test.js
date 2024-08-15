@@ -29,6 +29,7 @@ test("Verify GitHub auth", async (t) => {
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -62,6 +63,7 @@ test("Verify GitHub auth with publish options", async (t) => {
     .get(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -102,6 +104,7 @@ test("Verify GitHub auth and assets config", async (t) => {
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -208,6 +211,7 @@ test("Publish a release with an array of assets", async (t) => {
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
@@ -303,6 +307,7 @@ test("Publish a release with release information in assets", async (t) => {
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
@@ -376,6 +381,7 @@ test("Update a release", async (t) => {
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
@@ -442,7 +448,10 @@ test("Comment and add labels on PR included in the releases", async (t) => {
     .get(
       `https://api.github.local/repos/${owner}/${repo}`,
       {
-        permissions: { push: true },
+        permissions: {
+          push: true,
+          maintain: true,
+        },
         full_name: `${owner}/${repo}`,
         clone_url: `htttps://api.github.local/${owner}/${repo}.git`,
       },
@@ -545,7 +554,10 @@ test("Open a new issue with the list of errors", async (t) => {
     .get(
       `https://api.github.local/repos/${owner}/${repo}`,
       {
-        permissions: { push: true },
+        permissions: {
+          push: true,
+          maintain: true,
+        },
         full_name: `${owner}/${repo}`,
         clone_url: `htttps://api.github.local/${owner}/${repo}.git`,
       },
@@ -640,7 +652,10 @@ test("Verify, release and notify success", async (t) => {
     .get(
       `https://api.github.local/repos/${owner}/${repo}`,
       {
-        permissions: { push: true },
+        permissions: {
+          push: true,
+          maintain: true,
+        },
         full_name: `${owner}/${repo}`,
         clone_url: `htttps://api.github.local/${owner}/${repo}.git`,
       },
@@ -801,7 +816,10 @@ test("Verify, update release and notify success", async (t) => {
     .get(
       `https://api.github.local/repos/${owner}/${repo}`,
       {
-        permissions: { push: true },
+        permissions: {
+          push: true,
+          maintain: true,
+        },
         full_name: `${owner}/${repo}`,
         clone_url: `htttps://api.github.local/${owner}/${repo}.git`,
       },
@@ -934,7 +952,10 @@ test("Verify and notify failure", async (t) => {
     .get(
       `https://api.github.local/repos/${owner}/${repo}`,
       {
-        permissions: { push: true },
+        permissions: {
+          push: true,
+          maintain: true,
+        },
         full_name: `${owner}/${repo}`,
         clone_url: `htttps://api.github.local/${owner}/${repo}.git`,
       },

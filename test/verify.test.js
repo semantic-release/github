@@ -15,7 +15,7 @@ test.beforeEach((t) => {
   t.context.logger = { log: t.context.log, error: t.context.error };
 });
 
-test("Verify package, token and repository access", async (t) => {
+test("Verify package, token and repository access for private repo with token scopes: repo", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
   const env = { GH_TOKEN: "github_token" };
@@ -30,10 +30,131 @@ test("Verify package, token and repository access", async (t) => {
   const fetch = fetchMock
     .sandbox()
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
-      permissions: {
-        push: true,
+      headers: {
+        "x-oauth-scopes": "repo",
       },
-      clone_url: `https://api.github.local/${owner}/${repo}.git`,
+      body: {
+        private: true,
+        permissions: {
+          push: true,
+          maintain: true,
+        },
+        clone_url: `https://api.github.local/${owner}/${repo}.git`,
+      },
+    });
+
+  await t.notThrowsAsync(
+    verify(
+      {
+        proxy,
+        assets,
+        successComment,
+        failTitle,
+        failComment,
+        labels,
+        discussionCategoryName,
+      },
+      {
+        env,
+        options: {
+          repositoryUrl: `git+https://othertesturl.com/${owner}/${repo}.git`,
+        },
+        logger: t.context.logger,
+      },
+      {
+        Octokit: TestOctokit.defaults((options) => ({
+          ...options,
+          request: { ...options.request, fetch },
+        })),
+      },
+    ),
+  );
+  t.true(fetch.done());
+});
+
+test("Verify package, token and repository access for public repo with token scopes: repo", async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GH_TOKEN: "github_token" };
+  const proxy = "https://localhost";
+  const assets = [{ path: "lib/file.js" }, "file.js"];
+  const successComment = "Test comment";
+  const failTitle = "Test title";
+  const failComment = "Test comment";
+  const labels = ["semantic-release"];
+  const discussionCategoryName = "Announcements";
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      headers: {
+        "x-oauth-scopes": "repo",
+      },
+      body: {
+        private: false,
+        permissions: {
+          push: true,
+          maintain: true,
+        },
+        clone_url: `https://api.github.local/${owner}/${repo}.git`,
+      },
+    });
+
+  await t.notThrowsAsync(
+    verify(
+      {
+        proxy,
+        assets,
+        successComment,
+        failTitle,
+        failComment,
+        labels,
+        discussionCategoryName,
+      },
+      {
+        env,
+        options: {
+          repositoryUrl: `git+https://othertesturl.com/${owner}/${repo}.git`,
+        },
+        logger: t.context.logger,
+      },
+      {
+        Octokit: TestOctokit.defaults((options) => ({
+          ...options,
+          request: { ...options.request, fetch },
+        })),
+      },
+    ),
+  );
+  t.true(fetch.done());
+});
+
+test("Verify package, token and repository access for public repo with token scopes: public_repo", async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GH_TOKEN: "github_token" };
+  const proxy = "https://localhost";
+  const assets = [{ path: "lib/file.js" }, "file.js"];
+  const successComment = "Test comment";
+  const failTitle = "Test title";
+  const failComment = "Test comment";
+  const labels = ["semantic-release"];
+  const discussionCategoryName = "Announcements";
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      headers: {
+        "x-oauth-scopes": "public_repo",
+      },
+      body: {
+        private: false,
+        permissions: {
+          push: true,
+          maintain: true,
+        },
+        clone_url: `https://api.github.local/${owner}/${repo}.git`,
+      },
     });
 
   await t.notThrowsAsync(
@@ -82,6 +203,7 @@ test('Verify package, token and repository access with "proxy", "asset", "discus
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -127,6 +249,7 @@ test("Verify package, token and repository access and custom URL with prefix", a
     .getOnce(`https://othertesturl.com:9090/prefix/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -168,6 +291,7 @@ test("Verify package, token and repository access and custom URL without prefix"
     .getOnce(`https://othertesturl.com:9090/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -209,6 +333,7 @@ test("Verify package, token and repository access and shorthand repositoryUrl UR
     .getOnce(`https://othertesturl.com:9090/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -251,6 +376,7 @@ test("Verify package, token and repository with environment variables", async (t
     .getOnce(`https://othertesturl.com:443/prefix/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `htttps://api.github.local/${owner}/${repo}.git`,
     });
@@ -295,6 +421,7 @@ test("Verify package, token and repository access with alternative environment v
     .getOnce(`https://othertesturl.com:443/prefix/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `htttps://api.github.local/${owner}/${repo}.git`,
     });
@@ -332,6 +459,7 @@ test("Verify package, token and repository access with custom API URL", async (t
     .getOnce(`https://api.othertesturl.com:9090/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `htttps://api.github.local/${owner}/${repo}.git`,
     });
@@ -374,6 +502,7 @@ test("Verify package, token and repository access with API URL in environment va
     .getOnce(`https://api.othertesturl.com:443/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `htttps://api.github.local/${owner}/${repo}.git`,
     });
@@ -410,6 +539,7 @@ test('Verify "proxy" is a String', async (t) => {
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -445,6 +575,7 @@ test('Verify "proxy" is an object with "host" and "port" properties', async (t) 
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -482,6 +613,7 @@ test('Verify "proxy" is a Boolean set to false', async (t) => {
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -517,6 +649,7 @@ test('Verify "assets" is a String', async (t) => {
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -552,6 +685,7 @@ test('Verify "assets" is an Object with a path property', async (t) => {
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -587,6 +721,7 @@ test('Verify "assets" is an Array of Object with a path property', async (t) => 
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -624,6 +759,7 @@ test('Verify "assets" is an Array of glob Arrays', async (t) => {
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -659,6 +795,7 @@ test('Verify "assets" is an Array of Object with a glob Arrays in path property'
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -696,6 +833,7 @@ test('Verify "labels" is a String', async (t) => {
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -731,6 +869,7 @@ test('Verify "assignees" is a String', async (t) => {
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -766,6 +905,7 @@ test('Verify "addReleases" is a valid string (top)', async (t) => {
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -801,6 +941,7 @@ test('Verify "addReleases" is a valid string (bottom)', async (t) => {
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -836,6 +977,7 @@ test('Verify "addReleases" is valid (false)', async (t) => {
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -871,6 +1013,7 @@ test('Verify "draftRelease" is valid (true)', async (t) => {
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -906,6 +1049,7 @@ test('Verify "draftRelease" is valid (false)', async (t) => {
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -1154,7 +1298,99 @@ test("Throw SemanticReleaseError for invalid repositoryUrl", async (t) => {
   t.is(error.code, "EINVALIDGITHUBURL");
 });
 
-test("Throw SemanticReleaseError if token doesn't have the push permission on the repository and it's not a Github installation token", async (t) => {
+test("Throw SemanticReleaseError if token doesn't have the repo or public_repo scope on a public repository", async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GH_TOKEN: "github_token" };
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      headers: {
+        "x-oauth-scopes": "repo:status, repo_deployment",
+      },
+      body: {
+        private: false,
+        permissions: {
+          push: true,
+          maintain: true,
+        },
+        clone_url: `https://api.github.local/${owner}/${repo}.git`,
+      },
+    });
+
+  const {
+    errors: [error, ...errors],
+  } = await t.throwsAsync(
+    verify(
+      {},
+      {
+        env,
+        options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
+        logger: t.context.logger,
+      },
+      {
+        Octokit: TestOctokit.defaults((options) => ({
+          ...options,
+          request: { ...options.request, fetch },
+        })),
+      },
+    ),
+  );
+
+  t.is(errors.length, 0);
+  t.is(error.name, "SemanticReleaseError");
+  t.is(error.code, "EGHNOSCOPE");
+  t.true(fetch.done());
+});
+
+test("Throw SemanticReleaseError if token doesn't have the repo scope on a private repository", async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GH_TOKEN: "github_token" };
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      headers: {
+        "x-oauth-scopes": "repo:status, repo_deployment",
+      },
+      body: {
+        private: true,
+        permissions: {
+          push: true,
+          maintain: true,
+        },
+        clone_url: `https://api.github.local/${owner}/${repo}.git`,
+      },
+    });
+
+  const {
+    errors: [error, ...errors],
+  } = await t.throwsAsync(
+    verify(
+      {},
+      {
+        env,
+        options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
+        logger: t.context.logger,
+      },
+      {
+        Octokit: TestOctokit.defaults((options) => ({
+          ...options,
+          request: { ...options.request, fetch },
+        })),
+      },
+    ),
+  );
+
+  t.is(errors.length, 0);
+  t.is(error.name, "SemanticReleaseError");
+  t.is(error.code, "EGHNOSCOPE");
+  t.true(fetch.done());
+});
+
+test("Throw SemanticReleaseError if user doesn't have the push permission on the repository and it's not a Github installation token", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
   const env = { GH_TOKEN: "github_token" };
@@ -1164,6 +1400,7 @@ test("Throw SemanticReleaseError if token doesn't have the push permission on th
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: false,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
@@ -1197,7 +1434,51 @@ test("Throw SemanticReleaseError if token doesn't have the push permission on th
   t.true(fetch.done());
 });
 
-test("Do not throw SemanticReleaseError if token doesn't have the push permission but it is a Github installation token", async (t) => {
+test("Throw SemanticReleaseError if user doesn't have the maintain permission on the repository and it's not a Github installation token", async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GH_TOKEN: "github_token" };
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      permissions: {
+        push: true,
+        maintain: false,
+      },
+      clone_url: `https://api.github.local/${owner}/${repo}.git`,
+    })
+    .headOnce(
+      "https://api.github.local/installation/repositories?per_page=1",
+      403,
+    );
+
+  const {
+    errors: [error, ...errors],
+  } = await t.throwsAsync(
+    verify(
+      {},
+      {
+        env,
+        options: { repositoryUrl: `https://github.com/${owner}/${repo}.git` },
+        logger: t.context.logger,
+      },
+      {
+        Octokit: TestOctokit.defaults((options) => ({
+          ...options,
+          request: { ...options.request, fetch },
+        })),
+      },
+    ),
+  );
+
+  t.is(errors.length, 0);
+  t.is(error.name, "SemanticReleaseError");
+  t.is(error.code, "EGHNOPERMISSION");
+  t.true(fetch.done());
+});
+
+test("Do not throw SemanticReleaseError if user doesn't have the push permission but it is a Github installation token", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
   const env = { GH_TOKEN: "github_token" };
@@ -1288,7 +1569,10 @@ for (const makeRepositoryUrl of urlFormats) {
       const fetch = fetchMock.sandbox().getOnce(
         `https://api.github.local/repos/${owner}/${repo}`,
         {
-          permissions: { push: true },
+          permissions: {
+            push: true,
+            maintain: true,
+          },
           clone_url: make_clone_url(owner, repo),
         },
         { repeat: 2 },
@@ -1323,7 +1607,10 @@ for (const makeRepositoryUrl of urlFormats) {
       const fetch = fetchMock.sandbox().getOnce(
         `https://api.github.local/repos/${owner}/${repo}`,
         {
-          permissions: { push: true },
+          permissions: {
+            push: true,
+            maintain: true,
+          },
           clone_url: make_clone_url(owner, repo2),
         },
         { repeat: 2 },
@@ -1457,6 +1744,7 @@ test('Throw SemanticReleaseError if "assets" option is not a String or an Array 
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -1497,6 +1785,7 @@ test('Throw SemanticReleaseError if "assets" option is an Array with invalid ele
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -1537,6 +1826,7 @@ test('Throw SemanticReleaseError if "assets" option is an Object missing the "pa
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -1577,6 +1867,7 @@ test('Throw SemanticReleaseError if "assets" option is an Array with objects mis
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -1617,6 +1908,7 @@ test('Throw SemanticReleaseError if "successComment" option is not a String', as
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -1657,6 +1949,7 @@ test('Throw SemanticReleaseError if "successComment" option is an empty String',
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -1697,6 +1990,7 @@ test('Throw SemanticReleaseError if "successComment" option is a whitespace Stri
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -1737,6 +2031,7 @@ test('Throw SemanticReleaseError if "failTitle" option is not a String', async (
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -1777,6 +2072,7 @@ test('Throw SemanticReleaseError if "failTitle" option is an empty String', asyn
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -1817,6 +2113,7 @@ test('Throw SemanticReleaseError if "failTitle" option is a whitespace String', 
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -1857,6 +2154,7 @@ test('Throw SemanticReleaseError if "discussionCategoryName" option is not a Str
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -1897,6 +2195,7 @@ test('Throw SemanticReleaseError if "discussionCategoryName" option is an empty 
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -1937,6 +2236,7 @@ test('Throw SemanticReleaseError if "discussionCategoryName" option is a whitesp
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -1977,6 +2277,7 @@ test('Throw SemanticReleaseError if "failComment" option is not a String', async
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -2017,6 +2318,7 @@ test('Throw SemanticReleaseError if "failComment" option is an empty String', as
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -2057,6 +2359,7 @@ test('Throw SemanticReleaseError if "failComment" option is a whitespace String'
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -2097,6 +2400,7 @@ test('Throw SemanticReleaseError if "labels" option is not a String or an Array 
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -2137,6 +2441,7 @@ test('Throw SemanticReleaseError if "labels" option is an Array with invalid ele
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -2177,6 +2482,7 @@ test('Throw SemanticReleaseError if "labels" option is a whitespace String', asy
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -2217,6 +2523,7 @@ test('Throw SemanticReleaseError if "assignees" option is not a String or an Arr
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -2257,6 +2564,7 @@ test('Throw SemanticReleaseError if "assignees" option is an Array with invalid 
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -2297,6 +2605,7 @@ test('Throw SemanticReleaseError if "assignees" option is a whitespace String', 
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -2337,6 +2646,7 @@ test('Throw SemanticReleaseError if "releasedLabels" option is not a String or a
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -2377,6 +2687,7 @@ test('Throw SemanticReleaseError if "releasedLabels" option is an Array with inv
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -2417,6 +2728,7 @@ test('Throw SemanticReleaseError if "releasedLabels" option is a whitespace Stri
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -2457,6 +2769,7 @@ test('Throw SemanticReleaseError if "addReleases" option is not a valid string (
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -2497,6 +2810,7 @@ test('Throw SemanticReleaseError if "addReleases" option is not a valid string (
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -2537,6 +2851,7 @@ test('Throw SemanticReleaseError if "addReleases" option is not a valid string (
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -2577,6 +2892,7 @@ test('Throw SemanticReleaseError if "draftRelease" option is not a valid boolean
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -2616,6 +2932,7 @@ test('Throw SemanticReleaseError if "releaseBodyTemplate" option is an empty str
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
@@ -2655,6 +2972,7 @@ test('Throw SemanticReleaseError if "releaseNameTemplate" option is an empty str
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
+        maintain: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     });
