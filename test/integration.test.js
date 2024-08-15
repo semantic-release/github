@@ -454,7 +454,12 @@ test("Comment and add labels on PR included in the releases", async (t) => {
       data: {
         repository: {
           commit123: {
+            oid: "123",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [prs[0]],
             },
           },
@@ -674,7 +679,12 @@ test("Verify, release and notify success", async (t) => {
       data: {
         repository: {
           commit123: {
+            oid: "123",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [prs[0]],
             },
           },
@@ -828,7 +838,12 @@ test("Verify, update release and notify success", async (t) => {
       data: {
         repository: {
           commit123: {
+            oid: "123",
             associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
               nodes: [prs[0]],
             },
           },
