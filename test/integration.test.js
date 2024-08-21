@@ -522,13 +522,13 @@ test("Comment and add labels on PR included in the releases", async (t) => {
   t.deepEqual(t.context.log.args[0], ["Verify GitHub authentication"]);
   t.true(
     t.context.log.calledWith(
-      "Added comment to issue #%d: %s",
+      "Added comment to PR #%d: %s",
       1,
       "https://github.com/successcomment-1",
     ),
   );
   t.true(
-    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 1),
+    t.context.log.calledWith("Added labels %O to PR #%d", ["released"], 1),
   );
   t.true(fetch.done());
 });
