@@ -162,23 +162,23 @@ test("Add comment and labels to PRs associated with release commits and issues s
 
   t.true(
     t.context.log.calledWith(
-      "Added comment to issue #%d: %s",
+      "Added comment to PR #%d: %s",
       1,
       "https://github.com/successcomment-1",
     ),
   );
   t.true(
-    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 1),
+    t.context.log.calledWith("Added labels %O to PR #%d", ["released"], 1),
   );
   t.true(
     t.context.log.calledWith(
-      "Added comment to issue #%d: %s",
+      "Added comment to PR #%d: %s",
       2,
       "https://github.com/successcomment-2",
     ),
   );
   t.true(
-    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 2),
+    t.context.log.calledWith("Added labels %O to PR #%d", ["released"], 2),
   );
   t.true(
     t.context.log.calledWith(
@@ -363,14 +363,12 @@ test("Add comment and labels to PRs associated with release commits and issues (
 
   t.true(
     t.context.log.calledWith(
-      "Added comment to issue #%d: %s",
+      "Added comment to PR #%d: %s",
       1,
       "https://github.com/successcomment-1",
     ),
   );
-  t.true(
-    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 1),
-  );
+  t.true(t.context.log.calledWith("Added labels %O toPR #%d", ["released"], 1));
   t.true(
     t.context.log.calledWith(
       "Added comment to issue #%d: %s",
@@ -383,13 +381,13 @@ test("Add comment and labels to PRs associated with release commits and issues (
   );
   t.true(
     t.context.log.calledWith(
-      "Added comment to issue #%d: %s",
+      "Added comment to PR #%d: %s",
       6,
       "https://github.com/successcomment-6",
     ),
   );
   t.true(
-    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 6),
+    t.context.log.calledWith("Added labels %O to PR #%d", ["released"], 6),
   );
   t.true(fetch.done());
 });
@@ -537,28 +535,28 @@ test("Add comment and labels to PRs associated with release commits and issues c
 
   t.true(
     t.context.log.calledWith(
-      "Added comment to issue #%d: %s",
+      "Added comment to PR #%d: %s",
       1,
       "https://custom-url.com/successcomment-1",
     ),
   );
   t.true(
     t.context.log.calledWith(
-      "Added labels %O to issue #%d",
+      "Added labels %O to PR #%d",
       ["released on @next"],
       1,
     ),
   );
   t.true(
     t.context.log.calledWith(
-      "Added comment to issue #%d: %s",
+      "Added comment to PR #%d: %s",
       2,
       "https://custom-url.com/successcomment-2",
     ),
   );
   t.true(
     t.context.log.calledWith(
-      "Added labels %O to issue #%d",
+      "Added labels %O to PR #%d",
       ["released on @next"],
       2,
     ),
@@ -817,63 +815,63 @@ test("Make multiple search queries if necessary", async (t) => {
 
   t.true(
     t.context.log.calledWith(
-      "Added comment to issue #%d: %s",
+      "Added comment to PR #%d: %s",
       1,
       "https://github.com/successcomment-1",
     ),
   );
   t.true(
-    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 1),
+    t.context.log.calledWith("Added labels %O to PR #%d", ["released"], 1),
   );
   t.true(
     t.context.log.calledWith(
-      "Added comment to issue #%d: %s",
+      "Added comment to PR #%d: %s",
       2,
       "https://github.com/successcomment-2",
     ),
   );
   t.true(
-    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 2),
+    t.context.log.calledWith("Added labels %O to PR #%d", ["released"], 2),
   );
   t.true(
     t.context.log.calledWith(
-      "Added comment to issue #%d: %s",
+      "Added comment to PR #%d: %s",
       3,
       "https://github.com/successcomment-3",
     ),
   );
   t.true(
-    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 3),
+    t.context.log.calledWith("Added labels %O to PR #%d", ["released"], 3),
   );
   t.true(
     t.context.log.calledWith(
-      "Added comment to issue #%d: %s",
+      "Added comment to PR #%d: %s",
       4,
       "https://github.com/successcomment-4",
     ),
   );
   t.true(
-    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 4),
+    t.context.log.calledWith("Added labels %O to PR #%d", ["released"], 4),
   );
   t.true(
     t.context.log.calledWith(
-      "Added comment to issue #%d: %s",
+      "Added comment to PR #%d: %s",
       5,
       "https://github.com/successcomment-5",
     ),
   );
   t.true(
-    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 5),
+    t.context.log.calledWith("Added labels %O to PR #%d", ["released"], 5),
   );
   t.true(
     t.context.log.calledWith(
-      "Added comment to issue #%d: %s",
+      "Added comment to PR #%d: %s",
       6,
       "https://github.com/successcomment-6",
     ),
   );
   t.true(
-    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 6),
+    t.context.log.calledWith("Added labels %O to PR #%d", ["released"], 6),
   );
   t.true(fetch.done());
 });
@@ -987,13 +985,13 @@ test("Do not add comment and labels for unrelated PR returned by search (compare
 
   t.true(
     t.context.log.calledWith(
-      "Added comment to issue #%d: %s",
+      "Added comment to PR #%d: %s",
       1,
       "https://github.com/successcomment-1",
     ),
   );
   t.true(
-    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 1),
+    t.context.log.calledWith("Added labels %O to PR #%d", ["released"], 1),
   );
   t.true(fetch.done());
 });
@@ -1376,13 +1374,13 @@ test("Ignore missing and forbidden issues/PRs", async (t) => {
 
   t.true(
     t.context.log.calledWith(
-      "Added comment to issue #%d: %s",
+      "Added comment to PR #%d: %s",
       1,
       "https://github.com/successcomment-1",
     ),
   );
   t.true(
-    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 1),
+    t.context.log.calledWith("Added labels %O to PR #%d", ["released"], 1),
   );
   t.true(
     t.context.log.calledWith(
@@ -1512,14 +1510,14 @@ test("Add custom comment and labels", async (t) => {
 
   t.true(
     t.context.log.calledWith(
-      "Added comment to issue #%d: %s",
+      "Added comment to PR #%d: %s",
       1,
       "https://github.com/successcomment-1",
     ),
   );
   t.true(
     t.context.log.calledWith(
-      "Added labels %O to issue #%d",
+      "Added labels %O to PR #%d",
       ["released on @next", "released from master"],
       1,
     ),
@@ -1608,17 +1606,13 @@ test("Add custom label", async (t) => {
 
   t.true(
     t.context.log.calledWith(
-      "Added comment to issue #%d: %s",
+      "Added comment to PR #%d: %s",
       1,
       "https://github.com/successcomment-1",
     ),
   );
   t.true(
-    t.context.log.calledWith(
-      "Added labels %O to issue #%d",
-      ["custom label"],
-      1,
-    ),
+    t.context.log.calledWith("Added labels %O to PR #%d", ["custom label"], 1),
   );
   t.true(fetch.done());
 });
@@ -1699,7 +1693,7 @@ test("Comment on issue/PR without ading a label", async (t) => {
 
   t.true(
     t.context.log.calledWith(
-      "Added comment to issue #%d: %s",
+      "Added comment to PR #%d: %s",
       1,
       "https://github.com/successcomment-1",
     ),
@@ -1809,7 +1803,7 @@ test("Editing the release to include all release links at the bottom", async (t)
 
   t.true(
     t.context.log.calledWith(
-      "Added comment to issue #%d: %s",
+      "Added comment to PR #%d: %s",
       1,
       "https://github.com/successcomment-1",
     ),
@@ -1919,7 +1913,7 @@ test("Editing the release to include all release links at the top", async (t) =>
 
   t.true(
     t.context.log.calledWith(
-      "Added comment to issue #%d: %s",
+      "Added comment to PR #%d: %s",
       1,
       "https://github.com/successcomment-1",
     ),
@@ -2015,7 +2009,7 @@ test("Editing the release to include all release links with no additional releas
 
   t.true(
     t.context.log.calledWith(
-      "Added comment to issue #%d: %s",
+      "Added comment to PR #%d: %s",
       1,
       "https://github.com/successcomment-1",
     ),
@@ -2111,7 +2105,7 @@ test("Editing the release to include all release links with no additional releas
 
   t.true(
     t.context.log.calledWith(
-      "Added comment to issue #%d: %s",
+      "Added comment to PR #%d: %s",
       1,
       "https://github.com/successcomment-1",
     ),
@@ -2200,7 +2194,7 @@ test("Editing the release to include all release links with no releases", async 
 
   t.true(
     t.context.log.calledWith(
-      "Added comment to issue #%d: %s",
+      "Added comment to PR #%d: %s",
       1,
       "https://github.com/successcomment-1",
     ),
@@ -2291,7 +2285,7 @@ test("Editing the release with no ID in the release", async (t) => {
 
   t.true(
     t.context.log.calledWith(
-      "Added comment to issue #%d: %s",
+      "Added comment to PR #%d: %s",
       1,
       "https://github.com/successcomment-1",
     ),
@@ -2437,7 +2431,7 @@ test("Ignore errors when adding comments and closing issues", async (t) => {
   t.true(t.context.error.calledWith("Failed to close the issue #%d.", 2));
   t.true(
     t.context.log.calledWith(
-      "Added comment to issue #%d: %s",
+      "Added comment to PR #%d: %s",
       2,
       "https://github.com/successcomment-2",
     ),
@@ -2814,13 +2808,13 @@ test('Add comment and label to found issues/associatedPR using the "successComme
 
   t.true(
     t.context.log.calledWith(
-      "Added comment to issue #%d: %s",
+      "Added comment to PR #%d: %s",
       5,
       "https://github.com/successcomment-5",
     ),
   );
   t.true(
-    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 5),
+    t.context.log.calledWith("Added labels %O to PR #%d", ["released"], 5),
   );
   t.true(fetch.done());
 });
