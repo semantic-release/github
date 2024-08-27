@@ -1556,7 +1556,7 @@ test(`Don't throw an error if owner/repo only differs in case`, async (t) => {
   const fetch = fetchMock.sandbox().getOnce(
     `https://api.github.local/repos/org/foo`,
     {
-      permissions: { push: true },
+      permissions: { push: true, maintain: true },
       clone_url: `https://github.com/ORG/FOO.git`,
     },
     { repeat: 2 },
