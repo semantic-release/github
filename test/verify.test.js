@@ -1550,6 +1550,40 @@ test("Throw SemanticReleaseError if the repository doesn't exist", async (t) => 
   t.true(fetch.done());
 });
 
+test(`Don't throw an error if owner/repo only differs in case`, async (t) => {
+  const env = { GH_TOKEN: "github_token" };
+
+  const fetch = fetchMock.sandbox().getOnce(
+    `https://api.github.local/repos/org/foo`,
+    {
+      permissions: { push: true },
+      clone_url: `https://github.com/ORG/FOO.git`,
+    },
+    { repeat: 2 },
+  );
+
+  await t.notThrowsAsync(
+    verify(
+      {},
+      {
+        env,
+        options: {
+          repositoryUrl: `https://github.com/org/foo.git`,
+        },
+        logger: t.context.logger,
+      },
+      {
+        Octokit: TestOctokit.defaults((options) => ({
+          ...options,
+          request: { ...options.request, fetch },
+        })),
+      },
+    ),
+  );
+
+  t.true(fetch.done());
+});
+
 const urlFormats = [
   (owner, repo) => `https://github.com/${owner}/${repo}.git`,
   (owner, repo) => `git+https://github.com/${owner}/${repo}.git`,
