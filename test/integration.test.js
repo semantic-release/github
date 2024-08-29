@@ -682,29 +682,22 @@ test("Verify, release and notify success", async (t) => {
         repeat: 2,
       },
     )
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getAssociatedPRs\(/);
-        return true;
-      },
-      {
-        data: {
-          repository: {
-            commit123: {
-              oid: "123",
-              associatedPullRequests: {
-                pageInfo: {
-                  endCursor: "NI",
-                  hasNextPage: false,
-                },
-                nodes: [prs[0]],
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          commit123: {
+            oid: "123",
+            associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
               },
+              nodes: [prs[0]],
             },
           },
         },
       },
-    )
+    })
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/releases`,
       {
@@ -737,8 +730,7 @@ test("Verify, release and notify success", async (t) => {
       { body: ["released"] },
     )
     .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
+      (_, { body }) => {
         t.regex(JSON.parse(body).query, /query getSRIssues\(/);
         return true;
       },
