@@ -17,6 +17,7 @@ test("Filter out issues without ID", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
   const title = "The automated release is failing 🚨";
+  const labels = [];
   const issues = [
     { number: 1, body: "Issue 1 body", title },
     { number: 2, body: `Issue 2 body\n\n${ISSUE_ID}`, title },
@@ -25,6 +26,13 @@ test("Filter out issues without ID", async (t) => {
 
   const fetch = fetchMock
     .sandbox()
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          issues: { nodes: issues },
+        },
+      },
+    })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
         "in:title",
@@ -36,7 +44,9 @@ test("Filter out issues without ID", async (t) => {
 
   const srIssues = await findSRIssues(
     new TestOctokit({ request: { fetch } }),
+    t.context.logger,
     title,
+    labels,
     owner,
     repo,
   );
@@ -61,9 +71,17 @@ test("Return empty array if not issues found", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
   const title = "The automated release is failing 🚨";
+  const labels = [];
   const issues = [];
   const fetch = fetchMock
     .sandbox()
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          issues: { nodes: [] },
+        },
+      },
+    })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
         "in:title",
@@ -75,7 +93,9 @@ test("Return empty array if not issues found", async (t) => {
 
   const srIssues = await findSRIssues(
     new TestOctokit({ request: { fetch } }),
+    t.context.logger,
     title,
+    labels,
     owner,
     repo,
   );
@@ -89,12 +109,20 @@ test("Return empty array if not issues has matching ID", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
   const title = "The automated release is failing 🚨";
+  const labels = [];
   const issues = [
     { number: 1, body: "Issue 1 body", title },
     { number: 2, body: "Issue 2 body", title },
   ];
   const fetch = fetchMock
     .sandbox()
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          issues: { nodes: issues },
+        },
+      },
+    })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
         "in:title",
@@ -106,7 +134,9 @@ test("Return empty array if not issues has matching ID", async (t) => {
 
   const srIssues = await findSRIssues(
     new TestOctokit({ request: { fetch } }),
+    t.context.logger,
     title,
+    labels,
     owner,
     repo,
   );
