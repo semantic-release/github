@@ -3,7 +3,7 @@ import sinon from "sinon";
 import test from "ava";
 import fetchMock from "fetch-mock";
 
-import { ISSUE_ID } from "../lib/definitions/constants.js";
+import { ISSUE_ID, RELEASE_FAIL_LABEL } from "../lib/definitions/constants.js";
 import { TestOctokit } from "./helpers/test-octokit.js";
 
 /* eslint camelcase: ["error", {properties: "never"}] */
@@ -36,6 +36,13 @@ test("Open a new issue with the list of errors", async (t) => {
     .getOnce("https://api.github.local/repos/test_user/test_repo", {
       full_name: `${redirectedOwner}/${redirectedRepo}`,
     })
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          issues: { nodes: [] },
+        },
+      },
+    })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
         "in:title",
@@ -59,7 +66,7 @@ test("Open a new issue with the list of errors", async (t) => {
           data.body,
           /---\n\n### Error message 1\n\nError 1 details\n\n---\n\n### Error message 2\n\nError 2 details\n\n---\n\n### Error message 3\n\nError 3 details\n\n---/,
         );
-        t.deepEqual(data.labels, ["semantic-release"]);
+        t.deepEqual(data.labels, ["semantic-release", RELEASE_FAIL_LABEL]);
         return true;
       },
       {
@@ -117,6 +124,13 @@ test("Open a new issue with the list of errors and custom title and comment", as
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          issues: { nodes: [] },
+        },
+      },
+    })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
         "in:title",
@@ -132,7 +146,7 @@ test("Open a new issue with the list of errors and custom title and comment", as
         body: {
           title: failTitle,
           body: `branch master Error message 1 Error message 2 Error message 3\n\n${ISSUE_ID}`,
-          labels: ["semantic-release"],
+          labels: ["semantic-release", RELEASE_FAIL_LABEL],
         },
       },
     );
@@ -185,6 +199,13 @@ test("Open a new issue with assignees and the list of errors", async (t) => {
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          issues: { nodes: [] },
+        },
+      },
+    })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
         "in:title",
@@ -203,7 +224,7 @@ test("Open a new issue with assignees and the list of errors", async (t) => {
           data.body,
           /---\n\n### Error message 1\n\nError 1 details\n\n---\n\n### Error message 2\n\nError 2 details\n\n---/,
         );
-        t.deepEqual(data.labels, ["semantic-release"]);
+        t.deepEqual(data.labels, ["semantic-release", RELEASE_FAIL_LABEL]);
         t.deepEqual(data.assignees, ["user1", "user2"]);
         return true;
       },
@@ -258,6 +279,13 @@ test("Open a new issue without labels and the list of errors", async (t) => {
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          issues: { nodes: [] },
+        },
+      },
+    })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
         "in:title",
@@ -276,7 +304,7 @@ test("Open a new issue without labels and the list of errors", async (t) => {
           data.body,
           /---\n\n### Error message 1\n\nError 1 details\n\n---\n\n### Error message 2\n\nError 2 details\n\n---/,
         );
-        t.deepEqual(data.labels, []);
+        t.deepEqual(data.labels, [RELEASE_FAIL_LABEL]);
         return true;
       },
       { html_url: "https://github.com/issues/1", number: 1 },
@@ -334,6 +362,13 @@ test("Update the first existing issue with the list of errors", async (t) => {
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
+    })
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          issues: { nodes: issues },
+        },
+      },
     })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
