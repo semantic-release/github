@@ -59,32 +59,116 @@ test("Add comment and labels to PRs associated with release commits and issues s
       full_name: `${redirectedOwner}/${redirectedRepo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .postOnce("https://api.github.local/graphql", {
-      data: {
-        repository: {
-          commit123: {
-            oid: "123",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+    .postOnce(
+      (url, { body }) =>
+        url === "https://api.github.local/graphql" &&
+        JSON.parse(body).query.includes("query getAssociatedPRs("),
+      {
+        data: {
+          repository: {
+            commit123: {
+              oid: "123",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [prs[0]],
               },
-              nodes: [prs[0]],
             },
-          },
-          commit456: {
-            oid: "456",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+            commit456: {
+              oid: "456",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [prs[1]],
               },
-              nodes: [prs[1]],
             },
           },
         },
       },
-    })
+    )
+    .postOnce(
+      (url, { body }) =>
+        url === "https://api.github.local/graphql" &&
+        JSON.parse(body).query.includes("query getRelatedIssues("),
+      {
+        data: {
+          repository: {
+            issue3: {
+              id: "I_kw",
+              title: "issue title",
+              body: "",
+              url: "https://github.com/owner/repo/issues/3",
+              number: 3,
+              createdAt: "2024-07-13T09:58:09Z",
+              updatedAt: "2024-08-26T16:19:59Z",
+              closedAt: "2024-07-13T09:58:51Z",
+              comments: {
+                totalCount: 12,
+              },
+              state: "CLOSED",
+              author: {
+                login: "user",
+                url: "author_url",
+                avatarUrl: "author_avatar_url",
+                __typename: "User",
+              },
+              authorAssociation: "OWNER",
+              activeLockReason: null,
+              labels: {
+                nodes: [
+                  {
+                    id: "label_id",
+                    url: "label_url",
+                    name: "label_name",
+                    color: "ededed",
+                  },
+                ],
+              },
+              milestone: null,
+              locked: false,
+            },
+            issue4: {
+              id: "I_kw",
+              title: "issue title",
+              body: "",
+              url: "https://github.com/owner/repo/issues/3",
+              number: 4,
+              createdAt: "2024-07-13T09:58:09Z",
+              updatedAt: "2024-08-26T16:19:59Z",
+              closedAt: "2024-07-13T09:58:51Z",
+              comments: {
+                totalCount: 12,
+              },
+              state: "CLOSED",
+              author: {
+                login: "user",
+                url: "author_url",
+                avatarUrl: "author_avatar_url",
+                __typename: "User",
+              },
+              authorAssociation: "OWNER",
+              activeLockReason: null,
+              labels: {
+                nodes: [
+                  {
+                    id: "label_id",
+                    url: "label_url",
+                    name: "label_name",
+                    color: "ededed",
+                  },
+                ],
+              },
+              milestone: null,
+              locked: false,
+            },
+          },
+        },
+      },
+    )
     .getOnce(
       `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/pulls/1/commits`,
       [{ sha: commits[0].hash }],
@@ -299,18 +383,95 @@ test("Add comment and labels to PRs associated with release commits and issues (
         overwriteRoutes: true,
       },
     )
+    .postOnce(
+      (url, { body }) =>
+        url === "https://api.github.local/graphql" &&
+        JSON.parse(body).query.includes("query getRelatedIssues("),
+      {
+        data: {
+          repository: {
+            issue3: {
+              id: "I_kw",
+              title: "issue title",
+              body: "",
+              url: "https://github.com/owner/repo/issues/3",
+              number: 3,
+              createdAt: "2024-07-13T09:58:09Z",
+              updatedAt: "2024-08-26T16:19:59Z",
+              closedAt: "2024-07-13T09:58:51Z",
+              comments: {
+                totalCount: 12,
+              },
+              state: "CLOSED",
+              author: {
+                login: "user",
+                url: "author_url",
+                avatarUrl: "author_avatar_url",
+                __typename: "User",
+              },
+              authorAssociation: "OWNER",
+              activeLockReason: null,
+              labels: {
+                nodes: [
+                  {
+                    id: "label_id",
+                    url: "label_url",
+                    name: "label_name",
+                    color: "ededed",
+                  },
+                ],
+              },
+              milestone: null,
+              locked: false,
+            },
+            issue4: {
+              id: "I_kw",
+              title: "issue title",
+              body: "",
+              url: "https://github.com/owner/repo/issues/4",
+              number: 4,
+              createdAt: "2024-07-13T09:58:09Z",
+              updatedAt: "2024-08-26T16:19:59Z",
+              closedAt: "2024-07-13T09:58:51Z",
+              comments: {
+                totalCount: 12,
+              },
+              state: "CLOSED",
+              author: {
+                login: "user",
+                url: "author_url",
+                avatarUrl: "author_avatar_url",
+                __typename: "User",
+              },
+              authorAssociation: "OWNER",
+              activeLockReason: null,
+              labels: {
+                nodes: [
+                  {
+                    id: "label_id",
+                    url: "label_url",
+                    name: "label_name",
+                    color: "ededed",
+                  },
+                ],
+              },
+              milestone: null,
+              locked: false,
+            },
+          },
+        },
+      },
+    )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/6/commits`,
       [{ sha: commits[0].hash }],
     )
     .postOnce(
-      `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
-      {
-        html_url: "https://github.com/successcomment-1",
-      },
+      `https://api.github.local/repos/${owner}/${repo}/issues/3/comments`,
+      { html_url: "https://github.com/successcomment-3" },
     )
     .postOnce(
-      `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
+      `https://api.github.local/repos/${owner}/${repo}/issues/3/labels`,
       {},
       { body: ["released"] },
     )
@@ -363,12 +524,14 @@ test("Add comment and labels to PRs associated with release commits and issues (
 
   t.true(
     t.context.log.calledWith(
-      "Added comment to PR #%d: %s",
-      1,
-      "https://github.com/successcomment-1",
+      "Added comment to issue #%d: %s",
+      3,
+      "https://github.com/successcomment-3",
     ),
   );
-  t.true(t.context.log.calledWith("Added labels %O toPR #%d", ["released"], 1));
+  t.true(
+    t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 3),
+  );
   t.true(
     t.context.log.calledWith(
       "Added comment to issue #%d: %s",
@@ -428,32 +591,116 @@ test("Add comment and labels to PRs associated with release commits and issues c
     .getOnce(`https://custom-url.com/prefix/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
     })
-    .postOnce("https://custom-url.com/prefix/graphql", {
-      data: {
-        repository: {
-          commit123: {
-            oid: "123",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+    .postOnce(
+      (url, { body }) =>
+        url === "https://custom-url.com/prefix/graphql" &&
+        JSON.parse(body).query.includes("query getAssociatedPRs("),
+      {
+        data: {
+          repository: {
+            commit123: {
+              oid: "123",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [prs[0]],
               },
-              nodes: [prs[0]],
             },
-          },
-          commit456: {
-            oid: "456",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+            commit456: {
+              oid: "456",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [prs[1]],
               },
-              nodes: [prs[1]],
             },
           },
         },
       },
-    })
+    )
+    .postOnce(
+      (url, { body }) =>
+        url === "https://custom-url.com/prefix/graphql" &&
+        JSON.parse(body).query.includes("query getRelatedIssues("),
+      {
+        data: {
+          repository: {
+            issue3: {
+              id: "I_kw",
+              title: "issue title",
+              body: "",
+              url: "https://custom-url.com/owner/repo/issues/3",
+              number: 3,
+              createdAt: "2024-07-13T09:58:09Z",
+              updatedAt: "2024-08-26T16:19:59Z",
+              closedAt: "2024-07-13T09:58:51Z",
+              comments: {
+                totalCount: 12,
+              },
+              state: "CLOSED",
+              author: {
+                login: "user",
+                url: "author_url",
+                avatarUrl: "author_avatar_url",
+                __typename: "User",
+              },
+              authorAssociation: "OWNER",
+              activeLockReason: null,
+              labels: {
+                nodes: [
+                  {
+                    id: "label_id",
+                    url: "label_url",
+                    name: "label_name",
+                    color: "ededed",
+                  },
+                ],
+              },
+              milestone: null,
+              locked: false,
+            },
+            issue4: {
+              id: "I_kw",
+              title: "issue title",
+              body: "",
+              url: "https://custom-url.com/owner/repo/issues/4",
+              number: 4,
+              createdAt: "2024-07-13T09:58:09Z",
+              updatedAt: "2024-08-26T16:19:59Z",
+              closedAt: "2024-07-13T09:58:51Z",
+              comments: {
+                totalCount: 12,
+              },
+              state: "CLOSED",
+              author: {
+                login: "user",
+                url: "author_url",
+                avatarUrl: "author_avatar_url",
+                __typename: "User",
+              },
+              authorAssociation: "OWNER",
+              activeLockReason: null,
+              labels: {
+                nodes: [
+                  {
+                    id: "label_id",
+                    url: "label_url",
+                    name: "label_name",
+                    color: "ededed",
+                  },
+                ],
+              },
+              milestone: null,
+              locked: false,
+            },
+          },
+        },
+      },
+    )
     .getOnce(
       `https://custom-url.com/prefix/repos/${owner}/${repo}/pulls/1/commits`,
       [{ sha: commits[0].hash }],
@@ -1183,6 +1430,53 @@ test("Do not add comment and labels to PR/issues from other repo", async (t) => 
       },
     })
     .postOnce(
+      (url, { body }) => {
+        t.is(url, "https://api.github.local/graphql");
+        t.regex(JSON.parse(body).query, /query getRelatedIssues\(/);
+        return true;
+      },
+      {
+        data: {
+          repository: {
+            issue2: {
+              id: "I_kw",
+              title: "issue title",
+              body: "",
+              url: "https://github.com/owner/repo/issues/14",
+              number: 2,
+              createdAt: "2024-07-13T09:58:09Z",
+              updatedAt: "2024-08-26T16:19:59Z",
+              closedAt: "2024-07-13T09:58:51Z",
+              comments: {
+                totalCount: 12,
+              },
+              state: "CLOSED",
+              author: {
+                login: "user",
+                url: "author_url",
+                avatarUrl: "author_avatar_url",
+                __typename: "User",
+              },
+              authorAssociation: "OWNER",
+              activeLockReason: null,
+              labels: {
+                nodes: [
+                  {
+                    id: "label_id",
+                    url: "label_url",
+                    name: "label_name",
+                    color: "ededed",
+                  },
+                ],
+              },
+              milestone: null,
+              locked: false,
+            },
+          },
+        },
+      },
+    )
+    .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/2/comments`,
       { html_url: "https://github.com/successcomment-2" },
     )
@@ -1262,42 +1556,160 @@ test("Ignore missing and forbidden issues/PRs", async (t) => {
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .postOnce("https://api.github.local/graphql", {
-      data: {
-        repository: {
-          commit123: {
-            oid: "123",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+    .postOnce(
+      (url, { body }) =>
+        url === "https://api.github.local/graphql" &&
+        JSON.parse(body).query.includes("query getAssociatedPRs("),
+      {
+        data: {
+          repository: {
+            commit123: {
+              oid: "123",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [prs[0]],
               },
-              nodes: [prs[0]],
             },
-          },
-          commit456: {
-            oid: "456",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+            commit456: {
+              oid: "456",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [prs[1]],
               },
-              nodes: [prs[1]],
             },
-          },
-          commit789: {
-            oid: "789",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+            commit789: {
+              oid: "789",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [prs[2]],
               },
-              nodes: [prs[2]],
             },
           },
         },
       },
-    })
+    )
+    .postOnce(
+      (url, { body }) =>
+        url === "https://api.github.local/graphql" &&
+        JSON.parse(body).query.includes("query getRelatedIssues("),
+      {
+        data: {
+          repository: {
+            issue4: {
+              id: "I_kw",
+              title: "issue title",
+              body: "",
+              url: "https://github.com/owner/repo/issues/4",
+              number: 4,
+              createdAt: "2024-07-13T09:58:09Z",
+              updatedAt: "2024-08-26T16:19:59Z",
+              closedAt: "2024-07-13T09:58:51Z",
+              comments: {
+                totalCount: 12,
+              },
+              state: "CLOSED",
+              author: {
+                login: "user",
+                url: "author_url",
+                avatarUrl: "author_avatar_url",
+                __typename: "User",
+              },
+              authorAssociation: "OWNER",
+              activeLockReason: null,
+              labels: {
+                nodes: [
+                  {
+                    id: "label_id",
+                    url: "label_url",
+                    name: "label_name",
+                    color: "ededed",
+                  },
+                ],
+              },
+              milestone: null,
+              locked: false,
+            },
+            issue5: {
+              id: "I_kw",
+              title: "issue title",
+              body: "",
+              url: "https://github.com/owner/repo/issues/5",
+              number: 5,
+              createdAt: "2024-07-13T09:58:09Z",
+              updatedAt: "2024-08-26T16:19:59Z",
+              closedAt: "2024-07-13T09:58:51Z",
+              comments: {
+                totalCount: 12,
+              },
+              state: "CLOSED",
+              author: {
+                login: "user",
+                url: "author_url",
+                avatarUrl: "author_avatar_url",
+                __typename: "User",
+              },
+              authorAssociation: "OWNER",
+              activeLockReason: null,
+              labels: {
+                nodes: [
+                  {
+                    id: "label_id",
+                    url: "label_url",
+                    name: "label_name",
+                    color: "ededed",
+                  },
+                ],
+              },
+              milestone: null,
+              locked: false,
+            },
+            issue1: {
+              id: "I_kw",
+              title: "issue title",
+              body: "",
+              url: "https://github.com/owner/repo/issues/1",
+              number: 1,
+              createdAt: "2024-07-13T09:58:09Z",
+              updatedAt: "2024-08-26T16:19:59Z",
+              closedAt: "2024-07-13T09:58:51Z",
+              comments: {
+                totalCount: 12,
+              },
+              state: "CLOSED",
+              author: {
+                login: "user",
+                url: "author_url",
+                avatarUrl: "author_avatar_url",
+                __typename: "User",
+              },
+              authorAssociation: "OWNER",
+              activeLockReason: null,
+              labels: {
+                nodes: [
+                  {
+                    id: "label_id",
+                    url: "label_url",
+                    name: "label_name",
+                    color: "ededed",
+                  },
+                ],
+              },
+              milestone: null,
+              locked: false,
+            },
+          },
+        },
+      },
+    )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
       [{ sha: commits[0].hash }],
@@ -1404,13 +1816,13 @@ test("Ignore missing and forbidden issues/PRs", async (t) => {
   );
   t.true(
     t.context.error.calledWith(
-      "Failed to add a comment to the issue #%d as it doesn't exist.",
+      "Failed to add a comment to the issue/PR #%d as it doesn't exist.",
       2,
     ),
   );
   t.true(
     t.context.error.calledWith(
-      "Not allowed to add a comment to the issue #%d.",
+      "Not allowed to add a comment to the issue/PR #%d.",
       3,
     ),
   );
@@ -2426,7 +2838,10 @@ test("Ignore errors when adding comments and closing issues", async (t) => {
   t.is(error1.status, 400);
   t.is(error2.status, 500);
   t.true(
-    t.context.error.calledWith("Failed to add a comment to the issue #%d.", 1),
+    t.context.error.calledWith(
+      "Failed to add a comment to the issue/PR #%d.",
+      1,
+    ),
   );
   t.true(t.context.error.calledWith("Failed to close the issue #%d.", 2));
   t.true(
@@ -2697,18 +3112,105 @@ test('Add comment and label to found issues/associatedPR using the "successComme
     { number: 2, body: `Issue 2 body\n\n${ISSUE_ID}`, title: failTitle },
     { number: 3, body: `Issue 3 body\n\n${ISSUE_ID}`, title: failTitle },
   ];
+
   const prs = [
     {
-      number: 4,
-      pull_request: true,
-      state: "closed",
-      labels: [],
+      id: "PR_kwDOMLlZj85z_R2M",
+      title: "fix: will semantic-release recognize the associated issue ",
+      body: "",
+      url: "https://github.com/babblebey/sr-github/pull/12",
+      number: 5,
+      createdAt: "2024-06-30T14:43:48Z",
+      updatedAt: "2024-08-26T16:19:57Z",
+      closedAt: "2024-06-30T14:44:05Z",
+      comments: {
+        totalCount: 12,
+      },
+      state: "MERGED",
+      author: {
+        login: "babblebey",
+        url: "https://github.com/babblebey",
+        avatarUrl:
+          "https://avatars.githubusercontent.com/u/25631971?u=f4597764b2c31478a516d97bb9ecd019b5e62ae7&v=4",
+        __typename: "User",
+      },
+      authorAssociation: "OWNER",
+      activeLockReason: null,
+      labels: {
+        nodes: [
+          {
+            id: "LA_kwDOMLlZj88AAAABp9kjcQ",
+            url: "https://github.com/babblebey/sr-github/labels/released",
+            name: "semantic-release-relevant",
+            color: "ededed",
+          },
+        ],
+      },
+      milestone: null,
+      locked: false,
+      mergeable: "UNKNOWN",
+      canBeRebased: false,
+      changedFiles: 1,
+      mergedAt: "2024-06-30T14:44:05Z",
+      isDraft: false,
+      mergedBy: {
+        login: "babblebey",
+        avatarUrl:
+          "https://avatars.githubusercontent.com/u/25631971?u=f4597764b2c31478a516d97bb9ecd019b5e62ae7&v=4",
+        url: "https://github.com/babblebey",
+      },
+      commits: {
+        totalCount: 1,
+      },
     },
     {
-      number: 5,
-      pull_request: true,
-      state: "closed",
-      labels: ["semantic-release-relevant"],
+      id: "PR_kwDOMLlZj85z_R2M",
+      title: "fix: will semantic-release recognize the associated issue ",
+      body: "",
+      url: "https://github.com/babblebey/sr-github/pull/12",
+      number: 4,
+      createdAt: "2024-06-30T14:43:48Z",
+      updatedAt: "2024-08-26T16:19:57Z",
+      closedAt: "2024-06-30T14:44:05Z",
+      comments: {
+        totalCount: 12,
+      },
+      state: "MERGED",
+      author: {
+        login: "babblebey",
+        url: "https://github.com/babblebey",
+        avatarUrl:
+          "https://avatars.githubusercontent.com/u/25631971?u=f4597764b2c31478a516d97bb9ecd019b5e62ae7&v=4",
+        __typename: "User",
+      },
+      authorAssociation: "OWNER",
+      activeLockReason: null,
+      labels: {
+        nodes: [
+          {
+            id: "LA_kwDOMLlZj88AAAABp9kjcQ",
+            url: "https://github.com/babblebey/sr-github/labels/released",
+            name: "released",
+            color: "ededed",
+          },
+        ],
+      },
+      milestone: null,
+      locked: false,
+      mergeable: "UNKNOWN",
+      canBeRebased: false,
+      changedFiles: 1,
+      mergedAt: "2024-06-30T14:44:05Z",
+      isDraft: false,
+      mergedBy: {
+        login: "babblebey",
+        avatarUrl:
+          "https://avatars.githubusercontent.com/u/25631971?u=f4597764b2c31478a516d97bb9ecd019b5e62ae7&v=4",
+        url: "https://github.com/babblebey",
+      },
+      commits: {
+        totalCount: 1,
+      },
     },
   ];
 
@@ -2717,32 +3219,37 @@ test('Add comment and label to found issues/associatedPR using the "successComme
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
     })
-    .postOnce("https://api.github.local/graphql", {
-      data: {
-        repository: {
-          commit123: {
-            oid: "123",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+    .postOnce(
+      (url, { body }) =>
+        url === "https://api.github.local/graphql" &&
+        JSON.parse(body).query.includes("query getAssociatedPRs("),
+      {
+        data: {
+          repository: {
+            commit123: {
+              oid: "123",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [prs[0]],
               },
-              nodes: [prs[0]],
             },
-          },
-          commit456: {
-            oid: "456",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+            commit456: {
+              oid: "456",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [prs[1]],
               },
-              nodes: [prs[1]],
             },
           },
         },
       },
-    })
+    )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/4/commits`,
       [{ sha: commits[0].hash }],
@@ -2819,16 +3326,15 @@ test('Add comment and label to found issues/associatedPR using the "successComme
   t.true(fetch.done());
 });
 
-test('Does not comment/label associatedPR created by "Bots"', async (t) => {
+test('Does not comment/label associatedPR and relatedIssues created by "Bots"', async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
   const env = { GITHUB_TOKEN: "github_token" };
   const failTitle = "The automated release is failing 🚨";
   const pluginConfig = {
     failTitle,
-    // Only issues will be commented and labeled (not PRs)
-    successCommentCondition:
-      "<% return !issue.user || issue.user.type !== 'Bot'; %>",
+    // Only issues or PRs not created by "Bot" will be commented and labeled
+    successCommentCondition: "<% return issue.user.type !== 'Bot'; %>",
   };
   const options = {
     repositoryUrl: `https://github.com/${owner}/${repo}.git`,
@@ -2843,12 +3349,6 @@ test('Does not comment/label associatedPR created by "Bots"', async (t) => {
   ];
   const issues = [
     { number: 1, body: `Issue 1 body\n\n${ISSUE_ID}`, title: failTitle },
-    {
-      number: 4,
-      body: `Issue 4 body`,
-      title: "Issue 4 title",
-      state: "closed",
-    },
   ];
   const prs = [
     {
@@ -2866,6 +3366,7 @@ test('Does not comment/label associatedPR created by "Bots"', async (t) => {
     {
       number: 3,
       pull_request: true,
+      body: "Fixes #5",
       state: "closed",
       user: {
         login: "bot_user_login",
@@ -2881,32 +3382,116 @@ test('Does not comment/label associatedPR created by "Bots"', async (t) => {
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
     })
-    .postOnce("https://api.github.local/graphql", {
-      data: {
-        repository: {
-          commit123: {
-            oid: "123",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+    .postOnce(
+      (url, { body }) =>
+        url === "https://api.github.local/graphql" &&
+        JSON.parse(body).query.includes("query getAssociatedPRs("),
+      {
+        data: {
+          repository: {
+            commit123: {
+              oid: "123",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [prs[0]],
               },
-              nodes: [prs[0]],
             },
-          },
-          commit456: {
-            oid: "456",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+            commit456: {
+              oid: "456",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [prs[1]],
               },
-              nodes: [prs[1]],
             },
           },
         },
       },
-    })
+    )
+    .postOnce(
+      (url, { body }) =>
+        url === "https://api.github.local/graphql" &&
+        JSON.parse(body).query.includes("query getRelatedIssues("),
+      {
+        data: {
+          repository: {
+            issue4: {
+              id: "I_kw",
+              title: "issue title",
+              body: "",
+              url: "https://github.com/owner/repo/issues/4",
+              number: 4,
+              createdAt: "2024-07-13T09:58:09Z",
+              updatedAt: "2024-08-26T16:19:59Z",
+              closedAt: "2024-07-13T09:58:51Z",
+              comments: {
+                totalCount: 12,
+              },
+              state: "CLOSED",
+              author: {
+                login: "user",
+                url: "author_url",
+                avatarUrl: "author_avatar_url",
+                __typename: "User",
+              },
+              authorAssociation: "OWNER",
+              activeLockReason: null,
+              labels: {
+                nodes: [
+                  {
+                    id: "label_id",
+                    url: "label_url",
+                    name: "label_name",
+                    color: "ededed",
+                  },
+                ],
+              },
+              milestone: null,
+              locked: false,
+            },
+            issue5: {
+              id: "I_kw",
+              title: "issue title",
+              body: "",
+              url: "https://github.com/owner/repo/issues/5",
+              number: 5,
+              createdAt: "2024-07-13T09:58:09Z",
+              updatedAt: "2024-08-26T16:19:59Z",
+              closedAt: "2024-07-13T09:58:51Z",
+              comments: {
+                totalCount: 12,
+              },
+              state: "CLOSED",
+              author: {
+                login: "user",
+                url: "author_url",
+                avatarUrl: "author_avatar_url",
+                __typename: "Bot",
+              },
+              authorAssociation: "OWNER",
+              activeLockReason: null,
+              labels: {
+                nodes: [
+                  {
+                    id: "label_id",
+                    url: "label_url",
+                    name: "label_name",
+                    color: "ededed",
+                  },
+                ],
+              },
+              milestone: null,
+              locked: false,
+            },
+          },
+        },
+      },
+    )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/2/commits`,
       [{ sha: commits[0].hash }],
@@ -2930,6 +3515,15 @@ test('Does not comment/label associatedPR created by "Bots"', async (t) => {
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/2/labels`,
+      {},
+      { body: ["released"] },
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/3/comments`,
+      { html_url: "https://github.com/successcomment-3" },
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/3/labels`,
       {},
       { body: ["released"] },
     )
@@ -2990,7 +3584,7 @@ test('Does not comment/label associatedPR created by "Bots"', async (t) => {
   t.true(fetch.done());
 });
 
-test('Does not comment/label some associatedPR when "successCommentCondition" disables it: Don\'t comment on PRs created by BOTs', async (t) => {
+test('Does not comment/label "associatedPR" when "successCommentCondition" disables it: Only comment on "relatedIssues"', async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
   const env = { GITHUB_TOKEN: "github_token" };
@@ -3030,32 +3624,82 @@ test('Does not comment/label some associatedPR when "successCommentCondition" di
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
     })
-    .postOnce("https://api.github.local/graphql", {
-      data: {
-        repository: {
-          commit123: {
-            oid: "123",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+    .postOnce(
+      (url, { body }) =>
+        url === "https://api.github.local/graphql" &&
+        JSON.parse(body).query.includes("query getAssociatedPRs("),
+      {
+        data: {
+          repository: {
+            commit123: {
+              oid: "123",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [prs[0]],
               },
-              nodes: [prs[0]],
             },
-          },
-          commit456: {
-            oid: "456",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+            commit456: {
+              oid: "456",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [prs[1]],
               },
-              nodes: [prs[1]],
             },
           },
         },
       },
-    })
+    )
+    .postOnce(
+      (url, { body }) =>
+        url === "https://api.github.local/graphql" &&
+        JSON.parse(body).query.includes("query getRelatedIssues("),
+      {
+        data: {
+          repository: {
+            issue4: {
+              id: "I_kw",
+              title: "issue title",
+              body: "",
+              url: "https://github.com/owner/repo/issues/4",
+              number: 4,
+              createdAt: "2024-07-13T09:58:09Z",
+              updatedAt: "2024-08-26T16:19:59Z",
+              closedAt: "2024-07-13T09:58:51Z",
+              comments: {
+                totalCount: 12,
+              },
+              state: "CLOSED",
+              author: {
+                login: "user",
+                url: "author_url",
+                avatarUrl: "author_avatar_url",
+                __typename: "User",
+              },
+              authorAssociation: "OWNER",
+              activeLockReason: null,
+              labels: {
+                nodes: [
+                  {
+                    id: "label_id",
+                    url: "label_url",
+                    name: "label_name",
+                    color: "ededed",
+                  },
+                ],
+              },
+              milestone: null,
+              locked: false,
+            },
+          },
+        },
+      },
+    )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/2/commits`,
       [{ sha: commits[0].hash }],
