@@ -682,22 +682,39 @@ test("Verify, release and notify success", async (t) => {
         repeat: 2,
       },
     )
-    .postOnce("https://api.github.local/graphql", {
-      data: {
-        repository: {
-          commit123: {
-            oid: "123",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+    .postOnce(
+      (url, { body }) =>
+        url === "https://api.github.local/graphql" &&
+        JSON.parse(body).query.includes("query getAssociatedPRs("),
+      {
+        data: {
+          repository: {
+            commit123: {
+              oid: "123",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [prs[0]],
               },
-              nodes: [prs[0]],
             },
           },
         },
       },
-    })
+    )
+    .postOnce(
+      (url, { body }) =>
+        url === "https://api.github.local/graphql" &&
+        JSON.parse(body).query.includes("query getSRIssues("),
+      {
+        data: {
+          repository: {
+            issues: { nodes: [] },
+          },
+        },
+      },
+    )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/releases`,
       {
@@ -728,19 +745,6 @@ test("Verify, release and notify success", async (t) => {
       `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
       {},
       { body: ["released"] },
-    )
-    .postOnce(
-      (_, { body }) => {
-        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
-        return true;
-      },
-      {
-        data: {
-          repository: {
-            issues: { nodes: [] },
-          },
-        },
-      },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
