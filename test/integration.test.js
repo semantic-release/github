@@ -50,6 +50,43 @@ test("Verify GitHub auth", async (t) => {
   t.true(fetch.done());
 });
 
+test("Throws when GitHub user lacks maintain permission", async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GITHUB_TOKEN: "github_token" };
+  const options = {
+    repositoryUrl: `git+https://othertesturl.com/${owner}/${repo}.git`,
+  };
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      permissions: {
+        push: true,
+        maintain: false,
+      },
+      clone_url: `https://api.github.local/${owner}/${repo}.git`,
+    });
+
+  const {
+    errors: [error],
+  } = await t.throwsAsync(
+    t.context.m.verifyConditions(
+      {},
+      { cwd, env, options, logger: t.context.logger },
+      {
+        Octokit: TestOctokit.defaults((options) => ({
+          ...options,
+          request: { ...options.request, fetch },
+        })),
+      },
+    ),
+  );
+
+  t.is(error.code, "EGHNOPERMISSION");
+  t.true(fetch.done());
+});
+
 test("Verify GitHub auth with publish options", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
