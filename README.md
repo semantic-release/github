@@ -201,9 +201,10 @@ The message for the issue comments is generated with [Lodash template](https://l
 - do not create any comments at all: set to `false` or templating: `"<% return false; %>"`
 - to only comment on issues: `"<% return !issue.pull_request; %>"`
 - to only comment on pull requests: `"<% return issue.pull_request; %>"`
+- to avoid comment on PRs or issues created by Bots: `"<% return issue.user.type !== 'Bot'; %>"`
 - you can use labels to filter issues: `"<% return issue.labels?.includes('semantic-release-relevant'); %>"`
 
-> check the [GitHub API pull request object](https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#get-a-pull-request) for properties which can be used for the filter
+> check the [GitHub API issue object](https://docs.github.com/en/rest/issues/issues?apiVersion=2022-11-28#get-an-issue) for properties which can be used for the filter
 
 #### failComment
 
