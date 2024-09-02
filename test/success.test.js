@@ -3353,26 +3353,96 @@ test('Does not comment/label associatedPR and relatedIssues created by "Bots"', 
   const prs = [
     {
       number: 2,
-      pull_request: true,
+      id: "PR_kwDOMLlZj851SZzc",
+      title: "pr title",
       body: "Fixes #4",
-      state: "closed",
-      user: {
+      url: "https://pr-url",
+      createdAt: "2024-07-13T09:57:51Z",
+      updatedAt: "2024-08-29T12:15:33Z",
+      closedAt: "2024-07-13T09:58:50Z",
+      comments: {
+        totalCount: 23,
+      },
+      state: "MERGED",
+      author: {
         login: "user_login",
-        type: "User",
-        avatar_url: "https://some_url.link",
-        html_url: "https://some_url.link",
+        url: "https://user-url",
+        avatarUrl: "https://avatar-url",
+        __typename: "User",
+      },
+      authorAssociation: "OWNER",
+      activeLockReason: null,
+      labels: {
+        nodes: [
+          {
+            id: "label_id",
+            url: "label_url",
+            name: "label_name",
+            color: "ededed",
+          },
+        ],
+      },
+      milestone: null,
+      locked: false,
+      mergeable: "UNKNOWN",
+      canBeRebased: false,
+      changedFiles: 1,
+      mergedAt: "2024-07-13T09:58:50Z",
+      isDraft: false,
+      mergedBy: {
+        login: "user",
+        avatarUrl: "https://alink-to-avatar",
+        url: "https://user-url",
+      },
+      commits: {
+        totalCount: 1,
       },
     },
     {
       number: 3,
-      pull_request: true,
+      id: "PR_kwDOMLlZj851SZzc",
+      title: "pr title",
       body: "Fixes #5",
-      state: "closed",
-      user: {
-        login: "bot_user_login",
-        type: "Bot",
-        avatar_url: "https://some_url.link",
-        html_url: "https://some_url.link",
+      url: "https://pr-url",
+      createdAt: "2024-07-13T09:57:51Z",
+      updatedAt: "2024-08-29T12:15:33Z",
+      closedAt: "2024-07-13T09:58:50Z",
+      comments: {
+        totalCount: 23,
+      },
+      state: "MERGED",
+      author: {
+        login: "user_login",
+        url: "https://user-url",
+        avatarUrl: "https://avatar-url",
+        __typename: "Bot",
+      },
+      authorAssociation: "OWNER",
+      activeLockReason: null,
+      labels: {
+        nodes: [
+          {
+            id: "label_id",
+            url: "label_url",
+            name: "label_name",
+            color: "ededed",
+          },
+        ],
+      },
+      milestone: null,
+      locked: false,
+      mergeable: "UNKNOWN",
+      canBeRebased: false,
+      changedFiles: 1,
+      mergedAt: "2024-07-13T09:58:50Z",
+      isDraft: false,
+      mergedBy: {
+        login: "user",
+        avatarUrl: "https://alink-to-avatar",
+        url: "https://user-url",
+      },
+      commits: {
+        totalCount: 1,
       },
     },
   ];
@@ -3518,15 +3588,6 @@ test('Does not comment/label associatedPR and relatedIssues created by "Bots"', 
       {},
       { body: ["released"] },
     )
-    .postOnce(
-      `https://api.github.local/repos/${owner}/${repo}/issues/3/comments`,
-      { html_url: "https://github.com/successcomment-3" },
-    )
-    .postOnce(
-      `https://api.github.local/repos/${owner}/${repo}/issues/3/labels`,
-      {},
-      { body: ["released"] },
-    )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
         "in:title",
@@ -3571,6 +3632,7 @@ test('Does not comment/label associatedPR and relatedIssues created by "Bots"', 
       "https://github.com/issues/1",
     ),
   );
+  t.true(t.context.log.calledWith("Skip commenting on PR #%d.", 3));
   t.true(
     t.context.log.calledWith(
       "Added comment to issue #%d: %s",
