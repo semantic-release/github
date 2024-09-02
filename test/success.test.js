@@ -3436,6 +3436,13 @@ test('Does not comment/label on issues/PR if "successCommentCondition" is "false
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
     })
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          issues: { nodes: [] },
+        },
+      },
+    })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
         "in:title",
@@ -3642,6 +3649,18 @@ test('Add comment and label to found issues/associatedPR using the "successComme
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/5/commits`,
       [{ sha: commits[1].hash }],
+    )
+    .postOnce(
+      (url, { body }) =>
+        url === "https://api.github.local/graphql" &&
+        JSON.parse(body).query.includes("query getSRIssues("),
+      {
+        data: {
+          repository: {
+            issues: { nodes: [] },
+          },
+        },
+      },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
@@ -3973,6 +3992,20 @@ test('Does not comment/label associatedPR and relatedIssues created by "Bots"', 
       {},
       { body: ["released"] },
     )
+    .postOnce(
+      (url, { body }) => {
+        t.is(url, "https://api.github.local/graphql");
+        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
+        return true;
+      },
+      {
+        data: {
+          repository: {
+            issues: { nodes: [] },
+          },
+        },
+      },
+    )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
         "in:title",
@@ -4163,6 +4196,18 @@ test('Does not comment/label "associatedPR" when "successCommentCondition" disab
       `https://api.github.local/repos/${owner}/${repo}/issues/4/labels`,
       {},
       { body: ["released"] },
+    )
+    .postOnce(
+      (url, { body }) =>
+        url === "https://api.github.local/graphql" &&
+        JSON.parse(body).query.includes("query getSRIssues("),
+      {
+        data: {
+          repository: {
+            issues: { nodes: issues },
+          },
+        },
+      },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
