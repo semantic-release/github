@@ -451,3 +451,149 @@ test('Skip if "failTitle" is "false"', async (t) => {
 
   t.true(t.context.log.calledWith("Skip issue creation."));
 });
+
+test('Does not post comments if "failCommentCondition" is "false"', async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GITHUB_TOKEN: "github_token" };
+  const pluginConfig = { failCommentCondition: false };
+  const options = { repositoryUrl: `https://github.com/${owner}/${repo}.git` };
+
+  await fail(
+    pluginConfig,
+    {
+      env,
+      options,
+      branch: { name: "master" },
+      logger: t.context.logger,
+    },
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    },
+  );
+
+  t.true(t.context.log.calledWith("Skip issue creation."));
+});
+
+test('Does not post comments on existing issues when "failCommentCondition" is "false"', async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const failTitle = "The automated release is failing 🚨";
+  const env = { GITHUB_TOKEN: "github_token" };
+  const pluginConfig = { failCommentCondition: "<% return false; %>" };
+  const options = { repositoryUrl: `https://github.com/${owner}/${repo}.git` };
+  const errors = [
+    new SemanticReleaseError("Error message 1", "ERR1", "Error 1 details"),
+    new SemanticReleaseError("Error message 2", "ERR2", "Error 2 details"),
+    new SemanticReleaseError("Error message 3", "ERR3", "Error 3 details"),
+  ];
+  const issues = [
+    { number: 1, body: "Issue 1 body", title: failTitle },
+    { number: 2, body: `Issue 2 body\n\n${ISSUE_ID}`, title: failTitle },
+    { number: 3, body: `Issue 3 body\n\n${ISSUE_ID}`, title: failTitle },
+  ];
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      full_name: `${owner}/${repo}`,
+    })
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
+        "in:title",
+      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
+        "type:issue",
+      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
+      { items: issues },
+    );
+
+  await fail(
+    pluginConfig,
+    {
+      env,
+      options,
+      branch: { name: "master" },
+      errors,
+      logger: t.context.logger,
+    },
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    },
+  );
+
+  t.true(fetch.done());
+  t.true(t.context.log.calledWith("Skip commenting on or creating an issue."));
+});
+
+test(`Post new issue if none exists yet, but don't comment on existing issues when "failCommentCondition" disallows it`, async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GITHUB_TOKEN: "github_token" };
+  const errors = [{ message: "An error occured" }];
+  const failTitle = "The automated release is failing 🚨";
+  const pluginConfig = {
+    failTitle,
+    failComment: `Error: Release for branch \${branch.name} failed with error: \${errors.map(error => error.message).join(';')}`,
+    failCommentCondition: "<% return !issue; %>",
+  };
+  const options = {
+    repositoryUrl: `https://github.com/${owner}/${repo}.git`,
+  };
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      full_name: `${owner}/${repo}`,
+    })
+    .getOnce(
+      `https://api.github.local/search/issues?q=${encodeURIComponent(
+        "in:title",
+      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
+        "type:issue",
+      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
+      { items: [] },
+    )
+    .postOnce(
+      (url, { body }) => {
+        t.is(url, `https://api.github.local/repos/${owner}/${repo}/issues`);
+        t.regex(
+          JSON.parse(body).body,
+          /Error: Release for branch master failed with error: An error occured\n\n<!-- semantic-release:github -->/,
+        );
+        return true;
+      },
+      { html_url: "https://github.com/issues/2", number: 2 },
+    );
+
+  await fail(
+    pluginConfig,
+    {
+      env,
+      options,
+      branch: { name: "master" },
+      errors,
+      logger: t.context.logger,
+    },
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    },
+  );
+
+  t.true(fetch.done());
+  t.true(
+    t.context.log.calledWith(
+      "Created issue #%d: %s.",
+      2,
+      "https://github.com/issues/2",
+    ),
+  );
+});
