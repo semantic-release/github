@@ -16,7 +16,12 @@ test.beforeEach((t) => {
   // Mock logger
   t.context.log = sinon.stub();
   t.context.error = sinon.stub();
-  t.context.logger = { log: t.context.log, error: t.context.error };
+  t.context.warn = sinon.stub();
+  t.context.logger = {
+    log: t.context.log,
+    error: t.context.error,
+    warn: t.context.warn,
+  };
 });
 
 test("Add comment and labels to PRs associated with release commits and issues solved by PR/commits comments", async (t) => {
