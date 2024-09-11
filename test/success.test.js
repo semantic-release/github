@@ -3272,14 +3272,6 @@ test("Close open issues when a release is successful", async (t) => {
         },
       },
     )
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: issues },
-    )
     .patchOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/2`,
       { html_url: "https://github.com/issues/2" },
@@ -4204,14 +4196,6 @@ test('Does not comment/label "associatedPR" when "successCommentCondition" disab
           },
         },
       },
-    )
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: issues },
     )
     .patchOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1`,

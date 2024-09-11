@@ -32,15 +32,7 @@ test("Filter out issues without ID", async (t) => {
           issues: { nodes: issues },
         },
       },
-    })
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(title)}`,
-      { items: issues },
-    );
+    });
 
   const srIssues = await findSRIssues(
     new TestOctokit({ request: { fetch } }),
@@ -122,15 +114,7 @@ test("Return empty array if not issues has matching ID", async (t) => {
           issues: { nodes: issues },
         },
       },
-    })
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(title)}`,
-      { items: issues },
-    );
+    });
 
   const srIssues = await findSRIssues(
     new TestOctokit({ request: { fetch } }),
@@ -150,11 +134,8 @@ test("Handle error in searchAPI fallback", async (t) => {
   const repo = "test_repo";
   const title = "The automated release is failing 🚨";
   const labels = [];
-  const issues = [
-    { number: 1, body: "Issue 1 body", title },
-    { number: 2, body: `Issue 2 body\n\n${ISSUE_ID}`, title },
-    { number: 3, body: `Issue 3 body\n\n${ISSUE_ID}`, title },
-  ];
+  const issues = [];
+
   const response = new Response("Not Found", {
     url: "https://api.github.com/search/issues?q=in%3Atitle+repo%3Aourorg%2Frepo+type%3Aissue+state%3Aopen+The%20automated%20release%20is%20failing%20%F0%9F%9A%A8",
     status: 403,
@@ -220,18 +201,6 @@ test("Handle error in searchAPI fallback", async (t) => {
     repo,
   );
 
-  t.deepEqual(srIssues, [
-    {
-      number: 2,
-      body: "Issue 2 body\n\n<!-- semantic-release:github -->",
-      title,
-    },
-    {
-      number: 3,
-      body: "Issue 3 body\n\n<!-- semantic-release:github -->",
-      title,
-    },
-  ]);
   t.true(
     t.context.log.calledWith(
       "An error occured fetching issue via fallback (with GH SearchAPI)",

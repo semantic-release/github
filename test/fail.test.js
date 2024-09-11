@@ -370,14 +370,6 @@ test("Update the first existing issue with the list of errors", async (t) => {
         },
       },
     })
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: issues },
-    )
     .postOnce(
       (url, { body }) => {
         t.is(
@@ -547,14 +539,6 @@ test('Does not post comments on existing issues when "failCommentCondition" is "
           },
         },
       },
-    )
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: issues },
     );
 
   await fail(
