@@ -47,11 +47,11 @@
     "fetch-mock": "npm:@gr2m/fetch-mock@9.11.0-pull-request-644.1",
     "lockfile-lint": "4.14.0",
     "ls-engines": "0.9.3",
-    "npm-run-all2": "6.2.2",
+    "npm-run-all2": "6.2.3",
     "prettier": "3.3.3",
-    "publint": "0.2.10",
+    "publint": "0.2.11",
     "semantic-release": "24.1.1",
-    "sinon": "18.0.1",
+    "sinon": "19.0.2",
     "tempy": "3.1.0"
   },
   "engines": {
