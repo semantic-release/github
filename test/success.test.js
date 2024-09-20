@@ -224,6 +224,20 @@ test("Add comment and labels to PRs associated with release commits and issues s
       {},
       { body: ["released"] },
     )
+    .postOnce(
+      (url, { body }) => {
+        t.is(url, "https://api.github.local/graphql");
+        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
+        return true;
+      },
+      {
+        data: {
+          repository: {
+            issues: { nodes: [] },
+          },
+        },
+      },
+    )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
         "in:title",
@@ -506,6 +520,20 @@ test("Add comment and labels to PRs associated with release commits and issues (
       {},
       { body: ["released"] },
     )
+    .postOnce(
+      (url, { body }) => {
+        t.is(url, "https://api.github.local/graphql");
+        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
+        return true;
+      },
+      {
+        data: {
+          repository: {
+            issues: { nodes: [] },
+          },
+        },
+      },
+    )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
         "in:title",
@@ -770,6 +798,20 @@ test("Add comment and labels to PRs associated with release commits and issues c
       {},
       { body: ["released on @next"] },
     )
+    .postOnce(
+      (url, { body }) => {
+        t.is(url, "https://custom-url.com/prefix/graphql");
+        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
+        return true;
+      },
+      {
+        data: {
+          repository: {
+            issues: { nodes: [] },
+          },
+        },
+      },
+    )
     .getOnce(
       `https://custom-url.com/prefix/search/issues?q=${encodeURIComponent(
         "in:title",
@@ -894,72 +936,79 @@ test("Make multiple search queries if necessary", async (t) => {
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .post("https://api.github.local/graphql", {
-      data: {
-        repository: {
-          commitaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa: {
-            oid: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+    .postOnce(
+      (url, { body }) => {
+        t.is(url, "https://api.github.local/graphql");
+        t.regex(JSON.parse(body).query, /query getAssociatedPRs\(/);
+        return true;
+      },
+      {
+        data: {
+          repository: {
+            commitaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa: {
+              oid: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [prs[0]],
               },
-              nodes: [prs[0]],
             },
-          },
-          commitbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb: {
-            oid: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+            commitbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb: {
+              oid: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [prs[1]],
               },
-              nodes: [prs[1]],
             },
-          },
-          commitcccccccccccccccccccccccccccccccccccccccccc: {
-            oid: "cccccccccccccccccccccccccccccccccccccccccc",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+            commitcccccccccccccccccccccccccccccccccccccccccc: {
+              oid: "cccccccccccccccccccccccccccccccccccccccccc",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [prs[2]],
               },
-              nodes: [prs[2]],
             },
-          },
-          commiteeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee: {
-            oid: "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+            commiteeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee: {
+              oid: "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [prs[3]],
               },
-              nodes: [prs[3]],
             },
-          },
-          commitffffffffffffffffffffffffffffffffffffffffff: {
-            oid: "ffffffffffffffffffffffffffffffffffffffffff",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+            commitffffffffffffffffffffffffffffffffffffffffff: {
+              oid: "ffffffffffffffffffffffffffffffffffffffffff",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [prs[4]],
               },
-              nodes: [prs[4]],
             },
-          },
-          commitgggggggggggggggggggggggggggggggggggggggggg: {
-            oid: "gggggggggggggggggggggggggggggggggggggggggg",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+            commitgggggggggggggggggggggggggggggggggggggggggg: {
+              oid: "gggggggggggggggggggggggggggggggggggggggggg",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [prs[5]],
               },
-              nodes: [prs[5]],
             },
           },
         },
       },
-    })
+    )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
       [{ sha: commits[0].hash }],
@@ -1048,6 +1097,20 @@ test("Make multiple search queries if necessary", async (t) => {
       {},
       {
         body: ["released"],
+      },
+    )
+    .postOnce(
+      (url, { body }) => {
+        t.is(url, "https://api.github.local/graphql");
+        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
+        return true;
+      },
+      {
+        data: {
+          repository: {
+            issues: { nodes: [] },
+          },
+        },
       },
     )
     .getOnce(
@@ -1169,32 +1232,39 @@ test("Do not add comment and labels for unrelated PR returned by search (compare
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .postOnce("https://api.github.local/graphql", {
-      data: {
-        repository: {
-          commit123: {
-            oid: "123",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+    .postOnce(
+      (url, { body }) => {
+        t.is(url, "https://api.github.local/graphql");
+        t.regex(JSON.parse(body).query, /query getAssociatedPRs\(/);
+        return true;
+      },
+      {
+        data: {
+          repository: {
+            commit123: {
+              oid: "123",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [prs[0]],
               },
-              nodes: [prs[0]],
             },
-          },
-          commit456: {
-            oid: "456",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+            commit456: {
+              oid: "456",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [prs[1]],
               },
-              nodes: [prs[1]],
             },
           },
         },
       },
-    })
+    )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
       [{ sha: "rebased_sha" }],
@@ -1219,6 +1289,20 @@ test("Do not add comment and labels for unrelated PR returned by search (compare
       `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
       {},
       { body: ["released"] },
+    )
+    .postOnce(
+      (url, { body }) => {
+        t.is(url, "https://api.github.local/graphql");
+        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
+        return true;
+      },
+      {
+        data: {
+          repository: {
+            issues: { nodes: [] },
+          },
+        },
+      },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
@@ -1282,22 +1366,43 @@ test("Do not add comment and labels if no PR is associated with release commits"
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .postOnce("https://api.github.local/graphql", {
-      data: {
-        repository: {
-          commit123: {
-            oid: "123",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+    .postOnce(
+      (url, { body }) => {
+        t.is(url, "https://api.github.local/graphql");
+        t.regex(JSON.parse(body).query, /query getAssociatedPRs\(/);
+        return true;
+      },
+      {
+        data: {
+          repository: {
+            commit123: {
+              oid: "123",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [],
               },
-              nodes: [],
             },
           },
         },
       },
-    })
+    )
+    .postOnce(
+      (url, { body }) => {
+        t.is(url, "https://api.github.local/graphql");
+        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
+        return true;
+      },
+      {
+        data: {
+          repository: {
+            issues: { nodes: [] },
+          },
+        },
+      },
+    )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
         "in:title",
@@ -1349,6 +1454,13 @@ test("Do not add comment and labels if no commits is found for release", async (
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
+    })
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          issues: { nodes: [] },
+        },
+      },
     })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
@@ -1503,6 +1615,20 @@ test("Do not add comment and labels to PR/issues from other repo", async (t) => 
       `https://api.github.local/repos/${owner}/${repo}/issues/2/labels`,
       {},
       { body: ["released"] },
+    )
+    .postOnce(
+      (url, { body }) => {
+        t.is(url, "https://api.github.local/graphql");
+        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
+        return true;
+      },
+      {
+        data: {
+          repository: {
+            issues: { nodes: [] },
+          },
+        },
+      },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
@@ -1782,6 +1908,20 @@ test("Ignore missing and forbidden issues/PRs", async (t) => {
       {},
       { body: ["released"] },
     )
+    .postOnce(
+      (url, { body }) => {
+        t.is(url, "https://api.github.local/graphql");
+        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
+        return true;
+      },
+      {
+        data: {
+          repository: {
+            issues: { nodes: [] },
+          },
+        },
+      },
+    )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
         "in:title",
@@ -1884,22 +2024,29 @@ test("Add custom comment and labels", async (t) => {
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .postOnce("https://api.github.local/graphql", {
-      data: {
-        repository: {
-          commit123: {
-            oid: "123",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+    .postOnce(
+      (url, { body }) => {
+        t.is(url, "https://api.github.local/graphql");
+        t.regex(JSON.parse(body).query, /query getAssociatedPRs\(/);
+        return true;
+      },
+      {
+        data: {
+          repository: {
+            commit123: {
+              oid: "123",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [prs[0]],
               },
-              nodes: [prs[0]],
             },
           },
         },
       },
-    })
+    )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
       [{ sha: commits[0].hash }],
@@ -1915,6 +2062,20 @@ test("Add custom comment and labels", async (t) => {
       `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
       {},
       { body: ["released on @next", "released from master"] },
+    )
+    .postOnce(
+      (url, { body }) => {
+        t.is(url, "https://api.github.local/graphql");
+        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
+        return true;
+      },
+      {
+        data: {
+          repository: {
+            issues: { nodes: [] },
+          },
+        },
+      },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
@@ -1983,22 +2144,29 @@ test("Add custom label", async (t) => {
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .postOnce("https://api.github.local/graphql", {
-      data: {
-        repository: {
-          commit123: {
-            oid: "123",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+    .postOnce(
+      (url, { body }) => {
+        t.is(url, "https://api.github.local/graphql");
+        t.regex(JSON.parse(body).query, /query getAssociatedPRs\(/);
+        return true;
+      },
+      {
+        data: {
+          repository: {
+            commit123: {
+              oid: "123",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [prs[0]],
               },
-              nodes: [prs[0]],
             },
           },
         },
       },
-    })
+    )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
       [{ sha: commits[0].hash }],
@@ -2011,6 +2179,20 @@ test("Add custom label", async (t) => {
       `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
       {},
       { body: ["custom label"] },
+    )
+    .postOnce(
+      (url, { body }) => {
+        t.is(url, "https://api.github.local/graphql");
+        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
+        return true;
+      },
+      {
+        data: {
+          repository: {
+            issues: { nodes: [] },
+          },
+        },
+      },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
@@ -2075,22 +2257,29 @@ test("Comment on issue/PR without ading a label", async (t) => {
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .postOnce("https://api.github.local/graphql", {
-      data: {
-        repository: {
-          commit123: {
-            oid: "123",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+    .postOnce(
+      (url, { body }) => {
+        t.is(url, "https://api.github.local/graphql");
+        t.regex(JSON.parse(body).query, /query getAssociatedPRs\(/);
+        return true;
+      },
+      {
+        data: {
+          repository: {
+            commit123: {
+              oid: "123",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [prs[0]],
               },
-              nodes: [prs[0]],
             },
           },
         },
       },
-    })
+    )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
       [{ sha: commits[0].hash }],
@@ -2098,6 +2287,20 @@ test("Comment on issue/PR without ading a label", async (t) => {
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
       { html_url: "https://github.com/successcomment-1" },
+    )
+    .postOnce(
+      (url, { body }) => {
+        t.is(url, "https://api.github.local/graphql");
+        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
+        return true;
+      },
+      {
+        data: {
+          repository: {
+            issues: { nodes: [] },
+          },
+        },
+      },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
@@ -2174,22 +2377,29 @@ test("Editing the release to include all release links at the bottom", async (t)
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .postOnce("https://api.github.local/graphql", {
-      data: {
-        repository: {
-          commit123: {
-            oid: "123",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+    .postOnce(
+      (url, { body }) => {
+        t.is(url, "https://api.github.local/graphql");
+        t.regex(JSON.parse(body).query, /query getAssociatedPRs\(/);
+        return true;
+      },
+      {
+        data: {
+          repository: {
+            commit123: {
+              oid: "123",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [prs[0]],
               },
-              nodes: [prs[0]],
             },
           },
         },
       },
-    })
+    )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
       [{ sha: commits[0].hash }],
@@ -2197,6 +2407,20 @@ test("Editing the release to include all release links at the bottom", async (t)
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
       { html_url: "https://github.com/successcomment-1" },
+    )
+    .postOnce(
+      (url, { body }) => {
+        t.is(url, "https://api.github.local/graphql");
+        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
+        return true;
+      },
+      {
+        data: {
+          repository: {
+            issues: { nodes: [] },
+          },
+        },
+      },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
@@ -2284,22 +2508,29 @@ test("Editing the release to include all release links at the top", async (t) =>
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .postOnce("https://api.github.local/graphql", {
-      data: {
-        repository: {
-          commit123: {
-            oid: "123",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+    .postOnce(
+      (url, { body }) => {
+        t.is(url, "https://api.github.local/graphql");
+        t.regex(JSON.parse(body).query, /query getAssociatedPRs\(/);
+        return true;
+      },
+      {
+        data: {
+          repository: {
+            commit123: {
+              oid: "123",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [prs[0]],
               },
-              nodes: [prs[0]],
             },
           },
         },
       },
-    })
+    )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
       [{ sha: commits[0].hash }],
@@ -2307,6 +2538,20 @@ test("Editing the release to include all release links at the top", async (t) =>
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
       { html_url: "https://github.com/successcomment-1" },
+    )
+    .postOnce(
+      (url, { body }) => {
+        t.is(url, "https://api.github.local/graphql");
+        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
+        return true;
+      },
+      {
+        data: {
+          repository: {
+            issues: { nodes: [] },
+          },
+        },
+      },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
@@ -2391,22 +2636,29 @@ test("Editing the release to include all release links with no additional releas
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .postOnce("https://api.github.local/graphql", {
-      data: {
-        repository: {
-          commit123: {
-            oid: "123",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+    .postOnce(
+      (url, { body }) => {
+        t.is(url, "https://api.github.local/graphql");
+        t.regex(JSON.parse(body).query, /query getAssociatedPRs\(/);
+        return true;
+      },
+      {
+        data: {
+          repository: {
+            commit123: {
+              oid: "123",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [prs[0]],
               },
-              nodes: [prs[0]],
             },
           },
         },
       },
-    })
+    )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
       [{ sha: commits[0].hash }],
@@ -2414,6 +2666,20 @@ test("Editing the release to include all release links with no additional releas
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
       { html_url: "https://github.com/successcomment-1" },
+    )
+    .postOnce(
+      (url, { body }) => {
+        t.is(url, "https://api.github.local/graphql");
+        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
+        return true;
+      },
+      {
+        data: {
+          repository: {
+            issues: { nodes: [] },
+          },
+        },
+      },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
@@ -2487,22 +2753,29 @@ test("Editing the release to include all release links with no additional releas
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .postOnce("https://api.github.local/graphql", {
-      data: {
-        repository: {
-          commit123: {
-            oid: "123",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+    .postOnce(
+      (url, { body }) => {
+        t.is(url, "https://api.github.local/graphql");
+        t.regex(JSON.parse(body).query, /query getAssociatedPRs\(/);
+        return true;
+      },
+      {
+        data: {
+          repository: {
+            commit123: {
+              oid: "123",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [prs[0]],
               },
-              nodes: [prs[0]],
             },
           },
         },
       },
-    })
+    )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
       [{ sha: commits[0].hash }],
@@ -2510,6 +2783,20 @@ test("Editing the release to include all release links with no additional releas
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
       { html_url: "https://github.com/successcomment-1" },
+    )
+    .postOnce(
+      (url, { body }) => {
+        t.is(url, "https://api.github.local/graphql");
+        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
+        return true;
+      },
+      {
+        data: {
+          repository: {
+            issues: { nodes: [] },
+          },
+        },
+      },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
@@ -2576,22 +2863,29 @@ test("Editing the release to include all release links with no releases", async 
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .postOnce("https://api.github.local/graphql", {
-      data: {
-        repository: {
-          commit123: {
-            oid: "123",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+    .postOnce(
+      (url, { body }) => {
+        t.is(url, "https://api.github.local/graphql");
+        t.regex(JSON.parse(body).query, /query getAssociatedPRs\(/);
+        return true;
+      },
+      {
+        data: {
+          repository: {
+            commit123: {
+              oid: "123",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [prs[0]],
               },
-              nodes: [prs[0]],
             },
           },
         },
       },
-    })
+    )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
       [{ sha: commits[0].hash }],
@@ -2599,6 +2893,20 @@ test("Editing the release to include all release links with no releases", async 
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
       { html_url: "https://github.com/successcomment-1" },
+    )
+    .postOnce(
+      (url, { body }) => {
+        t.is(url, "https://api.github.local/graphql");
+        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
+        return true;
+      },
+      {
+        data: {
+          repository: {
+            issues: { nodes: [] },
+          },
+        },
+      },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
@@ -2667,22 +2975,29 @@ test("Editing the release with no ID in the release", async (t) => {
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .postOnce("https://api.github.local/graphql", {
-      data: {
-        repository: {
-          commit123: {
-            oid: "123",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+    .postOnce(
+      (url, { body }) => {
+        t.is(url, "https://api.github.local/graphql");
+        t.regex(JSON.parse(body).query, /query getAssociatedPRs\(/);
+        return true;
+      },
+      {
+        data: {
+          repository: {
+            commit123: {
+              oid: "123",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [prs[0]],
               },
-              nodes: [prs[0]],
             },
           },
         },
       },
-    })
+    )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
       [{ sha: commits[0].hash }],
@@ -2690,6 +3005,20 @@ test("Editing the release with no ID in the release", async (t) => {
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
       { html_url: "https://github.com/successcomment-1" },
+    )
+    .postOnce(
+      (url, { body }) => {
+        t.is(url, "https://api.github.local/graphql");
+        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
+        return true;
+      },
+      {
+        data: {
+          repository: {
+            issues: { nodes: [] },
+          },
+        },
+      },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
@@ -2763,32 +3092,39 @@ test("Ignore errors when adding comments and closing issues", async (t) => {
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .postOnce("https://api.github.local/graphql", {
-      data: {
-        repository: {
-          commit123: {
-            oid: "123",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+    .postOnce(
+      (url, { body }) => {
+        t.is(url, "https://api.github.local/graphql");
+        t.regex(JSON.parse(body).query, /query getAssociatedPRs\(/);
+        return true;
+      },
+      {
+        data: {
+          repository: {
+            commit123: {
+              oid: "123",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [prs[0]],
               },
-              nodes: [prs[0]],
             },
-          },
-          commit456: {
-            oid: "456",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+            commit456: {
+              oid: "456",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [prs[1]],
               },
-              nodes: [prs[1]],
             },
           },
         },
       },
-    })
+    )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
       [{ sha: commits[0].hash }],
@@ -2809,6 +3145,20 @@ test("Ignore errors when adding comments and closing issues", async (t) => {
       `https://api.github.local/repos/${owner}/${repo}/issues/2/labels`,
       {},
       { body: ["released"] },
+    )
+    .postOnce(
+      (url, { body }) => {
+        t.is(url, "https://api.github.local/graphql");
+        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
+        return true;
+      },
+      {
+        data: {
+          repository: {
+            issues: { nodes: [] },
+          },
+        },
+      },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
@@ -2910,29 +3260,42 @@ test("Close open issues when a release is successful", async (t) => {
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .postOnce("https://api.github.local/graphql", {
-      data: {
-        repository: {
-          commit123: {
-            oid: "123",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+    .postOnce(
+      (url, { body }) => {
+        t.is(url, "https://api.github.local/graphql");
+        t.regex(JSON.parse(body).query, /query getAssociatedPRs\(/);
+        return true;
+      },
+      {
+        data: {
+          repository: {
+            commit123: {
+              oid: "123",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [],
               },
-              nodes: [],
             },
           },
         },
       },
-    })
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: issues },
+    )
+    .postOnce(
+      (url, { body }) => {
+        t.is(url, "https://api.github.local/graphql");
+        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
+        return true;
+      },
+      {
+        data: {
+          repository: {
+            issues: { nodes: issues },
+          },
+        },
+      },
     )
     .patchOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/2`,
@@ -3016,6 +3379,20 @@ test('Skip comment on on issues/PR if "successComment" is "false"', async (t) =>
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
+    .postOnce(
+      (url, { body }) => {
+        t.is(url, "https://api.github.local/graphql");
+        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
+        return true;
+      },
+      {
+        data: {
+          repository: {
+            issues: { nodes: [] },
+          },
+        },
+      },
+    )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
         "in:title",
@@ -3075,6 +3452,13 @@ test('Does not comment/label on issues/PR if "successCommentCondition" is "false
     .sandbox()
     .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
+    })
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          issues: { nodes: [] },
+        },
+      },
     })
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
@@ -3284,6 +3668,18 @@ test('Add comment and label to found issues/associatedPR using the "successComme
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/5/commits`,
       [{ sha: commits[1].hash }],
+    )
+    .postOnce(
+      (url, { body }) =>
+        url === "https://api.github.local/graphql" &&
+        JSON.parse(body).query.includes("query getSRIssues("),
+      {
+        data: {
+          repository: {
+            issues: { nodes: [] },
+          },
+        },
+      },
     )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
@@ -3621,6 +4017,20 @@ test('Does not comment/label associatedPR and relatedIssues created by "Bots"', 
       {},
       { body: ["released"] },
     )
+    .postOnce(
+      (url, { body }) => {
+        t.is(url, "https://api.github.local/graphql");
+        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
+        return true;
+      },
+      {
+        data: {
+          repository: {
+            issues: { nodes: [] },
+          },
+        },
+      },
+    )
     .getOnce(
       `https://api.github.local/search/issues?q=${encodeURIComponent(
         "in:title",
@@ -3814,13 +4224,17 @@ test('Does not comment/label "associatedPR" when "successCommentCondition" disab
       {},
       { body: ["released"] },
     )
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: issues },
+    .postOnce(
+      (url, { body }) =>
+        url === "https://api.github.local/graphql" &&
+        JSON.parse(body).query.includes("query getSRIssues("),
+      {
+        data: {
+          repository: {
+            issues: { nodes: issues },
+          },
+        },
+      },
     )
     .patchOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1`,
