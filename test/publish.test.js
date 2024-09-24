@@ -15,7 +15,12 @@ test.beforeEach((t) => {
   // Mock logger
   t.context.log = sinon.stub();
   t.context.error = sinon.stub();
-  t.context.logger = { log: t.context.log, error: t.context.error };
+  t.context.warn = sinon.stub();
+  t.context.logger = {
+    log: t.context.log,
+    error: t.context.error,
+    warn: t.context.warn,
+  };
 });
 
 test("Publish a release without creating discussion", async (t) => {

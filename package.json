@@ -101,7 +101,7 @@
     ]
   },
   "peerDependencies": {
-    "semantic-release": ">=20.1.0"
+    "semantic-release": ">=24.1.0"
   },
   "publishConfig": {
     "access": "public",

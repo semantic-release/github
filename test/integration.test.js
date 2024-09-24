@@ -14,7 +14,12 @@ test.beforeEach(async (t) => {
   // Stub the logger
   t.context.log = sinon.stub();
   t.context.error = sinon.stub();
-  t.context.logger = { log: t.context.log, error: t.context.error };
+  t.context.warn = sinon.stub();
+  t.context.logger = {
+    log: t.context.log,
+    error: t.context.error,
+    warn: t.context.warn,
+  };
 });
 
 test("Verify GitHub auth", async (t) => {
