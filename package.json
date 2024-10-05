@@ -36,7 +36,7 @@
     "lodash-es": "^4.17.21",
     "mime": "^4.0.0",
     "p-filter": "^4.0.0",
-    "tinyglobby": "^0.2.6",
+    "tinyglobby": "^0.2.9",
     "url-join": "^5.0.0"
   },
   "devDependencies": {
