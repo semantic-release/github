@@ -47,7 +47,7 @@
     "fetch-mock": "npm:@gr2m/fetch-mock@9.11.0-pull-request-644.1",
     "lockfile-lint": "4.14.0",
     "ls-engines": "0.9.3",
-    "npm-run-all2": "7.0.1",
+    "npm-run-all2": "7.0.2",
     "prettier": "3.4.2",
     "publint": "0.2.12",
     "semantic-release": "24.2.0",
