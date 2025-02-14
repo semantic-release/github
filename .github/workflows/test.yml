@@ -33,6 +33,7 @@ jobs:
           node-version: "${{ matrix.node-version }}"
           cache: npm
       - run: npm clean-install
+      - run: npm install --global corepack@latest
       - run: corepack npm audit signatures
       - run: npm test
 
@@ -51,6 +52,7 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm clean-install
+      - run: npm install --global corepack@latest
       - run: corepack npm audit signatures
       - run: npm test
 
