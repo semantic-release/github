@@ -50,7 +50,7 @@
     "npm-run-all2": "7.0.2",
     "prettier": "3.5.1",
     "publint": "0.3.5",
-    "semantic-release": "24.2.2",
+    "semantic-release": "24.2.3",
     "sinon": "19.0.2",
     "tempy": "3.1.0"
   },
