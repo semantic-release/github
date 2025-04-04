@@ -20,8 +20,8 @@
 ## Install
 
 > [!TIP]
-You do not need to directly depend on this package if you are using `semantic-release`.
-`semantic-release` already depends on this package, and defining your own direct dependency can result in conflicts when you update `semantic-release`.
+> You do not need to directly depend on this package if you are using `semantic-release`.
+> `semantic-release` already depends on this package, and defining your own direct dependency can result in conflicts when you update `semantic-release`.
 
 ```bash
 $ npm install @semantic-release/github -D
