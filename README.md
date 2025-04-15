@@ -189,7 +189,7 @@ The `successComment` `This ${issue.pull_request ? 'pull request' : 'issue'} is i
 
 #### successCommentCondition
 
-The message for the issue comments is generated with [Lodash template](https://lodash.com/docs#template). The following variables are available:
+A [Lodash template](https://lodash.com/docs#template) string that should evaluate to a truthy or falsy variable. The following variables are available:
 
 | Parameter     | Description                                                                                                                                                    |
 | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -230,7 +230,7 @@ The `failComment` `This release from branch ${branch.name} had failed due to the
 
 #### failCommentCondition
 
-The message for the issue content is generated with [Lodash template](https://lodash.com/docs#template). The following variables are available:
+A [Lodash template](https://lodash.com/docs#template) string that should evaluate to a truthy or falsy variable. The following variables are available:
 
 | Parameter     | Description                                                                                                                                                                                                                                                                                                                                                                       |
 | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
