@@ -517,14 +517,6 @@ test("Comment and add labels on PR included in the releases", async (t) => {
           },
         },
       },
-    )
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] },
     );
 
   await t.context.m.success(
@@ -590,14 +582,6 @@ test("Open a new issue with the list of errors", async (t) => {
         },
       },
     })
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] },
-    )
     .postOnce(
       (url, { body }) => {
         t.is(url, `https://api.github.local/repos/${owner}/${repo}/issues`);
@@ -750,14 +734,6 @@ test("Verify, release and notify success", async (t) => {
       `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
       {},
       { body: ["released"] },
-    )
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] },
     )
     .postOnce(
       `${uploadOrigin}${uploadUri}?name=${encodeURIComponent("upload.txt")}&`,
@@ -938,14 +914,6 @@ test("Verify, update release and notify success", async (t) => {
           },
         },
       },
-    )
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] },
     );
 
   await t.notThrowsAsync(
@@ -1036,14 +1004,6 @@ test("Verify and notify failure", async (t) => {
         },
       },
     })
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] },
-    )
     .postOnce(`https://api.github.local/repos/${owner}/${repo}/issues`, {
       html_url: "https://github.com/issues/1",
       number: 1,
