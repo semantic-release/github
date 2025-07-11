@@ -239,16 +239,6 @@ test("Add comment and labels to PRs associated with release commits and issues s
           },
         },
       },
-    )
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(
-        `repo:${redirectedOwner}/${redirectedRepo}`,
-      )}+${encodeURIComponent("type:issue")}+${encodeURIComponent(
-        "state:open",
-      )}+${encodeURIComponent(failTitle)}`,
-      { items: [] },
     );
 
   await success(
@@ -537,16 +527,6 @@ test("Add comment and labels to PRs associated with release commits and issues (
           },
         },
       },
-    )
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(
-        `repo:${owner}/${repo}`,
-      )}+${encodeURIComponent("type:issue")}+${encodeURIComponent(
-        "state:open",
-      )}+${encodeURIComponent(failTitle)}`,
-      { items: [] },
     );
 
   await success(
@@ -817,14 +797,6 @@ test("Add comment and labels to PRs associated with release commits and issues c
           },
         },
       },
-    )
-    .getOnce(
-      `https://custom-url.com/prefix/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] },
     );
 
   await success(
@@ -1118,14 +1090,6 @@ test("Make multiple search queries if necessary", async (t) => {
           },
         },
       },
-    )
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] },
     );
 
   await success(
@@ -1309,14 +1273,6 @@ test("Do not add comment and labels for unrelated PR returned by search (compare
           },
         },
       },
-    )
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] },
     );
 
   await success(
@@ -1408,14 +1364,6 @@ test("Do not add comment and labels if no PR is associated with release commits"
           },
         },
       },
-    )
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] },
     );
 
   await success(
@@ -1467,15 +1415,7 @@ test("Do not add comment and labels if no commits is found for release", async (
           issues: { nodes: [] },
         },
       },
-    })
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] },
-    );
+    });
 
   await success(
     pluginConfig,
@@ -1635,14 +1575,6 @@ test("Do not add comment and labels to PR/issues from other repo", async (t) => 
           },
         },
       },
-    )
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] },
     );
 
   await success(
@@ -1930,14 +1862,6 @@ test("Ignore missing and forbidden issues/PRs", async (t) => {
           },
         },
       },
-    )
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] },
     );
 
   await success(
@@ -2085,14 +2009,6 @@ test("Add custom comment and labels", async (t) => {
           },
         },
       },
-    )
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] },
     );
 
   await success(
@@ -2202,14 +2118,6 @@ test("Add custom label", async (t) => {
           },
         },
       },
-    )
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] },
     );
 
   await success(
@@ -2310,14 +2218,6 @@ test("Comment on issue/PR without ading a label", async (t) => {
           },
         },
       },
-    )
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] },
     );
 
   await success(
@@ -2430,14 +2330,6 @@ test("Editing the release to include all release links at the bottom", async (t)
           },
         },
       },
-    )
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] },
     )
     .patchOnce(
       `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
@@ -2562,14 +2454,6 @@ test("Editing the release to include all release links at the top", async (t) =>
         },
       },
     )
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] },
-    )
     .patchOnce(
       `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
       {
@@ -2689,14 +2573,6 @@ test("Editing the release to include all release links with no additional releas
           },
         },
       },
-    )
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] },
     );
 
   await success(
@@ -2806,14 +2682,6 @@ test("Editing the release to include all release links with no additional releas
           },
         },
       },
-    )
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] },
     );
 
   await success(
@@ -2916,14 +2784,6 @@ test("Editing the release to include all release links with no releases", async 
           },
         },
       },
-    )
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] },
     );
 
   await success(
@@ -3028,14 +2888,6 @@ test("Editing the release with no ID in the release", async (t) => {
           },
         },
       },
-    )
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] },
     );
 
   await success(
@@ -3164,18 +3016,10 @@ test("Ignore errors when adding comments and closing issues", async (t) => {
       {
         data: {
           repository: {
-            issues: { nodes: [] },
+            issues: { nodes: issues },
           },
         },
       },
-    )
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: issues },
     )
     .patchOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/2`,
@@ -3401,14 +3245,6 @@ test('Skip comment on on issues/PR if "successComment" is "false"', async (t) =>
           },
         },
       },
-    )
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] },
     );
 
   await success(
@@ -3468,15 +3304,7 @@ test('Does not comment/label on issues/PR if "successCommentCondition" is "false
           issues: { nodes: [] },
         },
       },
-    })
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] },
-    );
+    });
 
   await success(
     pluginConfig,
@@ -3687,18 +3515,10 @@ test('Add comment and label to found issues/associatedPR using the "successComme
       {
         data: {
           repository: {
-            issues: { nodes: [] },
+            issues: { nodes: issues },
           },
         },
       },
-    )
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: issues },
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/5/comments`,
@@ -4041,18 +3861,10 @@ test('Does not comment/label associatedPR and relatedIssues created by "Bots"', 
       {
         data: {
           repository: {
-            issues: { nodes: [] },
+            issues: { nodes: issues },
           },
         },
       },
-    )
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: issues },
     )
     .patchOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1`,

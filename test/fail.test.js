@@ -48,16 +48,6 @@ test("Open a new issue with the list of errors", async (t) => {
         },
       },
     })
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(
-        `repo:${redirectedOwner}/${redirectedRepo}`,
-      )}+${encodeURIComponent("type:issue")}+${encodeURIComponent(
-        "state:open",
-      )}+${encodeURIComponent(failTitle)}`,
-      { items: [] },
-    )
     .postOnce(
       (url, { body }) => {
         t.is(
@@ -136,14 +126,6 @@ test("Open a new issue with the list of errors and custom title and comment", as
         },
       },
     })
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] },
-    )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues`,
       { html_url: "https://github.com/issues/1", number: 1 },
@@ -211,14 +193,6 @@ test("Open a new issue with assignees and the list of errors", async (t) => {
         },
       },
     })
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] },
-    )
     .postOnce(
       (url, { body }) => {
         t.is(url, `https://api.github.local/repos/${owner}/${repo}/issues`);
@@ -291,14 +265,6 @@ test("Open a new issue without labels and the list of errors", async (t) => {
         },
       },
     })
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] },
-    )
     .postOnce(
       (url, { body }) => {
         t.is(url, `https://api.github.local/repos/${owner}/${repo}/issues`);
@@ -598,14 +564,6 @@ test(`Post new issue if none exists yet, but don't comment on existing issues wh
           },
         },
       },
-    )
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] },
     )
     .postOnce(
       (url, { body }) => {
