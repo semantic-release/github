@@ -797,14 +797,6 @@ test("Add comment and labels to PRs associated with release commits and issues c
           },
         },
       },
-    )
-    .getOnce(
-      `https://custom-url.com/prefix/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: [] },
     );
 
   await success(
@@ -3024,18 +3016,10 @@ test("Ignore errors when adding comments and closing issues", async (t) => {
       {
         data: {
           repository: {
-            issues: { nodes: [] },
+            issues: { nodes: issues },
           },
         },
       },
-    )
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: issues },
     )
     .patchOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/2`,
@@ -3531,18 +3515,10 @@ test('Add comment and label to found issues/associatedPR using the "successComme
       {
         data: {
           repository: {
-            issues: { nodes: [] },
+            issues: { nodes: issues },
           },
         },
       },
-    )
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: issues },
     )
     .postOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/5/comments`,
@@ -3885,18 +3861,10 @@ test('Does not comment/label associatedPR and relatedIssues created by "Bots"', 
       {
         data: {
           repository: {
-            issues: { nodes: [] },
+            issues: { nodes: issues },
           },
         },
       },
-    )
-    .getOnce(
-      `https://api.github.local/search/issues?q=${encodeURIComponent(
-        "in:title",
-      )}+${encodeURIComponent(`repo:${owner}/${repo}`)}+${encodeURIComponent(
-        "type:issue",
-      )}+${encodeURIComponent("state:open")}+${encodeURIComponent(failTitle)}`,
-      { items: issues },
     )
     .patchOnce(
       `https://api.github.local/repos/${owner}/${repo}/issues/1`,
