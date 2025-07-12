@@ -4,6 +4,8 @@ name: Test
     branches:
       - master
       - renovate/**
+    paths-ignore:
+      - '**/*.md'
   pull_request:
     types:
       - opened
