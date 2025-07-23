@@ -4414,3 +4414,60 @@ test('Skip closing issues if "failTitle" is "false"', async (t) => {
   t.true(t.context.log.calledWith("Skip closing issue."));
   t.true(fetch.done());
 });
+
+test('Skip closing issues if "failCommentCondition" is "false"', async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GITHUB_TOKEN: "github_token" };
+  const pluginConfig = { failCommentCondition: false };
+  const options = { repositoryUrl: `https://github.com/${owner}/${repo}.git` };
+  const commits = [{ hash: "123", message: "Commit 1 message" }];
+  const nextRelease = { version: "1.0.0" };
+  const releases = [
+    { name: "GitHub release", url: "https://github.com/release" },
+  ];
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      full_name: `${owner}/${repo}`,
+      clone_url: `https://api.github.local/${owner}/${repo}.git`,
+    })
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          commit123: {
+            oid: "123",
+            associatedPullRequests: {
+              pageInfo: {
+                endCursor: "NI",
+                hasNextPage: false,
+              },
+              nodes: [],
+            },
+          },
+        },
+      },
+    });
+
+  await success(
+    pluginConfig,
+    {
+      env,
+      options,
+      branch: { name: "master" },
+      commits,
+      nextRelease,
+      releases,
+      logger: t.context.logger,
+    },
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    },
+  );
+  t.true(t.context.log.calledWith("Skip closing issue."));
+  t.true(fetch.done());
+});
