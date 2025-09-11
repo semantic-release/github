@@ -30,13 +30,13 @@
     "aggregate-error": "^5.0.0",
     "debug": "^4.3.4",
     "dir-glob": "^3.0.1",
-    "globby": "^14.0.0",
     "http-proxy-agent": "^7.0.0",
     "https-proxy-agent": "^7.0.0",
     "issue-parser": "^7.0.0",
     "lodash-es": "^4.17.21",
     "mime": "^4.0.0",
     "p-filter": "^4.0.0",
+    "tinyglobby": "^0.2.14",
     "url-join": "^5.0.0"
   },
   "devDependencies": {
