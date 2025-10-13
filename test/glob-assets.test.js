@@ -228,7 +228,7 @@ test("Expand directories", async (t) => {
   t.deepEqual(
     sortAssets(globbedAssets),
     sortAssets([
-      "dir",
+      "dir/",
       "dir/upload_other.txt",
       "dir/upload.txt",
       "dir/.dotfile",
@@ -242,7 +242,7 @@ test("Include empty temporaryDirectory as defined", async (t) => {
   await mkdir(resolve(cwd, "empty"), { recursive: true });
   const globbedAssets = await globAssets({ cwd }, [["empty"]]);
 
-  t.deepEqual(globbedAssets, ["empty"]);
+  t.deepEqual(globbedAssets, ["empty/"]);
 });
 
 test("Deduplicate resulting files path", async (t) => {
