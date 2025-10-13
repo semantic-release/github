@@ -20,7 +20,7 @@ jobs:
       matrix:
         node-version:
           - 22.14.0
-          - 24.3.0
+          - 24.10.0
           - 24
         os:
           - ubuntu-latest
