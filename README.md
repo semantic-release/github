@@ -116,12 +116,14 @@ Can be `false`, a proxy URL or an `Object` with the following properties:
 | `secureProxy` | If `true`, then use TLS to connect to the proxy.               | `false`                              |
 | `headers`     | Additional HTTP headers to be sent on the HTTP CONNECT method. | -                                    |
 
-See [node-https-proxy-agent](https://github.com/TooTallNate/node-https-proxy-agent#new-httpsproxyagentobject-options) and [node-http-proxy-agent](https://github.com/TooTallNate/node-http-proxy-agent) for additional details.
+This plugin uses [undici's ProxyAgent](https://github.com/nodejs/undici#proxyagent) for modern proxy support, with backwards compatibility maintained through [node-https-proxy-agent](https://github.com/TooTallNate/node-https-proxy-agent#new-httpsproxyagentobject-options) and [node-http-proxy-agent](https://github.com/TooTallNate/node-http-proxy-agent). This ensures proxy functionality works with GitHub Enterprise Server environments behind corporate proxies.
 
 ##### proxy examples
 
 `'http://168.63.76.32:3128'`: use the proxy running on host `168.63.76.32` and port `3128` for each GitHub API request.
 `{host: '168.63.76.32', port: 3128, headers: {Foo: 'bar'}}`: use the proxy running on host `168.63.76.32` and port `3128` for each GitHub API request, setting the `Foo` header value to `bar`.
+
+**Note**: This plugin now uses undici's ProxyAgent internally for enhanced proxy support, particularly beneficial for GitHub Enterprise Server environments behind corporate proxies. All existing proxy configurations remain fully compatible.
 
 #### assets
 
