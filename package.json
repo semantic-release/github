@@ -50,7 +50,7 @@
     "ls-engines": "0.9.3",
     "npm-run-all2": "8.0.4",
     "prettier": "3.7.4",
-    "publint": "0.3.15",
+    "publint": "0.3.16",
     "semantic-release": "25.0.2",
     "sinon": "21.0.0",
     "tempy": "3.1.0"
