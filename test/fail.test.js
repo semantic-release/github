@@ -36,26 +36,35 @@ test("Open a new issue with the list of errors", async (t) => {
     new SemanticReleaseError("Error message 2", "ERR2", "Error 2 details"),
     new SemanticReleaseError("Error message 3", "ERR3", "Error 3 details"),
   ];
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce("https://api.github.local/repos/test_user/test_repo", {
-      full_name: `${redirectedOwner}/${redirectedRepo}`,
-    })
-    .postOnce("https://api.github.local/graphql", {
-      data: {
-        repository: {
-          issues: { nodes: [] },
+  const fm = fetchMock
+    .createInstance()
+    .get(
+      "https://api.github.local/repos/test_user/test_repo",
+      {
+        full_name: `${redirectedOwner}/${redirectedRepo}`,
+      },
+      { repeat: 1 },
+    )
+    .post(
+      "https://api.github.local/graphql",
+      {
+        data: {
+          repository: {
+            issues: { nodes: [] },
+          },
         },
       },
-    })
-    .postOnce(
-      (url, { body }) => {
-        t.is(
-          url,
-          `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/issues`,
-        );
+      { repeat: 1 },
+    )
+    .post(
+      ({ url, options }) => {
+        if (
+          url !==
+          `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/issues`
+        )
+          return false;
 
-        const data = JSON.parse(body);
+        const data = JSON.parse(options.body);
         t.is(data.title, failTitle);
         t.regex(
           data.body,
@@ -68,6 +77,7 @@ test("Open a new issue with the list of errors", async (t) => {
         html_url: "https://github.com/issues/1",
         number: 1,
       },
+      { repeat: 1 },
     );
 
   await fail(
@@ -82,7 +92,7 @@ test("Open a new issue with the list of errors", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -94,7 +104,7 @@ test("Open a new issue with the list of errors", async (t) => {
       "https://github.com/issues/1",
     ),
   );
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Open a new issue with the list of errors and custom title and comment", async (t) => {
@@ -113,20 +123,28 @@ test("Open a new issue with the list of errors and custom title and comment", as
     new SemanticReleaseError("Error message 3", "ERR3", "Error 3 details"),
   ];
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
-      full_name: `${owner}/${repo}`,
-      clone_url: `https://api.github.local/${owner}/${repo}.git`,
-    })
-    .postOnce("https://api.github.local/graphql", {
-      data: {
-        repository: {
-          issues: { nodes: [] },
+  const fm = fetchMock
+    .createInstance()
+    .get(
+      `https://api.github.local/repos/${owner}/${repo}`,
+      {
+        full_name: `${owner}/${repo}`,
+        clone_url: `https://api.github.local/${owner}/${repo}.git`,
+      },
+      { repeat: 1 },
+    )
+    .post(
+      "https://api.github.local/graphql",
+      {
+        data: {
+          repository: {
+            issues: { nodes: [] },
+          },
         },
       },
-    })
-    .postOnce(
+      { repeat: 1 },
+    )
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/issues`,
       { html_url: "https://github.com/issues/1", number: 1 },
       {
@@ -135,6 +153,7 @@ test("Open a new issue with the list of errors and custom title and comment", as
           body: `branch master Error message 1 Error message 2 Error message 3\n\n${ISSUE_ID}`,
           labels: ["semantic-release", RELEASE_FAIL_LABEL],
         },
+        repeat: 1,
       },
     );
 
@@ -150,7 +169,7 @@ test("Open a new issue with the list of errors and custom title and comment", as
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -162,7 +181,7 @@ test("Open a new issue with the list of errors and custom title and comment", as
       "https://github.com/issues/1",
     ),
   );
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Open a new issue with assignees and the list of errors", async (t) => {
@@ -180,24 +199,33 @@ test("Open a new issue with assignees and the list of errors", async (t) => {
     new SemanticReleaseError("Error message 2", "ERR2", "Error 2 details"),
   ];
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
-      full_name: `${owner}/${repo}`,
-      clone_url: `https://api.github.local/${owner}/${repo}.git`,
-    })
-    .postOnce("https://api.github.local/graphql", {
-      data: {
-        repository: {
-          issues: { nodes: [] },
+  const fm = fetchMock
+    .createInstance()
+    .get(
+      `https://api.github.local/repos/${owner}/${repo}`,
+      {
+        full_name: `${owner}/${repo}`,
+        clone_url: `https://api.github.local/${owner}/${repo}.git`,
+      },
+      { repeat: 1 },
+    )
+    .post(
+      "https://api.github.local/graphql",
+      {
+        data: {
+          repository: {
+            issues: { nodes: [] },
+          },
         },
       },
-    })
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, `https://api.github.local/repos/${owner}/${repo}/issues`);
+      { repeat: 1 },
+    )
+    .post(
+      ({ url, options }) => {
+        if (url !== `https://api.github.local/repos/${owner}/${repo}/issues`)
+          return false;
 
-        const data = JSON.parse(body);
+        const data = JSON.parse(options.body);
         t.is(data.title, failTitle);
         t.regex(
           data.body,
@@ -208,6 +236,7 @@ test("Open a new issue with assignees and the list of errors", async (t) => {
         return true;
       },
       { html_url: "https://github.com/issues/1", number: 1 },
+      { repeat: 1 },
     );
 
   await fail(
@@ -222,7 +251,7 @@ test("Open a new issue with assignees and the list of errors", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -234,7 +263,7 @@ test("Open a new issue with assignees and the list of errors", async (t) => {
       "https://github.com/issues/1",
     ),
   );
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Open a new issue without labels and the list of errors", async (t) => {
@@ -252,24 +281,33 @@ test("Open a new issue without labels and the list of errors", async (t) => {
     new SemanticReleaseError("Error message 2", "ERR2", "Error 2 details"),
   ];
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
-      full_name: `${owner}/${repo}`,
-      clone_url: `https://api.github.local/${owner}/${repo}.git`,
-    })
-    .postOnce("https://api.github.local/graphql", {
-      data: {
-        repository: {
-          issues: { nodes: [] },
+  const fm = fetchMock
+    .createInstance()
+    .get(
+      `https://api.github.local/repos/${owner}/${repo}`,
+      {
+        full_name: `${owner}/${repo}`,
+        clone_url: `https://api.github.local/${owner}/${repo}.git`,
+      },
+      { repeat: 1 },
+    )
+    .post(
+      "https://api.github.local/graphql",
+      {
+        data: {
+          repository: {
+            issues: { nodes: [] },
+          },
         },
       },
-    })
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, `https://api.github.local/repos/${owner}/${repo}/issues`);
+      { repeat: 1 },
+    )
+    .post(
+      ({ url, options }) => {
+        if (url !== `https://api.github.local/repos/${owner}/${repo}/issues`)
+          return false;
 
-        const data = JSON.parse(body);
+        const data = JSON.parse(options.body);
         t.is(data.title, failTitle);
         t.regex(
           data.body,
@@ -279,6 +317,7 @@ test("Open a new issue without labels and the list of errors", async (t) => {
         return true;
       },
       { html_url: "https://github.com/issues/1", number: 1 },
+      { repeat: 1 },
     );
 
   await fail(
@@ -293,7 +332,7 @@ test("Open a new issue without labels and the list of errors", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -305,7 +344,7 @@ test("Open a new issue without labels and the list of errors", async (t) => {
       "https://github.com/issues/1",
     ),
   );
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Update the first existing issue with the list of errors", async (t) => {
@@ -328,32 +367,42 @@ test("Update the first existing issue with the list of errors", async (t) => {
     { number: 3, body: `Issue 3 body\n\n${ISSUE_ID}`, title: failTitle },
   ];
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
-      full_name: `${owner}/${repo}`,
-      clone_url: `https://api.github.local/${owner}/${repo}.git`,
-    })
-    .postOnce("https://api.github.local/graphql", {
-      data: {
-        repository: {
-          issues: { nodes: issues },
+  const fm = fetchMock
+    .createInstance()
+    .get(
+      `https://api.github.local/repos/${owner}/${repo}`,
+      {
+        full_name: `${owner}/${repo}`,
+        clone_url: `https://api.github.local/${owner}/${repo}.git`,
+      },
+      { repeat: 1 },
+    )
+    .post(
+      "https://api.github.local/graphql",
+      {
+        data: {
+          repository: {
+            issues: { nodes: issues },
+          },
         },
       },
-    })
-    .postOnce(
-      (url, { body }) => {
-        t.is(
-          url,
-          `https://api.github.local/repos/${owner}/${repo}/issues/2/comments`,
-        );
+      { repeat: 1 },
+    )
+    .post(
+      ({ url, options }) => {
+        if (
+          url !==
+          `https://api.github.local/repos/${owner}/${repo}/issues/2/comments`
+        )
+          return false;
         t.regex(
-          JSON.parse(body).body,
+          JSON.parse(options.body).body,
           /---\n\n### Error message 1\n\nError 1 details\n\n---\n\n### Error message 2\n\nError 2 details\n\n---\n\n### Error message 3\n\nError 3 details\n\n---/,
         );
         return true;
       },
       { html_url: "https://github.com/issues/2", number: 2 },
+      { repeat: 1 },
     );
 
   await fail(
@@ -368,7 +417,7 @@ test("Update the first existing issue with the list of errors", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -383,7 +432,7 @@ test("Update the first existing issue with the list of errors", async (t) => {
       "https://github.com/issues/2",
     ),
   );
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test('Skip if "failComment" is "false"', async (t) => {
@@ -494,15 +543,19 @@ test('Does not post comments on existing issues when "failCommentCondition" is "
     { number: 3, body: `Issue 3 body\n\n${ISSUE_ID}`, title: failTitle },
   ];
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
-      full_name: `${owner}/${repo}`,
-    })
-    .postOnce(
-      (url, { body }) =>
+  const fm = fetchMock
+    .createInstance()
+    .get(
+      `https://api.github.local/repos/${owner}/${repo}`,
+      {
+        full_name: `${owner}/${repo}`,
+      },
+      { repeat: 1 },
+    )
+    .post(
+      ({ url, options }) =>
         url === "https://api.github.local/graphql" &&
-        JSON.parse(body).query.includes("query getSRIssues("),
+        JSON.parse(options.body).query.includes("query getSRIssues("),
       {
         data: {
           repository: {
@@ -510,6 +563,7 @@ test('Does not post comments on existing issues when "failCommentCondition" is "
           },
         },
       },
+      { repeat: 1 },
     );
 
   await fail(
@@ -524,12 +578,12 @@ test('Does not post comments on existing issues when "failCommentCondition" is "
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
 
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
   t.true(t.context.log.calledWith("Skip commenting on or creating an issue."));
 });
 
@@ -548,15 +602,19 @@ test(`Post new issue if none exists yet, but don't comment on existing issues wh
     repositoryUrl: `https://github.com/${owner}/${repo}.git`,
   };
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
-      full_name: `${owner}/${repo}`,
-    })
-    .postOnce(
-      (url, { body }) =>
+  const fm = fetchMock
+    .createInstance()
+    .get(
+      `https://api.github.local/repos/${owner}/${repo}`,
+      {
+        full_name: `${owner}/${repo}`,
+      },
+      { repeat: 1 },
+    )
+    .post(
+      ({ url, options }) =>
         url === "https://api.github.local/graphql" &&
-        JSON.parse(body).query.includes("query getSRIssues("),
+        JSON.parse(options.body).query.includes("query getSRIssues("),
       {
         data: {
           repository: {
@@ -564,17 +622,20 @@ test(`Post new issue if none exists yet, but don't comment on existing issues wh
           },
         },
       },
+      { repeat: 1 },
     )
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, `https://api.github.local/repos/${owner}/${repo}/issues`);
+    .post(
+      ({ url, options }) => {
+        if (url !== `https://api.github.local/repos/${owner}/${repo}/issues`)
+          return false;
         t.regex(
-          JSON.parse(body).body,
+          JSON.parse(options.body).body,
           /Error: Release for branch master failed with error: An error occured\n\n<!-- semantic-release:github -->/,
         );
         return true;
       },
       { html_url: "https://github.com/issues/2", number: 2 },
+      { repeat: 1 },
     );
 
   await fail(
@@ -589,12 +650,12 @@ test(`Post new issue if none exists yet, but don't comment on existing issues wh
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
 
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
   t.true(
     t.context.log.calledWith(
       "Created issue #%d: %s.",
