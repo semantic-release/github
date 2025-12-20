@@ -34,15 +34,16 @@ test("Update a release", async (t) => {
   const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
   const releaseId = 1;
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(
+  const fm = fetchMock
+    .createInstance()
+    .get(
       `https://api.github.local/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`,
       {
         id: releaseId,
       },
+      { repeat: 1 },
     )
-    .patchOnce(
+    .patch(
       `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
       {
         html_url: releaseUrl,
@@ -53,6 +54,7 @@ test("Update a release", async (t) => {
           name: nextRelease.name,
           prerelease: false,
         },
+        repeat: 1,
       },
     );
 
@@ -68,7 +70,7 @@ test("Update a release", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -78,7 +80,7 @@ test("Update a release", async (t) => {
     "Updated GitHub release: %s",
     releaseUrl,
   ]);
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Update a maintenance release", async (t) => {
@@ -96,15 +98,16 @@ test("Update a maintenance release", async (t) => {
   const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
   const releaseId = 1;
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(
+  const fm = fetchMock
+    .createInstance()
+    .get(
       `https://api.github.local/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`,
       {
         id: releaseId,
       },
+      { repeat: 1 },
     )
-    .patchOnce(
+    .patch(
       `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
       {
         html_url: releaseUrl,
@@ -115,6 +118,7 @@ test("Update a maintenance release", async (t) => {
           name: nextRelease.name,
           prerelease: false,
         },
+        repeat: 1,
       },
     );
 
@@ -130,7 +134,7 @@ test("Update a maintenance release", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -140,7 +144,7 @@ test("Update a maintenance release", async (t) => {
     "Updated GitHub release: %s",
     releaseUrl,
   ]);
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Update a prerelease", async (t) => {
@@ -157,15 +161,16 @@ test("Update a prerelease", async (t) => {
   const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
   const releaseId = 1;
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(
+  const fm = fetchMock
+    .createInstance()
+    .get(
       `https://api.github.local/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`,
       {
         id: releaseId,
       },
+      { repeat: 1 },
     )
-    .patchOnce(
+    .patch(
       `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
       {
         html_url: releaseUrl,
@@ -176,6 +181,7 @@ test("Update a prerelease", async (t) => {
           name: nextRelease.name,
           prerelease: false,
         },
+        repeat: 1,
       },
     );
 
@@ -191,7 +197,7 @@ test("Update a prerelease", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -201,7 +207,7 @@ test("Update a prerelease", async (t) => {
     "Updated GitHub release: %s",
     releaseUrl,
   ]);
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Update a release with a custom github url", async (t) => {
@@ -222,15 +228,16 @@ test("Update a release with a custom github url", async (t) => {
   const releaseUrl = `${env.GH_URL}/${owner}/${repo}/releases/${nextRelease.version}`;
   const releaseId = 1;
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(
+  const fm = fetchMock
+    .createInstance()
+    .get(
       `https://othertesturl.com:443/prefix/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`,
       {
         id: releaseId,
       },
+      { repeat: 1 },
     )
-    .patchOnce(
+    .patch(
       `https://othertesturl.com:443/prefix/repos/${owner}/${repo}/releases/${releaseId}`,
       {
         html_url: releaseUrl,
@@ -241,6 +248,7 @@ test("Update a release with a custom github url", async (t) => {
           name: nextRelease.name,
           prerelease: false,
         },
+        repeat: 1,
       },
     );
 
@@ -256,7 +264,7 @@ test("Update a release with a custom github url", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -266,7 +274,7 @@ test("Update a release with a custom github url", async (t) => {
     "Updated GitHub release: %s",
     releaseUrl,
   ]);
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Create the new release if current one is missing", async (t) => {
@@ -282,13 +290,14 @@ test("Create the new release if current one is missing", async (t) => {
   const options = { repositoryUrl: `https://github.com/${owner}/${repo}.git` };
   const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(
+  const fm = fetchMock
+    .createInstance()
+    .get(
       `https://api.github.local/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`,
       404,
+      { repeat: 1 },
     )
-    .postOnce(
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/releases`,
       {
         html_url: releaseUrl,
@@ -300,6 +309,7 @@ test("Create the new release if current one is missing", async (t) => {
           body: nextRelease.notes,
           prerelease: false,
         },
+        repeat: 1,
       },
     );
 
@@ -315,7 +325,7 @@ test("Create the new release if current one is missing", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -329,7 +339,7 @@ test("Create the new release if current one is missing", async (t) => {
     "Published GitHub release: %s",
     releaseUrl,
   ]);
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Throw error if cannot read current release", async (t) => {
@@ -344,11 +354,12 @@ test("Throw error if cannot read current release", async (t) => {
   };
   const options = { repositoryUrl: `https://github.com/${owner}/${repo}.git` };
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(
+  const fm = fetchMock
+    .createInstance()
+    .get(
       `https://api.github.local/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`,
       500,
+      { repeat: 1 },
     );
 
   const error = await t.throwsAsync(
@@ -364,14 +375,14 @@ test("Throw error if cannot read current release", async (t) => {
       {
         Octokit: TestOctokit.defaults((options) => ({
           ...options,
-          request: { ...options.request, fetch },
+          request: { ...options.request, fetch: fm.fetchHandler },
         })),
       },
     ),
   );
 
   t.is(error.status, 500);
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Throw error if cannot create missing current release", async (t) => {
@@ -388,19 +399,21 @@ test("Throw error if cannot create missing current release", async (t) => {
     repositoryUrl: `https://github.com/${owner}/${repo}.git`,
   };
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(
+  const fm = fetchMock
+    .createInstance()
+    .get(
       `https://api.github.local/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`,
       404,
+      { repeat: 1 },
     )
-    .postOnce(`https://api.github.local/repos/${owner}/${repo}/releases`, 500, {
+    .post(`https://api.github.local/repos/${owner}/${repo}/releases`, 500, {
       body: {
         tag_name: nextRelease.gitTag,
         name: nextRelease.name,
         body: nextRelease.notes,
         prerelease: false,
       },
+      repeat: 1,
     });
 
   const error = await t.throwsAsync(
@@ -416,14 +429,14 @@ test("Throw error if cannot create missing current release", async (t) => {
       {
         Octokit: TestOctokit.defaults((options) => ({
           ...options,
-          request: { ...options.request, fetch },
+          request: { ...options.request, fetch: fm.fetchHandler },
         })),
       },
     ),
   );
 
   t.is(error.status, 500);
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Throw error if cannot update release", async (t) => {
@@ -439,13 +452,14 @@ test("Throw error if cannot update release", async (t) => {
   const options = { repositoryUrl: `https://github.com/${owner}/${repo}.git` };
   const releaseId = 1;
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(
+  const fm = fetchMock
+    .createInstance()
+    .get(
       `https://api.github.local/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`,
       { id: releaseId },
+      { repeat: 1 },
     )
-    .patchOnce(
+    .patch(
       `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
       404,
       {
@@ -454,6 +468,7 @@ test("Throw error if cannot update release", async (t) => {
           name: nextRelease.name,
           prerelease: false,
         },
+        repeat: 1,
       },
     );
 
@@ -470,12 +485,12 @@ test("Throw error if cannot update release", async (t) => {
       {
         Octokit: TestOctokit.defaults((options) => ({
           ...options,
-          request: { ...options.request, fetch },
+          request: { ...options.request, fetch: fm.fetchHandler },
         })),
       },
     ),
   );
 
   t.is(error.status, 404);
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
