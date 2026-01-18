@@ -49,7 +49,7 @@
     "lockfile-lint": "4.14.1",
     "ls-engines": "0.10.0",
     "npm-run-all2": "8.0.4",
-    "prettier": "3.7.4",
+    "prettier": "3.8.0",
     "publint": "0.3.16",
     "semantic-release": "25.0.2",
     "sinon": "21.0.1",
