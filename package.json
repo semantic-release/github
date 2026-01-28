@@ -47,13 +47,13 @@
     "cz-conventional-changelog": "3.3.0",
     "fetch-mock": "npm:@gr2m/fetch-mock@9.11.0-pull-request-644.1",
     "lockfile-lint": "4.14.1",
-    "ls-engines": "0.9.3",
+    "ls-engines": "0.10.0",
     "npm-run-all2": "8.0.4",
-    "prettier": "3.7.4",
-    "publint": "0.3.16",
+    "prettier": "3.8.1",
+    "publint": "0.3.17",
     "semantic-release": "25.0.2",
-    "sinon": "21.0.0",
-    "tempy": "3.1.0"
+    "sinon": "21.0.1",
+    "tempy": "3.1.2"
   },
   "engines": {
     "node": "^22.14.0 || >= 24.10.0"
@@ -128,5 +128,5 @@
       "github>semantic-release/.github:renovate-config"
     ]
   },
-  "packageManager": "npm@11.7.0"
+  "packageManager": "npm@11.8.0"
 }
