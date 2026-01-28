@@ -53,7 +53,7 @@
     "publint": "0.3.17",
     "semantic-release": "25.0.2",
     "sinon": "21.0.1",
-    "tempy": "3.1.1"
+    "tempy": "3.1.2"
   },
   "engines": {
     "node": "^22.14.0 || >= 24.10.0"
