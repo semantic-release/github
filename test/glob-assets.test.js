@@ -11,7 +11,7 @@ import globAssets from "../lib/glob-assets.js";
 const sortAssets = (assets) =>
   sortBy(assets, (asset) => (isPlainObject(asset) ? asset.path : asset));
 
-const fixtures = "test/fixtures/files";
+const fixtures = "test/fixtures/files/**";
 
 test("Retrieve file from single path", async (t) => {
   const cwd = temporaryDirectory();
