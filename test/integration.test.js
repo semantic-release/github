@@ -227,6 +227,7 @@ test("Publish a release with an array of assets", async (t) => {
           body: nextRelease.notes,
           draft: true,
           prerelease: false,
+          make_latest: "true",
         },
       },
     )
@@ -322,6 +323,7 @@ test("Publish a release with release information in assets", async (t) => {
           body: nextRelease.notes,
           draft: true,
           prerelease: true,
+          make_latest: "false",
         },
       },
     )
@@ -718,6 +720,7 @@ test("Verify, release and notify success", async (t) => {
           body: nextRelease.notes,
           draft: true,
           prerelease: false,
+          make_latest: "true",
         },
       },
     )
