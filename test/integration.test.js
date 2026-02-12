@@ -418,7 +418,7 @@ test("Publish a release with an array of assets", async (t) => {
       `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
       { html_url: releaseUrl },
       {
-        body: { draft: false },
+        body: { draft: false, make_latest: "true" },
       },
     )
     .postOnce(
@@ -514,7 +514,7 @@ test("Publish a release with release information in assets", async (t) => {
       `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
       { html_url: releaseUrl },
       {
-        body: { draft: false },
+        body: { draft: false, make_latest: "false" },
       },
     )
     .postOnce(
@@ -910,7 +910,7 @@ test("Verify, release and notify success", async (t) => {
     .patchOnce(
       `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
       { html_url: releaseUrl },
-      { body: { draft: false } },
+      { body: { draft: false, make_latest: "true" } },
     )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
