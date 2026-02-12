@@ -461,7 +461,7 @@ test("Publish a release with one asset", async (t) => {
     .patchOnce(
       `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
       { upload_url: uploadUrl, html_url: releaseUrl },
-      { body: { draft: false } },
+      { body: { draft: false, make_latest: "true" } },
     )
     .postOnce(
       `${uploadOrigin}${uploadUri}?name=${encodeURIComponent(
@@ -549,7 +549,7 @@ test("Publish a release with one asset and custom github url", async (t) => {
     .patchOnce(
       `${env.GH_URL}/prefix/repos/${owner}/${repo}/releases/${releaseId}`,
       { upload_url: uploadUrl, html_url: releaseUrl },
-      { body: { draft: false } },
+      { body: { draft: false, make_latest: "true" } },
     )
     .postOnce(
       `${env.GH_URL}${uploadUri}?name=${encodeURIComponent(
@@ -631,7 +631,7 @@ test("Publish a release with an array of missing assets", async (t) => {
     .patchOnce(
       `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
       { html_url: releaseUrl },
-      { body: { draft: false } },
+      { body: { draft: false, make_latest: "true" } },
     );
 
   const result = await publish(
@@ -729,6 +729,7 @@ test("Publish a release with asset and create discussion", async (t) => {
         body: {
           draft: false,
           discussion_category_name: pluginConfig.discussionCategoryName,
+          make_latest: "true",
         },
       },
     )
