@@ -187,6 +187,189 @@ test("Throw SemanticReleaseError if invalid config", async (t) => {
   t.is(errors[8].code, "ENOGHTOKEN");
 });
 
+test("Publish a release without assets on a main release branch", async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GITHUB_TOKEN: "github_token" };
+  const nextRelease = {
+    gitTag: "v1.0.0",
+    name: "v1.0.0",
+    notes: "Test release note body",
+  };
+  const options = { repositoryUrl: `https://github.com/${owner}/${repo}.git` };
+  const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
+  const releaseId = 1;
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      permissions: {
+        push: true,
+      },
+      clone_url: `https://api.github.local/${owner}/${repo}.git`,
+    })
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/releases`,
+      { html_url: releaseUrl, id: releaseId },
+      {
+        body: {
+          tag_name: nextRelease.gitTag,
+          name: nextRelease.name,
+          body: nextRelease.notes,
+          prerelease: false,
+          make_latest: "true",
+        },
+      },
+    );
+
+  const result = await t.context.m.publish(
+    {},
+    {
+      cwd,
+      env,
+      options,
+      branch: { type: "release", main: true },
+      nextRelease,
+      logger: t.context.logger,
+    },
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    },
+  );
+
+  t.is(result.url, releaseUrl);
+  t.is(result.name, "GitHub release");
+  t.is(result.id, releaseId);
+  t.deepEqual(t.context.log.args[0], ["Verify GitHub authentication"]);
+  t.true(t.context.log.calledWith("Published GitHub release: %s", releaseUrl));
+  t.true(fetch.done());
+});
+
+test("Publish a release without assets on a non-main release branch", async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GITHUB_TOKEN: "github_token" };
+  const nextRelease = {
+    gitTag: "v1.0.0",
+    name: "v1.0.0",
+    notes: "Test release note body",
+  };
+  const options = { repositoryUrl: `https://github.com/${owner}/${repo}.git` };
+  const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
+  const releaseId = 1;
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      permissions: {
+        push: true,
+      },
+      clone_url: `https://api.github.local/${owner}/${repo}.git`,
+    })
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/releases`,
+      { html_url: releaseUrl, id: releaseId },
+      {
+        body: {
+          tag_name: nextRelease.gitTag,
+          name: nextRelease.name,
+          body: nextRelease.notes,
+          prerelease: true,
+          make_latest: "false",
+        },
+      },
+    );
+
+  const result = await t.context.m.publish(
+    {},
+    {
+      cwd,
+      env,
+      options,
+      branch: { type: "release" },
+      nextRelease,
+      logger: t.context.logger,
+    },
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    },
+  );
+
+  t.is(result.url, releaseUrl);
+  t.is(result.name, "GitHub release");
+  t.is(result.id, releaseId);
+  t.deepEqual(t.context.log.args[0], ["Verify GitHub authentication"]);
+  t.true(t.context.log.calledWith("Published GitHub release: %s", releaseUrl));
+  t.true(fetch.done());
+});
+
+test("Publish a release without assets on a maintenance branch", async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GITHUB_TOKEN: "github_token" };
+  const nextRelease = {
+    gitTag: "v1.0.0",
+    name: "v1.0.0",
+    notes: "Test release note body",
+  };
+  const options = { repositoryUrl: `https://github.com/${owner}/${repo}.git` };
+  const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
+  const releaseId = 1;
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      permissions: {
+        push: true,
+      },
+      clone_url: `https://api.github.local/${owner}/${repo}.git`,
+    })
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/releases`,
+      { html_url: releaseUrl, id: releaseId },
+      {
+        body: {
+          tag_name: nextRelease.gitTag,
+          name: nextRelease.name,
+          body: nextRelease.notes,
+          prerelease: false,
+          make_latest: "false",
+        },
+      },
+    );
+
+  const result = await t.context.m.publish(
+    {},
+    {
+      cwd,
+      env,
+      options,
+      branch: { type: "maintenance" },
+      nextRelease,
+      logger: t.context.logger,
+    },
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    },
+  );
+
+  t.is(result.url, releaseUrl);
+  t.is(result.name, "GitHub release");
+  t.is(result.id, releaseId);
+  t.deepEqual(t.context.log.args[0], ["Verify GitHub authentication"]);
+  t.true(t.context.log.calledWith("Published GitHub release: %s", releaseUrl));
+  t.true(fetch.done());
+});
+
 test("Publish a release with an array of assets", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
@@ -227,6 +410,7 @@ test("Publish a release with an array of assets", async (t) => {
           body: nextRelease.notes,
           draft: true,
           prerelease: false,
+          make_latest: "true",
         },
       },
     )
@@ -234,7 +418,7 @@ test("Publish a release with an array of assets", async (t) => {
       `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
       { html_url: releaseUrl },
       {
-        body: { draft: false },
+        body: { draft: false, make_latest: "true" },
       },
     )
     .postOnce(
@@ -322,6 +506,7 @@ test("Publish a release with release information in assets", async (t) => {
           body: nextRelease.notes,
           draft: true,
           prerelease: true,
+          make_latest: "false",
         },
       },
     )
@@ -329,7 +514,7 @@ test("Publish a release with release information in assets", async (t) => {
       `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
       { html_url: releaseUrl },
       {
-        body: { draft: false },
+        body: { draft: false, make_latest: "false" },
       },
     )
     .postOnce(
@@ -718,13 +903,14 @@ test("Verify, release and notify success", async (t) => {
           body: nextRelease.notes,
           draft: true,
           prerelease: false,
+          make_latest: "true",
         },
       },
     )
     .patchOnce(
       `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
       { html_url: releaseUrl },
-      { body: { draft: false } },
+      { body: { draft: false, make_latest: "true" } },
     )
     .getOnce(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
