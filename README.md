@@ -66,6 +66,7 @@ When creating the token, the **minimum required scopes** are:
 
 _Note on GitHub Actions:_ You can use the default token which is provided in the secret _GITHUB_TOKEN_. However releases done with this token will NOT trigger release events to start other workflows.
 If you have actions that trigger on newly created releases, please use a generated token for that and store it in your repository's secrets (any other name than GITHUB_TOKEN is fine).
+When you use PAT, you have to use the same token for checking out the repository. For `actions/checkout` use `with.token: ${{ secret.GH_TOKEN }}`. Otherwise the action won't be able to commit the new tag.
 
 When using the _GITHUB_TOKEN_, the **minimum required permissions** are:
 
