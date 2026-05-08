@@ -43,7 +43,7 @@
   "devDependencies": {
     "ava": "8.0.0",
     "c8": "11.0.0",
-    "cpy": "13.2.1",
+    "cpy": "13.2.2",
     "cz-conventional-changelog": "3.3.0",
     "fetch-mock": "npm:@gr2m/fetch-mock@9.11.0-pull-request-644.1",
     "lockfile-lint": "5.0.0",
