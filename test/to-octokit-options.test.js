@@ -200,3 +200,49 @@ test("fetch without proxy stays on direct undici dispatcher", async (t) => {
     });
   }
 });
+
+test("fetch function sets content-length for Buffer body", async (t) => {
+  let requestContentLength;
+  let receivedBodyLength = 0;
+  const body = Buffer.from("upload-body");
+
+  const server = createServer((req, res) => {
+    requestContentLength = req.headers["content-length"];
+    req.on("data", (chunk) => {
+      receivedBodyLength += chunk.length;
+    });
+    req.on("end", () => {
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ ok: true }));
+    });
+  });
+
+  await new Promise((resolve) => {
+    server.listen(0, "127.0.0.1", resolve);
+  });
+
+  const { port } = server.address();
+  const url = `http://127.0.0.1:${port}/upload`;
+
+  try {
+    const options = toOctokitOptions({
+      githubToken: "github_token",
+      githubApiUrl: `http://127.0.0.1:${port}`,
+    });
+
+    const response = await options.request.fetch(url, {
+      method: "POST",
+      headers: { "content-type": "application/octet-stream" },
+      body,
+    });
+
+    t.is(response.status, 200);
+    t.deepEqual(await response.json(), { ok: true });
+    t.is(requestContentLength, `${body.byteLength}`);
+    t.is(receivedBodyLength, body.byteLength);
+  } finally {
+    await new Promise((resolve) => {
+      server.close(resolve);
+    });
+  }
+});
