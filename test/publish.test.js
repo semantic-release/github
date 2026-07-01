@@ -494,6 +494,101 @@ test("Publish a release with one asset", async (t) => {
   t.true(fetch.done());
 });
 
+test("Publish upload request does not set content-length manually", async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GITHUB_TOKEN: "github_token" };
+  const pluginConfig = {
+    assets: [".dotfile"],
+  };
+  const nextRelease = {
+    gitTag: "v1.0.0",
+    name: "v1.0.0",
+    notes: "Test release note body",
+  };
+  const options = { repositoryUrl: `https://github.com/${owner}/${repo}.git` };
+  const untaggedReleaseUrl = `https://github.com/${owner}/${repo}/releases/untagged-123`;
+  const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
+  const assetUrl = `https://github.com/${owner}/${repo}/releases/download/${nextRelease.version}/.dotfile`;
+  const releaseId = 1;
+  const uploadOrigin = "https://uploads.github.local";
+  const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
+  const uploadUrl = `${uploadOrigin}${uploadUri}{?name,label}`;
+  const branch = "test_branch";
+  const assetUploadUrl = `${uploadOrigin}${uploadUri}?name=${encodeURIComponent(".dotfile")}&`;
+
+  /** @type {Record<string, string>} */
+  let uploadHeaders;
+
+  const fetch = async (url, request = {}) => {
+    if (
+      url === `https://api.github.local/repos/${owner}/${repo}/releases` &&
+      request.method === "POST"
+    ) {
+      return new Response(
+        JSON.stringify({
+          upload_url: uploadUrl,
+          html_url: untaggedReleaseUrl,
+          id: releaseId,
+        }),
+        { headers: { "content-type": "application/json" } },
+      );
+    }
+
+    if (
+      url ===
+        `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}` &&
+      request.method === "PATCH"
+    ) {
+      return new Response(JSON.stringify({ html_url: releaseUrl }), {
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    if (url === assetUploadUrl && request.method === "POST") {
+      uploadHeaders = request.headers;
+      return new Response(JSON.stringify({ browser_download_url: assetUrl }), {
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    throw new Error(`Unexpected request ${request.method} ${url}`);
+  };
+
+  const result = await publish(
+    pluginConfig,
+    {
+      cwd,
+      env,
+      options,
+      branch: { name: branch, type: "release", main: true },
+      nextRelease,
+      logger: t.context.logger,
+    },
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    },
+  );
+
+  t.is(result.url, releaseUrl);
+  t.true(t.context.log.calledWith("Published GitHub release: %s", releaseUrl));
+  t.true(t.context.log.calledWith("Published file %s", assetUrl));
+  t.truthy(uploadHeaders);
+
+  const normalizedHeaders = Object.fromEntries(
+    Object.entries(uploadHeaders).map(([name, value]) => [
+      name.toLowerCase(),
+      String(value),
+    ]),
+  );
+
+  t.is(normalizedHeaders["content-type"], "text/plain");
+  t.falsy(normalizedHeaders["content-length"]);
+});
+
 test("Publish a release with one asset and custom github url", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
