@@ -1,9 +1,8 @@
-import { createServer as _createServer } from "node:https";
+import { createServer } from "node:http";
 
 import test from "ava";
 import { HttpProxyAgent } from "http-proxy-agent";
 import { HttpsProxyAgent } from "https-proxy-agent";
-import { ProxyAgent } from "undici";
 
 import { toOctokitOptions } from "../lib/octokit.js";
 
@@ -156,4 +155,48 @@ test("only fetch is provided when no proxy is set", async (t) => {
     baseUrl: "https://localhost:10001",
     auth: "github_token",
   });
+});
+
+test("fetch without proxy stays on direct undici dispatcher", async (t) => {
+  const server = createServer((req, res) => {
+    req.resume();
+    req.on("end", () => {
+      res.writeHead(200, { "Content-Type": "text/plain" });
+      res.end("ok");
+    });
+  });
+
+  await new Promise((resolve) => {
+    server.listen(0, "127.0.0.1", resolve);
+  });
+
+  const { port } = server.address();
+  const url = `http://127.0.0.1:${port}/upload`;
+
+  try {
+    // Initialize Node's built-in fetch first to mimic real runtime usage.
+    await fetch(url);
+
+    const options = toOctokitOptions({
+      githubToken: "github_token",
+      githubApiUrl: `http://127.0.0.1:${port}`,
+    });
+
+    // throws because the content-length does not match the body length
+    const error = await t.throwsAsync(
+      options.request.fetch(url, {
+        method: "POST",
+        headers: { "content-length": "10" },
+        body: "abc",
+      }),
+    );
+
+    const causeStack = error?.cause?.stack || "";
+    t.false(causeStack.includes("node:internal/deps/undici/undici"));
+    t.true(causeStack.includes("/node_modules/undici/"));
+  } finally {
+    await new Promise((resolve) => {
+      server.close(resolve);
+    });
+  }
 });
