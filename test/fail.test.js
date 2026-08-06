@@ -308,6 +308,96 @@ test("Open a new issue without labels and the list of errors", async (t) => {
   t.true(fetch.done());
 });
 
+test("Retry creating issue without labels when labels fail validation", async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GITHUB_TOKEN: "github_token" };
+  const failTitle = "The automated release is failing 🚨";
+  const pluginConfig = { failTitle };
+  const options = {
+    repositoryUrl: `https://github.com/${owner}/${repo}.git`,
+  };
+  const errors = [
+    new SemanticReleaseError("Error message 1", "ERR1", "Error 1 details"),
+  ];
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      full_name: `${owner}/${repo}`,
+      clone_url: `https://api.github.local/${owner}/${repo}.git`,
+    })
+    .postOnce("https://api.github.local/graphql", {
+      data: {
+        repository: {
+          issues: { nodes: [] },
+        },
+      },
+    })
+    .postOnce(
+      (url, opts) => {
+        if (url !== `https://api.github.local/repos/${owner}/${repo}/issues`) {
+          return false;
+        }
+
+        const data = JSON.parse(opts.body);
+        return (
+          Array.isArray(data.labels) &&
+          data.labels.length > 0 &&
+          data.labels.includes(RELEASE_FAIL_LABEL)
+        );
+      },
+      {
+        status: 422,
+        body: {
+          errors: [{ field: "labels", code: "invalid" }],
+        },
+      },
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues`,
+      { html_url: "https://github.com/issues/1", number: 1 },
+      {
+        matcher: (_url, opts) => {
+          const data = JSON.parse(opts.body);
+          t.is(data.title, failTitle);
+          t.true(
+            !Object.hasOwn(data, "labels") ||
+              data.labels === null ||
+              (Array.isArray(data.labels) && data.labels.length === 0),
+          );
+          return true;
+        },
+      },
+    );
+
+  await fail(
+    pluginConfig,
+    {
+      env,
+      options,
+      branch: { name: "master" },
+      errors,
+      logger: t.context.logger,
+    },
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    },
+  );
+
+  t.true(
+    t.context.log.calledWith(
+      "Created issue #%d: %s.",
+      1,
+      "https://github.com/issues/1",
+    ),
+  );
+  t.true(fetch.done());
+});
+
 test("Update the first existing issue with the list of errors", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
