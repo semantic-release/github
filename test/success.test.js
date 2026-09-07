@@ -58,16 +58,16 @@ test("Add comment and labels to PRs associated with release commits and issues s
     { name: "GitHub release", url: "https://github.com/release" },
   ];
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+  const fm = fetchMock
+    .createInstance()
+    .get(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${redirectedOwner}/${redirectedRepo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .postOnce(
-      (url, { body }) =>
+    .post(
+      ({ url, options }) =>
         url === "https://api.github.local/graphql" &&
-        JSON.parse(body).query.includes("query getAssociatedPRs("),
+        JSON.parse(options.body).query.includes("query getAssociatedPRs("),
       {
         data: {
           repository: {
@@ -95,10 +95,10 @@ test("Add comment and labels to PRs associated with release commits and issues s
         },
       },
     )
-    .postOnce(
-      (url, { body }) =>
+    .post(
+      ({ url, options }) =>
         url === "https://api.github.local/graphql" &&
-        JSON.parse(body).query.includes("query getRelatedIssues("),
+        JSON.parse(options.body).query.includes("query getRelatedIssues("),
       {
         data: {
           repository: {
@@ -180,58 +180,56 @@ test("Add comment and labels to PRs associated with release commits and issues s
         },
       },
     )
-    .getOnce(
+    .get(
       `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/pulls/1/commits`,
       [{ sha: commits[0].hash }],
     )
-    .getOnce(
+    .get(
       `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/pulls/2/commits`,
       [{ sha: commits[1].hash }],
     )
-    .postOnce(
+    .post(
       `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/issues/1/comments`,
       {
         html_url: "https://github.com/successcomment-1",
       },
     )
-    .postOnce(
+    .post(
       `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/issues/1/labels`,
       {},
       { body: ["released"] },
     )
-    .postOnce(
+    .post(
       `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/issues/2/comments`,
       { html_url: "https://github.com/successcomment-2" },
     )
-    .postOnce(
+    .post(
       `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/issues/2/labels`,
       {},
       { body: ["released"] },
     )
-    .postOnce(
+    .post(
       `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/issues/3/comments`,
       { html_url: "https://github.com/successcomment-3" },
     )
-    .postOnce(
+    .post(
       `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/issues/3/labels`,
       {},
       { body: ["released"] },
     )
-    .postOnce(
+    .post(
       `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/issues/4/comments`,
       { html_url: "https://github.com/successcomment-4" },
     )
-    .postOnce(
+    .post(
       `https://api.github.local/repos/${redirectedOwner}/${redirectedRepo}/issues/4/labels`,
       {},
       { body: ["released"] },
     )
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
-        return true;
-      },
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getSRIssues\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -254,7 +252,7 @@ test("Add comment and labels to PRs associated with release commits and issues s
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -299,7 +297,7 @@ test("Add comment and labels to PRs associated with release commits and issues s
   t.true(
     t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 4),
   );
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Add comment and labels to PRs associated with release commits and issues (multipaged associatedPRs)", async (t) => {
@@ -336,53 +334,20 @@ test("Add comment and labels to PRs associated with release commits and issues (
     { name: "GitHub release", url: "https://github.com/release" },
   ];
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+  const fm = fetchMock
+    .createInstance()
+    .get(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
     })
-    .postOnce("https://api.github.local/graphql", {
-      data: {
-        repository: {
-          commit123: {
-            oid: "123",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "YE",
-                hasNextPage: true,
-              },
-              nodes: [prs[0]],
-            },
-          },
-          commit456: {
-            oid: "456",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
-              },
-              nodes: [prs[1]],
-            },
-          },
-          commit789: {
-            oid: "789",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
-              },
-              nodes: [prs[2]],
-            },
-          },
-        },
-      },
-    })
-    .postOnce(
-      "https://api.github.local/graphql",
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getAssociatedPRs\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
-            commit: {
+            commit123: {
+              oid: "123",
               associatedPullRequests: {
                 pageInfo: {
                   endCursor: "NE",
@@ -391,17 +356,35 @@ test("Add comment and labels to PRs associated with release commits and issues (
                 nodes: [prs[3]],
               },
             },
+            commit456: {
+              oid: "456",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [],
+              },
+            },
+            commit789: {
+              oid: "789",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [],
+              },
+            },
           },
         },
       },
-      {
-        overwriteRoutes: true,
-      },
+      { repeat: 1 },
     )
-    .postOnce(
-      (url, { body }) =>
+    .post(
+      ({ url, options }) =>
         url === "https://api.github.local/graphql" &&
-        JSON.parse(body).query.includes("query getRelatedIssues("),
+        JSON.parse(options.body).query.includes("query getRelatedIssues("),
       {
         data: {
           repository: {
@@ -483,43 +466,37 @@ test("Add comment and labels to PRs associated with release commits and issues (
         },
       },
     )
-    .getOnce(
-      `https://api.github.local/repos/${owner}/${repo}/pulls/6/commits`,
-      [{ sha: commits[0].hash }],
-    )
-    .postOnce(
-      `https://api.github.local/repos/${owner}/${repo}/issues/3/comments`,
-      { html_url: "https://github.com/successcomment-3" },
-    )
-    .postOnce(
+    .get(`https://api.github.local/repos/${owner}/${repo}/pulls/6/commits`, [
+      { sha: commits[0].hash },
+    ])
+    .post(`https://api.github.local/repos/${owner}/${repo}/issues/3/comments`, {
+      html_url: "https://github.com/successcomment-3",
+    })
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/issues/3/labels`,
       {},
       { body: ["released"] },
     )
-    .postOnce(
-      `https://api.github.local/repos/${owner}/${repo}/issues/4/comments`,
-      { html_url: "https://github.com/successcomment-4" },
-    )
-    .postOnce(
+    .post(`https://api.github.local/repos/${owner}/${repo}/issues/4/comments`, {
+      html_url: "https://github.com/successcomment-4",
+    })
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/issues/4/labels`,
       {},
       { body: ["released"] },
     )
-    .postOnce(
-      `https://api.github.local/repos/${owner}/${repo}/issues/6/comments`,
-      { html_url: "https://github.com/successcomment-6" },
-    )
-    .postOnce(
+    .post(`https://api.github.local/repos/${owner}/${repo}/issues/6/comments`, {
+      html_url: "https://github.com/successcomment-6",
+    })
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/issues/6/labels`,
       {},
       { body: ["released"] },
     )
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
-        return true;
-      },
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getSRIssues\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -542,7 +519,7 @@ test("Add comment and labels to PRs associated with release commits and issues (
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -577,7 +554,7 @@ test("Add comment and labels to PRs associated with release commits and issues (
   t.true(
     t.context.log.calledWith("Added labels %O to PR #%d", ["released"], 6),
   );
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Add comment and labels to PRs associated with release commits and issues closed by PR/commits comments with custom URL", async (t) => {
@@ -611,15 +588,15 @@ test("Add comment and labels to PRs associated with release commits and issues c
     { name: "GitHub release", url: "https://custom-url.com/release" },
   ];
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://custom-url.com/prefix/repos/${owner}/${repo}`, {
+  const fm = fetchMock
+    .createInstance()
+    .get(`https://custom-url.com/prefix/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
     })
-    .postOnce(
-      (url, { body }) =>
+    .post(
+      ({ url, options }) =>
         url === "https://custom-url.com/prefix/graphql" &&
-        JSON.parse(body).query.includes("query getAssociatedPRs("),
+        JSON.parse(options.body).query.includes("query getAssociatedPRs("),
       {
         data: {
           repository: {
@@ -647,10 +624,10 @@ test("Add comment and labels to PRs associated with release commits and issues c
         },
       },
     )
-    .postOnce(
-      (url, { body }) =>
+    .post(
+      ({ url, options }) =>
         url === "https://custom-url.com/prefix/graphql" &&
-        JSON.parse(body).query.includes("query getRelatedIssues("),
+        JSON.parse(options.body).query.includes("query getRelatedIssues("),
       {
         data: {
           repository: {
@@ -732,64 +709,62 @@ test("Add comment and labels to PRs associated with release commits and issues c
         },
       },
     )
-    .getOnce(
+    .get(
       `https://custom-url.com/prefix/repos/${owner}/${repo}/pulls/1/commits`,
       [{ sha: commits[0].hash }],
     )
-    .getOnce(
+    .get(
       `https://custom-url.com/prefix/repos/${owner}/${repo}/pulls/2/commits`,
       [{ sha: commits[1].hash }],
     )
-    .postOnce(
+    .post(
       `https://custom-url.com/prefix/repos/${owner}/${repo}/issues/1/comments`,
       {
         html_url: "https://custom-url.com/successcomment-1",
       },
     )
-    .postOnce(
+    .post(
       `https://custom-url.com/prefix/repos/${owner}/${repo}/issues/1/labels`,
       {},
       { body: ["released on @next"] },
     )
-    .postOnce(
+    .post(
       `https://custom-url.com/prefix/repos/${owner}/${repo}/issues/2/comments`,
       {
         html_url: "https://custom-url.com/successcomment-2",
       },
     )
-    .postOnce(
+    .post(
       `https://custom-url.com/prefix/repos/${owner}/${repo}/issues/2/labels`,
       {},
       { body: ["released on @next"] },
     )
-    .postOnce(
+    .post(
       `https://custom-url.com/prefix/repos/${owner}/${repo}/issues/3/comments`,
       {
         html_url: "https://custom-url.com/successcomment-3",
       },
     )
-    .postOnce(
+    .post(
       `https://custom-url.com/prefix/repos/${owner}/${repo}/issues/3/labels`,
       {},
       { body: ["released on @next"] },
     )
-    .postOnce(
+    .post(
       `https://custom-url.com/prefix/repos/${owner}/${repo}/issues/4/comments`,
       {
         html_url: "https://custom-url.com/successcomment-4",
       },
     )
-    .postOnce(
+    .post(
       `https://custom-url.com/prefix/repos/${owner}/${repo}/issues/4/labels`,
       {},
       { body: ["released on @next"] },
     )
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://custom-url.com/prefix/graphql");
-        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
-        return true;
-      },
+    .post(
+      ({ url, options }) =>
+        url === "https://custom-url.com/prefix/graphql" &&
+        /query getSRIssues\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -812,7 +787,7 @@ test("Add comment and labels to PRs associated with release commits and issues c
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -873,7 +848,7 @@ test("Add comment and labels to PRs associated with release commits and issues c
       4,
     ),
   );
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Make multiple search queries if necessary", async (t) => {
@@ -908,18 +883,16 @@ test("Make multiple search queries if necessary", async (t) => {
     { name: "GitHub release", url: "https://github.com/release" },
   ];
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+  const fm = fetchMock
+    .createInstance()
+    .get(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getAssociatedPRs\(/);
-        return true;
-      },
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getAssociatedPRs\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -987,102 +960,88 @@ test("Make multiple search queries if necessary", async (t) => {
         },
       },
     )
-    .getOnce(
-      `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
-      [{ sha: commits[0].hash }],
-    )
-    .getOnce(
-      `https://api.github.local/repos/${owner}/${repo}/pulls/2/commits`,
-      [{ sha: commits[1].hash }],
-    )
-    .getOnce(
-      `https://api.github.local/repos/${owner}/${repo}/pulls/3/commits`,
-      [{ sha: commits[2].hash }],
-    )
-    .getOnce(
-      `https://api.github.local/repos/${owner}/${repo}/pulls/4/commits`,
-      [{ sha: commits[3].hash }],
-    )
-    .getOnce(
-      `https://api.github.local/repos/${owner}/${repo}/pulls/5/commits`,
-      [{ sha: commits[4].hash }],
-    )
-    .getOnce(
-      `https://api.github.local/repos/${owner}/${repo}/pulls/6/commits`,
-      [{ sha: commits[5].hash }],
-    )
-    .postOnce(
-      `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
-      { html_url: "https://github.com/successcomment-1" },
-    )
-    .postOnce(
+    .get(`https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`, [
+      { sha: commits[0].hash },
+    ])
+    .get(`https://api.github.local/repos/${owner}/${repo}/pulls/2/commits`, [
+      { sha: commits[1].hash },
+    ])
+    .get(`https://api.github.local/repos/${owner}/${repo}/pulls/3/commits`, [
+      { sha: commits[2].hash },
+    ])
+    .get(`https://api.github.local/repos/${owner}/${repo}/pulls/4/commits`, [
+      { sha: commits[3].hash },
+    ])
+    .get(`https://api.github.local/repos/${owner}/${repo}/pulls/5/commits`, [
+      { sha: commits[4].hash },
+    ])
+    .get(`https://api.github.local/repos/${owner}/${repo}/pulls/6/commits`, [
+      { sha: commits[5].hash },
+    ])
+    .post(`https://api.github.local/repos/${owner}/${repo}/issues/1/comments`, {
+      html_url: "https://github.com/successcomment-1",
+    })
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
       {},
       {
         body: ["released"],
       },
     )
-    .postOnce(
-      `https://api.github.local/repos/${owner}/${repo}/issues/2/comments`,
-      { html_url: "https://github.com/successcomment-2" },
-    )
-    .postOnce(
+    .post(`https://api.github.local/repos/${owner}/${repo}/issues/2/comments`, {
+      html_url: "https://github.com/successcomment-2",
+    })
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/issues/2/labels`,
       {},
       {
         body: ["released"],
       },
     )
-    .postOnce(
-      `https://api.github.local/repos/${owner}/${repo}/issues/3/comments`,
-      { html_url: "https://github.com/successcomment-3" },
-    )
-    .postOnce(
+    .post(`https://api.github.local/repos/${owner}/${repo}/issues/3/comments`, {
+      html_url: "https://github.com/successcomment-3",
+    })
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/issues/3/labels`,
       {},
       {
         body: ["released"],
       },
     )
-    .postOnce(
-      `https://api.github.local/repos/${owner}/${repo}/issues/4/comments`,
-      { html_url: "https://github.com/successcomment-4" },
-    )
-    .postOnce(
+    .post(`https://api.github.local/repos/${owner}/${repo}/issues/4/comments`, {
+      html_url: "https://github.com/successcomment-4",
+    })
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/issues/4/labels`,
       {},
       {
         body: ["released"],
       },
     )
-    .postOnce(
-      `https://api.github.local/repos/${owner}/${repo}/issues/5/comments`,
-      { html_url: "https://github.com/successcomment-5" },
-    )
-    .postOnce(
+    .post(`https://api.github.local/repos/${owner}/${repo}/issues/5/comments`, {
+      html_url: "https://github.com/successcomment-5",
+    })
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/issues/5/labels`,
       {},
       {
         body: ["released"],
       },
     )
-    .postOnce(
-      `https://api.github.local/repos/${owner}/${repo}/issues/6/comments`,
-      { html_url: "https://github.com/successcomment-6" },
-    )
-    .postOnce(
+    .post(`https://api.github.local/repos/${owner}/${repo}/issues/6/comments`, {
+      html_url: "https://github.com/successcomment-6",
+    })
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/issues/6/labels`,
       {},
       {
         body: ["released"],
       },
     )
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
-        return true;
-      },
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getSRIssues\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -1105,7 +1064,7 @@ test("Make multiple search queries if necessary", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -1170,7 +1129,7 @@ test("Make multiple search queries if necessary", async (t) => {
   t.true(
     t.context.log.calledWith("Added labels %O to PR #%d", ["released"], 6),
   );
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Do not add comment and labels for unrelated PR returned by search (compare sha and merge_commit_sha)", async (t) => {
@@ -1196,18 +1155,16 @@ test("Do not add comment and labels for unrelated PR returned by search (compare
     { name: "GitHub release", url: "https://github.com/release" },
   ];
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+  const fm = fetchMock
+    .createInstance()
+    .get(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getAssociatedPRs\(/);
-        return true;
-      },
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getAssociatedPRs\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -1235,37 +1192,30 @@ test("Do not add comment and labels for unrelated PR returned by search (compare
         },
       },
     )
-    .getOnce(
-      `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
-      [{ sha: "rebased_sha" }],
-    )
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}/pulls/1`, {
+    .get(`https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`, [
+      { sha: "rebased_sha" },
+    ])
+    .get(`https://api.github.local/repos/${owner}/${repo}/pulls/1`, {
       merge_commit_sha: commits[0].hash,
     })
-    .getOnce(
-      `https://api.github.local/repos/${owner}/${repo}/pulls/2/commits`,
-      [{ sha: "rebased_sha" }],
-    )
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}/pulls/2`, {
+    .get(`https://api.github.local/repos/${owner}/${repo}/pulls/2/commits`, [
+      { sha: "rebased_sha" },
+    ])
+    .get(`https://api.github.local/repos/${owner}/${repo}/pulls/2`, {
       merge_commit_sha: "unrelated_sha",
     })
-    .postOnce(
-      `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
-      {
-        html_url: "https://github.com/successcomment-1",
-      },
-    )
-    .postOnce(
+    .post(`https://api.github.local/repos/${owner}/${repo}/issues/1/comments`, {
+      html_url: "https://github.com/successcomment-1",
+    })
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
       {},
       { body: ["released"] },
     )
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
-        return true;
-      },
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getSRIssues\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -1288,7 +1238,7 @@ test("Do not add comment and labels for unrelated PR returned by search (compare
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -1303,7 +1253,7 @@ test("Do not add comment and labels for unrelated PR returned by search (compare
   t.true(
     t.context.log.calledWith("Added labels %O to PR #%d", ["released"], 1),
   );
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Do not add comment and labels if no PR is associated with release commits", async (t) => {
@@ -1322,18 +1272,16 @@ test("Do not add comment and labels if no PR is associated with release commits"
     { name: "GitHub release", url: "https://github.com/release" },
   ];
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+  const fm = fetchMock
+    .createInstance()
+    .get(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getAssociatedPRs\(/);
-        return true;
-      },
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getAssociatedPRs\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -1351,12 +1299,10 @@ test("Do not add comment and labels if no PR is associated with release commits"
         },
       },
     )
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
-        return true;
-      },
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getSRIssues\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -1379,12 +1325,12 @@ test("Do not add comment and labels if no PR is associated with release commits"
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
 
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Do not add comment and labels if no commits is found for release", async (t) => {
@@ -1403,19 +1349,25 @@ test("Do not add comment and labels if no commits is found for release", async (
     { name: "GitHub release", url: "https://github.com/release" },
   ];
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+  const fm = fetchMock
+    .createInstance()
+    .get(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .postOnce("https://api.github.local/graphql", {
-      data: {
-        repository: {
-          issues: { nodes: [] },
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getSRIssues\(/.test(JSON.parse(options.body).query),
+      {
+        data: {
+          repository: {
+            issues: { nodes: [] },
+          },
         },
       },
-    });
+      { repeat: 1 },
+    );
 
   await success(
     pluginConfig,
@@ -1430,12 +1382,12 @@ test("Do not add comment and labels if no commits is found for release", async (
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
 
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
   t.true(t.context.log.calledWith("No commits found in release"));
   t.true(
     t.context.log.calledWith("Skip commenting on issues and pull requests."),
@@ -1462,54 +1414,58 @@ test("Do not add comment and labels to PR/issues from other repo", async (t) => 
     { name: "GitHub release", url: "https://github.com/release" },
   ];
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+  const fm = fetchMock
+    .createInstance()
+    .get(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .postOnce("https://api.github.local/graphql", {
-      data: {
-        repository: {
-          commit123: {
-            oid: "123",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getAssociatedPRs\(/.test(JSON.parse(options.body).query),
+      {
+        data: {
+          repository: {
+            commit123: {
+              oid: "123",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [],
               },
-              nodes: [],
             },
-          },
-          commit456: {
-            oid: "456",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+            commit456: {
+              oid: "456",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [],
               },
-              nodes: [],
             },
-          },
-          commit789: {
-            oid: "789",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+            commit789: {
+              oid: "789",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [],
               },
-              nodes: [],
             },
           },
         },
       },
-    })
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getRelatedIssues\(/);
-        return true;
-      },
+      { repeat: 1 },
+    )
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getRelatedIssues\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -1553,21 +1509,18 @@ test("Do not add comment and labels to PR/issues from other repo", async (t) => 
         },
       },
     )
-    .postOnce(
-      `https://api.github.local/repos/${owner}/${repo}/issues/2/comments`,
-      { html_url: "https://github.com/successcomment-2" },
-    )
-    .postOnce(
+    .post(`https://api.github.local/repos/${owner}/${repo}/issues/2/comments`, {
+      html_url: "https://github.com/successcomment-2",
+    })
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/issues/2/labels`,
       {},
       { body: ["released"] },
     )
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
-        return true;
-      },
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getSRIssues\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -1590,7 +1543,7 @@ test("Do not add comment and labels to PR/issues from other repo", async (t) => 
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -1605,7 +1558,7 @@ test("Do not add comment and labels to PR/issues from other repo", async (t) => 
   t.true(
     t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 2),
   );
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Ignore missing and forbidden issues/PRs", async (t) => {
@@ -1633,16 +1586,16 @@ test("Ignore missing and forbidden issues/PRs", async (t) => {
     { name: "GitHub release", url: "https://github.com/release" },
   ];
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+  const fm = fetchMock
+    .createInstance()
+    .get(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .postOnce(
-      (url, { body }) =>
+    .post(
+      ({ url, options }) =>
         url === "https://api.github.local/graphql" &&
-        JSON.parse(body).query.includes("query getAssociatedPRs("),
+        JSON.parse(options.body).query.includes("query getAssociatedPRs("),
       {
         data: {
           repository: {
@@ -1680,10 +1633,10 @@ test("Ignore missing and forbidden issues/PRs", async (t) => {
         },
       },
     )
-    .postOnce(
-      (url, { body }) =>
+    .post(
+      ({ url, options }) =>
         url === "https://api.github.local/graphql" &&
-        JSON.parse(body).query.includes("query getRelatedIssues("),
+        JSON.parse(options.body).query.includes("query getRelatedIssues("),
       {
         data: {
           repository: {
@@ -1802,59 +1755,51 @@ test("Ignore missing and forbidden issues/PRs", async (t) => {
         },
       },
     )
-    .getOnce(
-      `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
-      [{ sha: commits[0].hash }],
-    )
-    .getOnce(
-      `https://api.github.local/repos/${owner}/${repo}/pulls/2/commits`,
-      [{ sha: commits[1].hash }],
-    )
-    .getOnce(
-      `https://api.github.local/repos/${owner}/${repo}/pulls/3/commits`,
-      [{ sha: commits[2].hash }],
-    )
-    .postOnce(
-      `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
-      { html_url: "https://github.com/successcomment-1" },
-    )
-    .postOnce(
+    .get(`https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`, [
+      { sha: commits[0].hash },
+    ])
+    .get(`https://api.github.local/repos/${owner}/${repo}/pulls/2/commits`, [
+      { sha: commits[1].hash },
+    ])
+    .get(`https://api.github.local/repos/${owner}/${repo}/pulls/3/commits`, [
+      { sha: commits[2].hash },
+    ])
+    .post(`https://api.github.local/repos/${owner}/${repo}/issues/1/comments`, {
+      html_url: "https://github.com/successcomment-1",
+    })
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
       {},
       { body: ["released"] },
     )
-    .postOnce(
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/issues/2/comments`,
       404,
     )
-    .postOnce(
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/issues/3/comments`,
       403,
     )
-    .postOnce(
-      `https://api.github.local/repos/${owner}/${repo}/issues/4/comments`,
-      { html_url: "https://github.com/successcomment-4" },
-    )
-    .postOnce(
+    .post(`https://api.github.local/repos/${owner}/${repo}/issues/4/comments`, {
+      html_url: "https://github.com/successcomment-4",
+    })
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/issues/4/labels`,
       {},
       { body: ["released"] },
     )
-    .postOnce(
-      `https://api.github.local/repos/${owner}/${repo}/issues/5/comments`,
-      { html_url: "https://github.com/successcomment-5" },
-    )
-    .postOnce(
+    .post(`https://api.github.local/repos/${owner}/${repo}/issues/5/comments`, {
+      html_url: "https://github.com/successcomment-5",
+    })
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/issues/5/labels`,
       {},
       { body: ["released"] },
     )
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
-        return true;
-      },
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getSRIssues\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -1877,7 +1822,7 @@ test("Ignore missing and forbidden issues/PRs", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -1924,7 +1869,7 @@ test("Ignore missing and forbidden issues/PRs", async (t) => {
       3,
     ),
   );
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Add custom comment and labels", async (t) => {
@@ -1951,18 +1896,16 @@ test("Add custom comment and labels", async (t) => {
     { name: "GitHub release", url: "https://github.com/release" },
   ];
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+  const fm = fetchMock
+    .createInstance()
+    .get(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getAssociatedPRs\(/);
-        return true;
-      },
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getAssociatedPRs\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -1980,28 +1923,22 @@ test("Add custom comment and labels", async (t) => {
         },
       },
     )
-    .getOnce(
-      `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
-      [{ sha: commits[0].hash }],
-    )
-    .postOnce(
-      `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
-      {
-        html_url: "https://github.com/successcomment-1",
-        body: `last release: ${lastRelease.version} nextRelease: ${nextRelease.version} branch: master commits: 1 releases: 1 PR attribute: PR prop`,
-      },
-    )
-    .postOnce(
+    .get(`https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`, [
+      { sha: commits[0].hash },
+    ])
+    .post(`https://api.github.local/repos/${owner}/${repo}/issues/1/comments`, {
+      html_url: "https://github.com/successcomment-1",
+      body: `last release: ${lastRelease.version} nextRelease: ${nextRelease.version} branch: master commits: 1 releases: 1 PR attribute: PR prop`,
+    })
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
       {},
       { body: ["released on @next", "released from master"] },
     )
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
-        return true;
-      },
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getSRIssues\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -2026,7 +1963,7 @@ test("Add custom comment and labels", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -2045,7 +1982,7 @@ test("Add custom comment and labels", async (t) => {
       1,
     ),
   );
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Add custom label", async (t) => {
@@ -2063,18 +2000,16 @@ test("Add custom label", async (t) => {
     { name: "GitHub release", url: "https://github.com/release" },
   ];
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+  const fm = fetchMock
+    .createInstance()
+    .get(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getAssociatedPRs\(/);
-        return true;
-      },
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getAssociatedPRs\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -2092,25 +2027,21 @@ test("Add custom label", async (t) => {
         },
       },
     )
-    .getOnce(
-      `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
-      [{ sha: commits[0].hash }],
-    )
-    .postOnce(
-      `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
-      { html_url: "https://github.com/successcomment-1" },
-    )
-    .postOnce(
+    .get(`https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`, [
+      { sha: commits[0].hash },
+    ])
+    .post(`https://api.github.local/repos/${owner}/${repo}/issues/1/comments`, {
+      html_url: "https://github.com/successcomment-1",
+    })
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
       {},
       { body: ["custom label"] },
     )
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
-        return true;
-      },
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getSRIssues\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -2135,7 +2066,7 @@ test("Add custom label", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -2150,7 +2081,7 @@ test("Add custom label", async (t) => {
   t.true(
     t.context.log.calledWith("Added labels %O to PR #%d", ["custom label"], 1),
   );
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Comment on issue/PR without ading a label", async (t) => {
@@ -2168,18 +2099,16 @@ test("Comment on issue/PR without ading a label", async (t) => {
     { name: "GitHub release", url: "https://github.com/release" },
   ];
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+  const fm = fetchMock
+    .createInstance()
+    .get(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getAssociatedPRs\(/);
-        return true;
-      },
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getAssociatedPRs\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -2197,20 +2126,16 @@ test("Comment on issue/PR without ading a label", async (t) => {
         },
       },
     )
-    .getOnce(
-      `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
-      [{ sha: commits[0].hash }],
-    )
-    .postOnce(
-      `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
-      { html_url: "https://github.com/successcomment-1" },
-    )
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
-        return true;
-      },
+    .get(`https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`, [
+      { sha: commits[0].hash },
+    ])
+    .post(`https://api.github.local/repos/${owner}/${repo}/issues/1/comments`, {
+      html_url: "https://github.com/successcomment-1",
+    })
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getSRIssues\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -2235,7 +2160,7 @@ test("Comment on issue/PR without ading a label", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -2247,7 +2172,7 @@ test("Comment on issue/PR without ading a label", async (t) => {
       "https://github.com/successcomment-1",
     ),
   );
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Editing the release to include all release links at the bottom", async (t) => {
@@ -2280,18 +2205,16 @@ test("Editing the release to include all release links at the bottom", async (t)
     { name: "Docker: docker.io/python:slim" },
   ];
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+  const fm = fetchMock
+    .createInstance()
+    .get(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getAssociatedPRs\(/);
-        return true;
-      },
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getAssociatedPRs\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -2309,20 +2232,16 @@ test("Editing the release to include all release links at the bottom", async (t)
         },
       },
     )
-    .getOnce(
-      `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
-      [{ sha: commits[0].hash }],
-    )
-    .postOnce(
-      `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
-      { html_url: "https://github.com/successcomment-1" },
-    )
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
-        return true;
-      },
+    .get(`https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`, [
+      { sha: commits[0].hash },
+    ])
+    .post(`https://api.github.local/repos/${owner}/${repo}/issues/1/comments`, {
+      html_url: "https://github.com/successcomment-1",
+    })
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getSRIssues\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -2331,7 +2250,7 @@ test("Editing the release to include all release links at the bottom", async (t)
         },
       },
     )
-    .patchOnce(
+    .patch(
       `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
       {
         html_url: releaseUrl,
@@ -2358,7 +2277,7 @@ test("Editing the release to include all release links at the bottom", async (t)
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -2370,7 +2289,7 @@ test("Editing the release to include all release links at the bottom", async (t)
       "https://github.com/successcomment-1",
     ),
   );
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Editing the release to include all release links at the top", async (t) => {
@@ -2403,18 +2322,16 @@ test("Editing the release to include all release links at the top", async (t) =>
     { name: "Docker: docker.io/python:slim" },
   ];
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+  const fm = fetchMock
+    .createInstance()
+    .get(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getAssociatedPRs\(/);
-        return true;
-      },
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getAssociatedPRs\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -2432,20 +2349,16 @@ test("Editing the release to include all release links at the top", async (t) =>
         },
       },
     )
-    .getOnce(
-      `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
-      [{ sha: commits[0].hash }],
-    )
-    .postOnce(
-      `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
-      { html_url: "https://github.com/successcomment-1" },
-    )
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
-        return true;
-      },
+    .get(`https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`, [
+      { sha: commits[0].hash },
+    ])
+    .post(`https://api.github.local/repos/${owner}/${repo}/issues/1/comments`, {
+      html_url: "https://github.com/successcomment-1",
+    })
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getSRIssues\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -2454,7 +2367,7 @@ test("Editing the release to include all release links at the top", async (t) =>
         },
       },
     )
-    .patchOnce(
+    .patch(
       `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
       {
         html_url: releaseUrl,
@@ -2481,7 +2394,7 @@ test("Editing the release to include all release links at the top", async (t) =>
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -2493,7 +2406,7 @@ test("Editing the release to include all release links at the top", async (t) =>
       "https://github.com/successcomment-1",
     ),
   );
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Editing the release to include all release links with no additional releases (top)", async (t) => {
@@ -2523,18 +2436,16 @@ test("Editing the release to include all release links with no additional releas
     },
   ];
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+  const fm = fetchMock
+    .createInstance()
+    .get(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getAssociatedPRs\(/);
-        return true;
-      },
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getAssociatedPRs\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -2552,20 +2463,16 @@ test("Editing the release to include all release links with no additional releas
         },
       },
     )
-    .getOnce(
-      `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
-      [{ sha: commits[0].hash }],
-    )
-    .postOnce(
-      `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
-      { html_url: "https://github.com/successcomment-1" },
-    )
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
-        return true;
-      },
+    .get(`https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`, [
+      { sha: commits[0].hash },
+    ])
+    .post(`https://api.github.local/repos/${owner}/${repo}/issues/1/comments`, {
+      html_url: "https://github.com/successcomment-1",
+    })
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getSRIssues\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -2590,7 +2497,7 @@ test("Editing the release to include all release links with no additional releas
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -2602,7 +2509,7 @@ test("Editing the release to include all release links with no additional releas
       "https://github.com/successcomment-1",
     ),
   );
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Editing the release to include all release links with no additional releases (bottom)", async (t) => {
@@ -2632,18 +2539,16 @@ test("Editing the release to include all release links with no additional releas
     },
   ];
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+  const fm = fetchMock
+    .createInstance()
+    .get(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getAssociatedPRs\(/);
-        return true;
-      },
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getAssociatedPRs\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -2661,20 +2566,16 @@ test("Editing the release to include all release links with no additional releas
         },
       },
     )
-    .getOnce(
-      `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
-      [{ sha: commits[0].hash }],
-    )
-    .postOnce(
-      `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
-      { html_url: "https://github.com/successcomment-1" },
-    )
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
-        return true;
-      },
+    .get(`https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`, [
+      { sha: commits[0].hash },
+    ])
+    .post(`https://api.github.local/repos/${owner}/${repo}/issues/1/comments`, {
+      html_url: "https://github.com/successcomment-1",
+    })
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getSRIssues\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -2699,7 +2600,7 @@ test("Editing the release to include all release links with no additional releas
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -2711,7 +2612,7 @@ test("Editing the release to include all release links with no additional releas
       "https://github.com/successcomment-1",
     ),
   );
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Editing the release to include all release links with no releases", async (t) => {
@@ -2734,18 +2635,16 @@ test("Editing the release to include all release links with no releases", async 
   const commits = [{ hash: "123", message: "Commit 1 message" }];
   const releases = [];
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+  const fm = fetchMock
+    .createInstance()
+    .get(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getAssociatedPRs\(/);
-        return true;
-      },
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getAssociatedPRs\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -2763,20 +2662,16 @@ test("Editing the release to include all release links with no releases", async 
         },
       },
     )
-    .getOnce(
-      `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
-      [{ sha: commits[0].hash }],
-    )
-    .postOnce(
-      `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
-      { html_url: "https://github.com/successcomment-1" },
-    )
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
-        return true;
-      },
+    .get(`https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`, [
+      { sha: commits[0].hash },
+    ])
+    .post(`https://api.github.local/repos/${owner}/${repo}/issues/1/comments`, {
+      html_url: "https://github.com/successcomment-1",
+    })
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getSRIssues\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -2801,7 +2696,7 @@ test("Editing the release to include all release links with no releases", async 
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -2813,7 +2708,7 @@ test("Editing the release to include all release links with no releases", async 
       "https://github.com/successcomment-1",
     ),
   );
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Editing the release with no ID in the release", async (t) => {
@@ -2838,18 +2733,16 @@ test("Editing the release with no ID in the release", async (t) => {
     { name: "Docker: docker.io/python:slim" },
   ];
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+  const fm = fetchMock
+    .createInstance()
+    .get(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getAssociatedPRs\(/);
-        return true;
-      },
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getAssociatedPRs\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -2867,20 +2760,16 @@ test("Editing the release with no ID in the release", async (t) => {
         },
       },
     )
-    .getOnce(
-      `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
-      [{ sha: commits[0].hash }],
-    )
-    .postOnce(
-      `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
-      { html_url: "https://github.com/successcomment-1" },
-    )
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
-        return true;
-      },
+    .get(`https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`, [
+      { sha: commits[0].hash },
+    ])
+    .post(`https://api.github.local/repos/${owner}/${repo}/issues/1/comments`, {
+      html_url: "https://github.com/successcomment-1",
+    })
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getSRIssues\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -2905,7 +2794,7 @@ test("Editing the release with no ID in the release", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -2917,7 +2806,7 @@ test("Editing the release with no ID in the release", async (t) => {
       "https://github.com/successcomment-1",
     ),
   );
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Ignore errors when adding comments and closing issues", async (t) => {
@@ -2947,18 +2836,16 @@ test("Ignore errors when adding comments and closing issues", async (t) => {
     { name: "GitHub release", url: "https://github.com/release" },
   ];
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+  const fm = fetchMock
+    .createInstance()
+    .get(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getAssociatedPRs\(/);
-        return true;
-      },
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getAssociatedPRs\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -2986,33 +2873,28 @@ test("Ignore errors when adding comments and closing issues", async (t) => {
         },
       },
     )
-    .getOnce(
-      `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
-      [{ sha: commits[0].hash }],
-    )
-    .getOnce(
-      `https://api.github.local/repos/${owner}/${repo}/pulls/2/commits`,
-      [{ sha: commits[1].hash }],
-    )
-    .postOnce(
+    .get(`https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`, [
+      { sha: commits[0].hash },
+    ])
+    .get(`https://api.github.local/repos/${owner}/${repo}/pulls/2/commits`, [
+      { sha: commits[1].hash },
+    ])
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
       400,
     )
-    .postOnce(
-      `https://api.github.local/repos/${owner}/${repo}/issues/2/comments`,
-      { html_url: "https://github.com/successcomment-2" },
-    )
-    .postOnce(
+    .post(`https://api.github.local/repos/${owner}/${repo}/issues/2/comments`, {
+      html_url: "https://github.com/successcomment-2",
+    })
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/issues/2/labels`,
       {},
       { body: ["released"] },
     )
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
-        return true;
-      },
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getSRIssues\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -3021,16 +2903,12 @@ test("Ignore errors when adding comments and closing issues", async (t) => {
         },
       },
     )
-    .patchOnce(
-      `https://api.github.local/repos/${owner}/${repo}/issues/2`,
-      500,
-      {
-        body: {
-          state: "closed",
-        },
+    .patch(`https://api.github.local/repos/${owner}/${repo}/issues/2`, 500, {
+      body: {
+        state: "closed",
       },
-    )
-    .patchOnce(
+    })
+    .patch(
       `https://api.github.local/repos/${owner}/${repo}/issues/3`,
       { html_url: "https://github.com/issues/3" },
       {
@@ -3057,7 +2935,7 @@ test("Ignore errors when adding comments and closing issues", async (t) => {
       {
         Octokit: TestOctokit.defaults((options) => ({
           ...options,
-          request: { ...options.request, fetch },
+          request: { ...options.request, fetch: fm.fetchHandler },
         })),
       },
     ),
@@ -3086,7 +2964,7 @@ test("Ignore errors when adding comments and closing issues", async (t) => {
       "https://github.com/issues/3",
     ),
   );
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Close open issues when a release is successful", async (t) => {
@@ -3107,18 +2985,16 @@ test("Close open issues when a release is successful", async (t) => {
     { name: "GitHub release", url: "https://github.com/release" },
   ];
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+  const fm = fetchMock
+    .createInstance()
+    .get(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getAssociatedPRs\(/);
-        return true;
-      },
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getAssociatedPRs\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -3136,12 +3012,10 @@ test("Close open issues when a release is successful", async (t) => {
         },
       },
     )
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
-        return true;
-      },
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getSRIssues\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -3150,7 +3024,7 @@ test("Close open issues when a release is successful", async (t) => {
         },
       },
     )
-    .patchOnce(
+    .patch(
       `https://api.github.local/repos/${owner}/${repo}/issues/2`,
       { html_url: "https://github.com/issues/2" },
       {
@@ -3159,7 +3033,7 @@ test("Close open issues when a release is successful", async (t) => {
         },
       },
     )
-    .patchOnce(
+    .patch(
       `https://api.github.local/repos/${owner}/${repo}/issues/3`,
       { html_url: "https://github.com/issues/3" },
       {
@@ -3183,7 +3057,7 @@ test("Close open issues when a release is successful", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -3202,7 +3076,7 @@ test("Close open issues when a release is successful", async (t) => {
       "https://github.com/issues/3",
     ),
   );
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test('Skip comment on on issues/PR if "successComment" is "false"', async (t) => {
@@ -3226,18 +3100,16 @@ test('Skip comment on on issues/PR if "successComment" is "false"', async (t) =>
     { name: "GitHub release", url: "https://github.com/release" },
   ];
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+  const fm = fetchMock
+    .createInstance()
+    .get(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
-        return true;
-      },
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getSRIssues\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -3261,7 +3133,7 @@ test('Skip comment on on issues/PR if "successComment" is "false"', async (t) =>
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -3269,7 +3141,7 @@ test('Skip comment on on issues/PR if "successComment" is "false"', async (t) =>
   t.true(
     t.context.log.calledWith("Skip commenting on issues and pull requests."),
   );
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test('Does not comment/label on issues/PR if "successCommentCondition" is "false"', async (t) => {
@@ -3293,18 +3165,24 @@ test('Does not comment/label on issues/PR if "successCommentCondition" is "false
     { name: "GitHub release", url: "https://github.com/release" },
   ];
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+  const fm = fetchMock
+    .createInstance()
+    .get(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
     })
-    .postOnce("https://api.github.local/graphql", {
-      data: {
-        repository: {
-          issues: { nodes: [] },
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getSRIssues\(/.test(JSON.parse(options.body).query),
+      {
+        data: {
+          repository: {
+            issues: { nodes: [] },
+          },
         },
       },
-    });
+      { repeat: 1 },
+    );
 
   await success(
     pluginConfig,
@@ -3320,7 +3198,7 @@ test('Does not comment/label on issues/PR if "successCommentCondition" is "false
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -3328,7 +3206,7 @@ test('Does not comment/label on issues/PR if "successCommentCondition" is "false
   t.true(
     t.context.log.calledWith("Skip commenting on issues and pull requests."),
   );
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test('Add comment and label to found issues/associatedPR using the "successCommentCondition": if specific label is found', async (t) => {
@@ -3464,15 +3342,15 @@ test('Add comment and label to found issues/associatedPR using the "successComme
     },
   ];
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+  const fm = fetchMock
+    .createInstance()
+    .get(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
     })
-    .postOnce(
-      (url, { body }) =>
+    .post(
+      ({ url, options }) =>
         url === "https://api.github.local/graphql" &&
-        JSON.parse(body).query.includes("query getAssociatedPRs("),
+        JSON.parse(options.body).query.includes("query getAssociatedPRs("),
       {
         data: {
           repository: {
@@ -3500,18 +3378,16 @@ test('Add comment and label to found issues/associatedPR using the "successComme
         },
       },
     )
-    .getOnce(
-      `https://api.github.local/repos/${owner}/${repo}/pulls/4/commits`,
-      [{ sha: commits[0].hash }],
-    )
-    .getOnce(
-      `https://api.github.local/repos/${owner}/${repo}/pulls/5/commits`,
-      [{ sha: commits[1].hash }],
-    )
-    .postOnce(
-      (url, { body }) =>
+    .get(`https://api.github.local/repos/${owner}/${repo}/pulls/4/commits`, [
+      { sha: commits[0].hash },
+    ])
+    .get(`https://api.github.local/repos/${owner}/${repo}/pulls/5/commits`, [
+      { sha: commits[1].hash },
+    ])
+    .post(
+      ({ url, options }) =>
         url === "https://api.github.local/graphql" &&
-        JSON.parse(body).query.includes("query getSRIssues("),
+        JSON.parse(options.body).query.includes("query getSRIssues("),
       {
         data: {
           repository: {
@@ -3520,16 +3396,15 @@ test('Add comment and label to found issues/associatedPR using the "successComme
         },
       },
     )
-    .postOnce(
-      `https://api.github.local/repos/${owner}/${repo}/issues/5/comments`,
-      { html_url: "https://github.com/successcomment-5" },
-    )
-    .postOnce(
+    .post(`https://api.github.local/repos/${owner}/${repo}/issues/5/comments`, {
+      html_url: "https://github.com/successcomment-5",
+    })
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/issues/5/labels`,
       {},
       { body: ["released"] },
     )
-    .patchOnce(
+    .patch(
       `https://api.github.local/repos/${owner}/${repo}/issues/2`,
       { html_url: "https://github.com/issues/2" },
       {
@@ -3538,7 +3413,7 @@ test('Add comment and label to found issues/associatedPR using the "successComme
         },
       },
     )
-    .patchOnce(
+    .patch(
       `https://api.github.local/repos/${owner}/${repo}/issues/3`,
       { html_url: "https://github.com/issues/3" },
       {
@@ -3562,7 +3437,7 @@ test('Add comment and label to found issues/associatedPR using the "successComme
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -3577,7 +3452,7 @@ test('Add comment and label to found issues/associatedPR using the "successComme
   t.true(
     t.context.log.calledWith("Added labels %O to PR #%d", ["released"], 5),
   );
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test('Does not comment/label associatedPR and relatedIssues created by "Bots"', async (t) => {
@@ -3705,15 +3580,15 @@ test('Does not comment/label associatedPR and relatedIssues created by "Bots"', 
     },
   ];
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+  const fm = fetchMock
+    .createInstance()
+    .get(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
     })
-    .postOnce(
-      (url, { body }) =>
+    .post(
+      ({ url, options }) =>
         url === "https://api.github.local/graphql" &&
-        JSON.parse(body).query.includes("query getAssociatedPRs("),
+        JSON.parse(options.body).query.includes("query getAssociatedPRs("),
       {
         data: {
           repository: {
@@ -3741,10 +3616,10 @@ test('Does not comment/label associatedPR and relatedIssues created by "Bots"', 
         },
       },
     )
-    .postOnce(
-      (url, { body }) =>
+    .post(
+      ({ url, options }) =>
         url === "https://api.github.local/graphql" &&
-        JSON.parse(body).query.includes("query getRelatedIssues("),
+        JSON.parse(options.body).query.includes("query getRelatedIssues("),
       {
         data: {
           repository: {
@@ -3826,38 +3701,32 @@ test('Does not comment/label associatedPR and relatedIssues created by "Bots"', 
         },
       },
     )
-    .getOnce(
-      `https://api.github.local/repos/${owner}/${repo}/pulls/2/commits`,
-      [{ sha: commits[0].hash }],
-    )
-    .getOnce(
-      `https://api.github.local/repos/${owner}/${repo}/pulls/3/commits`,
-      [{ sha: commits[1].hash }],
-    )
-    .postOnce(
-      `https://api.github.local/repos/${owner}/${repo}/issues/4/comments`,
-      { html_url: "https://github.com/successcomment-4" },
-    )
-    .postOnce(
+    .get(`https://api.github.local/repos/${owner}/${repo}/pulls/2/commits`, [
+      { sha: commits[0].hash },
+    ])
+    .get(`https://api.github.local/repos/${owner}/${repo}/pulls/3/commits`, [
+      { sha: commits[1].hash },
+    ])
+    .post(`https://api.github.local/repos/${owner}/${repo}/issues/4/comments`, {
+      html_url: "https://github.com/successcomment-4",
+    })
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/issues/4/labels`,
       {},
       { body: ["released"] },
     )
-    .postOnce(
-      `https://api.github.local/repos/${owner}/${repo}/issues/2/comments`,
-      { html_url: "https://github.com/successcomment-2" },
-    )
-    .postOnce(
+    .post(`https://api.github.local/repos/${owner}/${repo}/issues/2/comments`, {
+      html_url: "https://github.com/successcomment-2",
+    })
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/issues/2/labels`,
       {},
       { body: ["released"] },
     )
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
-        return true;
-      },
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getSRIssues\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -3866,7 +3735,7 @@ test('Does not comment/label associatedPR and relatedIssues created by "Bots"', 
         },
       },
     )
-    .patchOnce(
+    .patch(
       `https://api.github.local/repos/${owner}/${repo}/issues/1`,
       { html_url: "https://github.com/issues/1" },
       {
@@ -3890,7 +3759,7 @@ test('Does not comment/label associatedPR and relatedIssues created by "Bots"', 
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -3913,7 +3782,7 @@ test('Does not comment/label associatedPR and relatedIssues created by "Bots"', 
   t.true(
     t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 4),
   );
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test('Does not comment/label "associatedPR" when "successCommentCondition" disables it: Only comment on "relatedIssues"', async (t) => {
@@ -3951,15 +3820,15 @@ test('Does not comment/label "associatedPR" when "successCommentCondition" disab
     { number: 3, __typename: "PullRequest", state: "closed" },
   ];
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+  const fm = fetchMock
+    .createInstance()
+    .get(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
     })
-    .postOnce(
-      (url, { body }) =>
+    .post(
+      ({ url, options }) =>
         url === "https://api.github.local/graphql" &&
-        JSON.parse(body).query.includes("query getAssociatedPRs("),
+        JSON.parse(options.body).query.includes("query getAssociatedPRs("),
       {
         data: {
           repository: {
@@ -3987,10 +3856,10 @@ test('Does not comment/label "associatedPR" when "successCommentCondition" disab
         },
       },
     )
-    .postOnce(
-      (url, { body }) =>
+    .post(
+      ({ url, options }) =>
         url === "https://api.github.local/graphql" &&
-        JSON.parse(body).query.includes("query getRelatedIssues("),
+        JSON.parse(options.body).query.includes("query getRelatedIssues("),
       {
         data: {
           repository: {
@@ -4035,27 +3904,24 @@ test('Does not comment/label "associatedPR" when "successCommentCondition" disab
         },
       },
     )
-    .getOnce(
-      `https://api.github.local/repos/${owner}/${repo}/pulls/2/commits`,
-      [{ sha: commits[0].hash }],
-    )
-    .getOnce(
-      `https://api.github.local/repos/${owner}/${repo}/pulls/3/commits`,
-      [{ sha: commits[1].hash }],
-    )
-    .postOnce(
-      `https://api.github.local/repos/${owner}/${repo}/issues/4/comments`,
-      { html_url: "https://github.com/successcomment-4" },
-    )
-    .postOnce(
+    .get(`https://api.github.local/repos/${owner}/${repo}/pulls/2/commits`, [
+      { sha: commits[0].hash },
+    ])
+    .get(`https://api.github.local/repos/${owner}/${repo}/pulls/3/commits`, [
+      { sha: commits[1].hash },
+    ])
+    .post(`https://api.github.local/repos/${owner}/${repo}/issues/4/comments`, {
+      html_url: "https://github.com/successcomment-4",
+    })
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/issues/4/labels`,
       {},
       { body: ["released"] },
     )
-    .postOnce(
-      (url, { body }) =>
+    .post(
+      ({ url, options }) =>
         url === "https://api.github.local/graphql" &&
-        JSON.parse(body).query.includes("query getSRIssues("),
+        JSON.parse(options.body).query.includes("query getSRIssues("),
       {
         data: {
           repository: {
@@ -4064,7 +3930,7 @@ test('Does not comment/label "associatedPR" when "successCommentCondition" disab
         },
       },
     )
-    .patchOnce(
+    .patch(
       `https://api.github.local/repos/${owner}/${repo}/issues/1`,
       { html_url: "https://github.com/issues/1" },
       {
@@ -4088,7 +3954,7 @@ test('Does not comment/label "associatedPR" when "successCommentCondition" disab
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -4110,7 +3976,7 @@ test('Does not comment/label "associatedPR" when "successCommentCondition" disab
   t.true(
     t.context.log.calledWith("Added labels %O to issue #%d", ["released"], 4),
   );
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test('Skip closing issues if "failComment" is "false"', async (t) => {
@@ -4125,28 +3991,34 @@ test('Skip closing issues if "failComment" is "false"', async (t) => {
     { name: "GitHub release", url: "https://github.com/release" },
   ];
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+  const fm = fetchMock
+    .createInstance()
+    .get(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .postOnce("https://api.github.local/graphql", {
-      data: {
-        repository: {
-          commit123: {
-            oid: "123",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getAssociatedPRs\(/.test(JSON.parse(options.body).query),
+      {
+        data: {
+          repository: {
+            commit123: {
+              oid: "123",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [],
               },
-              nodes: [],
             },
           },
         },
       },
-    });
+      { repeat: 1 },
+    );
 
   await success(
     pluginConfig,
@@ -4162,7 +4034,7 @@ test('Skip closing issues if "failComment" is "false"', async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -4172,7 +4044,7 @@ test('Skip closing issues if "failComment" is "false"', async (t) => {
       "DEPRECATION: 'false' for 'failComment' or 'failTitle' is deprecated and will be removed in a future major version. Use 'failCommentCondition' instead.",
     ),
   );
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test('Skip closing issues if "failTitle" is "false"', async (t) => {
@@ -4187,28 +4059,34 @@ test('Skip closing issues if "failTitle" is "false"', async (t) => {
     { name: "GitHub release", url: "https://github.com/release" },
   ];
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+  const fm = fetchMock
+    .createInstance()
+    .get(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .postOnce("https://api.github.local/graphql", {
-      data: {
-        repository: {
-          commit123: {
-            oid: "123",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getAssociatedPRs\(/.test(JSON.parse(options.body).query),
+      {
+        data: {
+          repository: {
+            commit123: {
+              oid: "123",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [],
               },
-              nodes: [],
             },
           },
         },
       },
-    });
+      { repeat: 1 },
+    );
 
   await success(
     pluginConfig,
@@ -4224,7 +4102,7 @@ test('Skip closing issues if "failTitle" is "false"', async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -4234,7 +4112,7 @@ test('Skip closing issues if "failTitle" is "false"', async (t) => {
       "DEPRECATION: 'false' for 'failComment' or 'failTitle' is deprecated and will be removed in a future major version. Use 'failCommentCondition' instead.",
     ),
   );
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test('Skip closing issues if "failCommentCondition" is "false"', async (t) => {
@@ -4249,28 +4127,34 @@ test('Skip closing issues if "failCommentCondition" is "false"', async (t) => {
     { name: "GitHub release", url: "https://github.com/release" },
   ];
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+  const fm = fetchMock
+    .createInstance()
+    .get(`https://api.github.local/repos/${owner}/${repo}`, {
       full_name: `${owner}/${repo}`,
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .postOnce("https://api.github.local/graphql", {
-      data: {
-        repository: {
-          commit123: {
-            oid: "123",
-            associatedPullRequests: {
-              pageInfo: {
-                endCursor: "NI",
-                hasNextPage: false,
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getAssociatedPRs\(/.test(JSON.parse(options.body).query),
+      {
+        data: {
+          repository: {
+            commit123: {
+              oid: "123",
+              associatedPullRequests: {
+                pageInfo: {
+                  endCursor: "NI",
+                  hasNextPage: false,
+                },
+                nodes: [],
               },
-              nodes: [],
             },
           },
         },
       },
-    });
+      { repeat: 1 },
+    );
 
   await success(
     pluginConfig,
@@ -4286,10 +4170,10 @@ test('Skip closing issues if "failCommentCondition" is "false"', async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
   t.true(t.context.log.calledWith("Skip closing issue."));
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });

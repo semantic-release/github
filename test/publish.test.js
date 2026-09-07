@@ -40,7 +40,7 @@ test("Publish a release without creating discussion", async (t) => {
   const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
   const branch = "test_branch";
 
-  const fetch = fetchMock.sandbox().postOnce(
+  const fm = fetchMock.createInstance().post(
     `https://api.github.local/repos/${owner}/${repo}/releases`,
     {
       upload_url: uploadUrl,
@@ -71,7 +71,7 @@ test("Publish a release without creating discussion", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -81,7 +81,7 @@ test("Publish a release without creating discussion", async (t) => {
     "Published GitHub release: %s",
     releaseUrl,
   ]);
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Publish a release and create discussion", async (t) => {
@@ -104,7 +104,7 @@ test("Publish a release and create discussion", async (t) => {
   const discussionId = 1;
   const discussionUrl = `https://github.com/${owner}/${repo}/discussions/${discussionId}`;
 
-  const fetch = fetchMock.sandbox().postOnce(
+  const fm = fetchMock.createInstance().post(
     `https://api.github.local/repos/${owner}/${repo}/releases`,
     {
       upload_url: uploadUrl,
@@ -137,7 +137,7 @@ test("Publish a release and create discussion", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -151,7 +151,7 @@ test("Publish a release and create discussion", async (t) => {
     "Created GitHub release discussion: %s",
     discussionUrl,
   ]);
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Publish a release on a channel", async (t) => {
@@ -171,7 +171,7 @@ test("Publish a release on a channel", async (t) => {
   const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
   const branch = "test_branch";
 
-  const fetch = fetchMock.sandbox().postOnce(
+  const fm = fetchMock.createInstance().post(
     `https://api.github.local/repos/${owner}/${repo}/releases`,
     {
       upload_url: uploadUrl,
@@ -202,7 +202,7 @@ test("Publish a release on a channel", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -212,7 +212,7 @@ test("Publish a release on a channel", async (t) => {
     "Published GitHub release: %s",
     releaseUrl,
   ]);
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Publish a prerelease without creating discussion", async (t) => {
@@ -232,7 +232,7 @@ test("Publish a prerelease without creating discussion", async (t) => {
   const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
   const branch = "test_branch";
 
-  const fetch = fetchMock.sandbox().postOnce(
+  const fm = fetchMock.createInstance().post(
     `https://api.github.local/repos/${owner}/${repo}/releases`,
     {
       upload_url: uploadUrl,
@@ -263,7 +263,7 @@ test("Publish a prerelease without creating discussion", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -273,7 +273,7 @@ test("Publish a prerelease without creating discussion", async (t) => {
     "Published GitHub release: %s",
     releaseUrl,
   ]);
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Publish a prerelease and create discussion", async (t) => {
@@ -295,7 +295,7 @@ test("Publish a prerelease and create discussion", async (t) => {
   const discussionId = 1;
   const discussionUrl = `https://github.com/${owner}/${repo}/discussions/${discussionId}`;
 
-  const fetch = fetchMock.sandbox().postOnce(
+  const fm = fetchMock.createInstance().post(
     `https://api.github.local/repos/${owner}/${repo}/releases`,
     {
       upload_url: uploadUrl,
@@ -328,7 +328,7 @@ test("Publish a prerelease and create discussion", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -342,7 +342,7 @@ test("Publish a prerelease and create discussion", async (t) => {
     "Created GitHub release discussion: %s",
     discussionUrl,
   ]);
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Publish a maintenance release", async (t) => {
@@ -362,7 +362,7 @@ test("Publish a maintenance release", async (t) => {
   const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
   const branch = "test_branch";
 
-  const fetch = fetchMock.sandbox().postOnce(
+  const fm = fetchMock.createInstance().post(
     `https://api.github.local/repos/${owner}/${repo}/releases`,
     {
       upload_url: uploadUrl,
@@ -399,7 +399,7 @@ test("Publish a maintenance release", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -409,7 +409,7 @@ test("Publish a maintenance release", async (t) => {
     "Published GitHub release: %s",
     releaseUrl,
   ]);
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Publish a release with one asset", async (t) => {
@@ -437,9 +437,9 @@ test("Publish a release with one asset", async (t) => {
   const uploadUrl = `${uploadOrigin}${uploadUri}{?name,label}`;
   const branch = "test_branch";
 
-  const fetch = fetchMock
-    .sandbox()
-    .postOnce(
+  const fm = fetchMock
+    .createInstance()
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/releases`,
       {
         upload_url: uploadUrl,
@@ -458,12 +458,12 @@ test("Publish a release with one asset", async (t) => {
         },
       },
     )
-    .patchOnce(
+    .patch(
       `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
       { upload_url: uploadUrl, html_url: releaseUrl },
       { body: { draft: false, make_latest: "true" } },
     )
-    .postOnce(
+    .post(
       `${uploadOrigin}${uploadUri}?name=${encodeURIComponent(
         ".dotfile",
       )}&label=${encodeURIComponent("A dotfile with no ext")}`,
@@ -483,7 +483,7 @@ test("Publish a release with one asset", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -491,7 +491,7 @@ test("Publish a release with one asset", async (t) => {
   t.is(result.url, releaseUrl);
   t.true(t.context.log.calledWith("Published GitHub release: %s", releaseUrl));
   t.true(t.context.log.calledWith("Published file %s", assetUrl));
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Publish upload request does not set content-length manually", async (t) => {
@@ -620,9 +620,9 @@ test("Publish a release with one asset and custom github url", async (t) => {
   const uploadUrl = `${env.GH_URL}${uploadUri}{?name,label}`;
   const branch = "test_branch";
 
-  const fetch = fetchMock
-    .sandbox()
-    .postOnce(
+  const fm = fetchMock
+    .createInstance()
+    .post(
       `${env.GH_URL}/prefix/repos/${owner}/${repo}/releases`,
       {
         upload_url: uploadUrl,
@@ -641,12 +641,12 @@ test("Publish a release with one asset and custom github url", async (t) => {
         },
       },
     )
-    .patchOnce(
+    .patch(
       `${env.GH_URL}/prefix/repos/${owner}/${repo}/releases/${releaseId}`,
       { upload_url: uploadUrl, html_url: releaseUrl },
       { body: { draft: false, make_latest: "true" } },
     )
-    .postOnce(
+    .post(
       `${env.GH_URL}${uploadUri}?name=${encodeURIComponent(
         "upload.txt",
       )}&label=${encodeURIComponent("A text file")}`,
@@ -668,7 +668,7 @@ test("Publish a release with one asset and custom github url", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -676,7 +676,7 @@ test("Publish a release with one asset and custom github url", async (t) => {
   t.is(result.url, releaseUrl);
   t.true(t.context.log.calledWith("Published GitHub release: %s", releaseUrl));
   t.true(t.context.log.calledWith("Published file %s", assetUrl));
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Publish a release with an array of missing assets", async (t) => {
@@ -702,9 +702,9 @@ test("Publish a release with an array of missing assets", async (t) => {
   const uploadUrl = `${uploadOrigin}${uploadUri}{?name,label}`;
   const branch = "test_branch";
 
-  const fetch = fetchMock
-    .sandbox()
-    .postOnce(
+  const fm = fetchMock
+    .createInstance()
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/releases`,
       {
         upload_url: uploadUrl,
@@ -723,7 +723,7 @@ test("Publish a release with an array of missing assets", async (t) => {
         },
       },
     )
-    .patchOnce(
+    .patch(
       `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
       { html_url: releaseUrl },
       { body: { draft: false, make_latest: "true" } },
@@ -742,7 +742,7 @@ test("Publish a release with an array of missing assets", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -761,7 +761,7 @@ test("Publish a release with an array of missing assets", async (t) => {
       emptyDirectory,
     ),
   );
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Publish a release with asset and create discussion", async (t) => {
@@ -792,9 +792,9 @@ test("Publish a release with asset and create discussion", async (t) => {
   const discussionId = 1;
   const discussionUrl = `https://github.com/${owner}/${repo}/discussions/${discussionId}`;
 
-  const fetch = fetchMock
-    .sandbox()
-    .postOnce(
+  const fm = fetchMock
+    .createInstance()
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/releases`,
       {
         upload_url: uploadUrl,
@@ -813,7 +813,7 @@ test("Publish a release with asset and create discussion", async (t) => {
         },
       },
     )
-    .patchOnce(
+    .patch(
       `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
       {
         upload_url: uploadUrl,
@@ -828,7 +828,7 @@ test("Publish a release with asset and create discussion", async (t) => {
         },
       },
     )
-    .postOnce(
+    .post(
       `${uploadOrigin}${uploadUri}?name=${encodeURIComponent(
         ".dotfile",
       )}&label=${encodeURIComponent("A dotfile with no ext")}`,
@@ -848,7 +848,7 @@ test("Publish a release with asset and create discussion", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -862,7 +862,7 @@ test("Publish a release with asset and create discussion", async (t) => {
     ),
   );
   t.true(t.context.log.calledWith("Published file %s", assetUrl));
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Publish a draft release", async (t) => {
@@ -882,7 +882,7 @@ test("Publish a draft release", async (t) => {
   const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
   const branch = "test_branch";
 
-  const fetch = fetchMock.sandbox().postOnce(
+  const fm = fetchMock.createInstance().post(
     `https://api.github.local/repos/${owner}/${repo}/releases`,
     {
       upload_url: uploadUrl,
@@ -914,7 +914,7 @@ test("Publish a draft release", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -924,7 +924,7 @@ test("Publish a draft release", async (t) => {
     "Created GitHub draft release: %s",
     releaseUrl,
   ]);
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Publish a draft release with one asset", async (t) => {
@@ -952,9 +952,9 @@ test("Publish a draft release with one asset", async (t) => {
   const uploadUrl = `${uploadOrigin}${uploadUri}{?name,label}`;
   const branch = "test_branch";
 
-  const fetch = fetchMock
-    .sandbox()
-    .postOnce(
+  const fm = fetchMock
+    .createInstance()
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/releases`,
       {
         upload_url: uploadUrl,
@@ -973,7 +973,7 @@ test("Publish a draft release with one asset", async (t) => {
         },
       },
     )
-    .postOnce(
+    .post(
       `${uploadOrigin}${uploadUri}?name=${encodeURIComponent(
         ".dotfile",
       )}&label=${encodeURIComponent("A dotfile with no ext")}`,
@@ -993,7 +993,7 @@ test("Publish a draft release with one asset", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -1003,7 +1003,7 @@ test("Publish a draft release with one asset", async (t) => {
     t.context.log.calledWith("Created GitHub draft release: %s", releaseUrl),
   );
   t.true(t.context.log.calledWith("Published file %s", assetUrl));
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Publish a release when env.GITHUB_URL is set to https://github.com (Default in GitHub Actions, #268)", async (t) => {
@@ -1029,7 +1029,7 @@ test("Publish a release when env.GITHUB_URL is set to https://github.com (Defaul
   const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
   const branch = "test_branch";
 
-  const fetch = fetchMock.sandbox().postOnce(
+  const fm = fetchMock.createInstance().post(
     `https://api.github.com/repos/${owner}/${repo}/releases`,
     {
       upload_url: uploadUrl,
@@ -1060,7 +1060,7 @@ test("Publish a release when env.GITHUB_URL is set to https://github.com (Defaul
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -1070,7 +1070,7 @@ test("Publish a release when env.GITHUB_URL is set to https://github.com (Defaul
     "Published GitHub release: %s",
     releaseUrl,
   ]);
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Publish a custom release body", async (t) => {
@@ -1093,7 +1093,7 @@ test("Publish a custom release body", async (t) => {
   const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
   const branch = "test_branch";
 
-  const fetch = fetchMock.sandbox().postOnce(
+  const fm = fetchMock.createInstance().post(
     `https://api.github.local/repos/${owner}/${repo}/releases`,
     {
       upload_url: uploadUrl,
@@ -1124,7 +1124,7 @@ test("Publish a custom release body", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -1134,7 +1134,7 @@ test("Publish a custom release body", async (t) => {
     "Published GitHub release: %s",
     releaseUrl,
   ]);
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Publish a custom release name", async (t) => {
@@ -1157,7 +1157,7 @@ test("Publish a custom release name", async (t) => {
   const uploadUrl = `https://github.com${uploadUri}{?name,label}`;
   const branch = "test_branch";
 
-  const fetch = fetchMock.sandbox().postOnce(
+  const fm = fetchMock.createInstance().post(
     `https://api.github.local/repos/${owner}/${repo}/releases`,
     {
       upload_url: uploadUrl,
@@ -1188,7 +1188,7 @@ test("Publish a custom release name", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -1198,5 +1198,5 @@ test("Publish a custom release name", async (t) => {
     "Published GitHub release: %s",
     releaseUrl,
   ]);
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
