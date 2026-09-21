@@ -30,41 +30,8 @@ test("Verify GitHub auth", async (t) => {
     repositoryUrl: `git+https://othertesturl.com/${owner}/${repo}.git`,
   };
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
-      permissions: {
-        push: true,
-      },
-      clone_url: `https://api.github.local/${owner}/${repo}.git`,
-    });
-
-  await t.notThrowsAsync(
-    t.context.m.verifyConditions(
-      {},
-      { cwd, env, options, logger: t.context.logger },
-      {
-        Octokit: TestOctokit.defaults((options) => ({
-          ...options,
-          request: { ...options.request, fetch },
-        })),
-      },
-    ),
-  );
-
-  t.true(fetch.done());
-});
-
-test("Verify GitHub auth with publish options", async (t) => {
-  const owner = "test_user";
-  const repo = "test_repo";
-  const env = { GITHUB_TOKEN: "github_token" };
-  const options = {
-    publish: { path: "@semantic-release/github" },
-    repositoryUrl: `git+https://othertesturl.com/${owner}/${repo}.git`,
-  };
-  const fetch = fetchMock
-    .sandbox()
+  const fm = fetchMock
+    .createInstance()
     .get(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
@@ -79,13 +46,46 @@ test("Verify GitHub auth with publish options", async (t) => {
       {
         Octokit: TestOctokit.defaults((options) => ({
           ...options,
-          request: { ...options.request, fetch },
+          request: { ...options.request, fetch: fm.fetchHandler },
         })),
       },
     ),
   );
 
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
+});
+
+test("Verify GitHub auth with publish options", async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GITHUB_TOKEN: "github_token" };
+  const options = {
+    publish: { path: "@semantic-release/github" },
+    repositoryUrl: `git+https://othertesturl.com/${owner}/${repo}.git`,
+  };
+  const fm = fetchMock
+    .createInstance()
+    .get(`https://api.github.local/repos/${owner}/${repo}`, {
+      permissions: {
+        push: true,
+      },
+      clone_url: `https://api.github.local/${owner}/${repo}.git`,
+    });
+
+  await t.notThrowsAsync(
+    t.context.m.verifyConditions(
+      {},
+      { cwd, env, options, logger: t.context.logger },
+      {
+        Octokit: TestOctokit.defaults((options) => ({
+          ...options,
+          request: { ...options.request, fetch: fm.fetchHandler },
+        })),
+      },
+    ),
+  );
+
+  t.true(fm.callHistory.done());
 });
 
 test("Verify GitHub auth and assets config", async (t) => {
@@ -103,9 +103,9 @@ test("Verify GitHub auth and assets config", async (t) => {
     publish: [{ path: "@semantic-release/npm" }],
     repositoryUrl: `git+https://othertesturl.com/${owner}/${repo}.git`,
   };
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+  const fm = fetchMock
+    .createInstance()
+    .get(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
       },
@@ -119,13 +119,13 @@ test("Verify GitHub auth and assets config", async (t) => {
       {
         Octokit: TestOctokit.defaults((options) => ({
           ...options,
-          request: { ...options.request, fetch },
+          request: { ...options.request, fetch: fm.fetchHandler },
         })),
       },
     ),
   );
 
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Throw SemanticReleaseError if invalid config", async (t) => {
@@ -161,7 +161,7 @@ test("Throw SemanticReleaseError if invalid config", async (t) => {
       {
         Octokit: TestOctokit.defaults((options) => ({
           ...options,
-          request: { ...options.request, fetch },
+          request: { ...options.request, fetch: fm.fetchHandler },
         })),
       },
     ),
@@ -200,15 +200,19 @@ test("Publish a release without assets on a main release branch", async (t) => {
   const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
   const releaseId = 1;
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
-      permissions: {
-        push: true,
+  const fm = fetchMock
+    .createInstance()
+    .get(
+      `https://api.github.local/repos/${owner}/${repo}`,
+      {
+        permissions: {
+          push: true,
+        },
+        clone_url: `https://api.github.local/${owner}/${repo}.git`,
       },
-      clone_url: `https://api.github.local/${owner}/${repo}.git`,
-    })
-    .postOnce(
+      { repeat: 1 },
+    )
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/releases`,
       { html_url: releaseUrl, id: releaseId },
       {
@@ -219,6 +223,7 @@ test("Publish a release without assets on a main release branch", async (t) => {
           prerelease: false,
           make_latest: "true",
         },
+        repeat: 1,
       },
     );
 
@@ -235,7 +240,7 @@ test("Publish a release without assets on a main release branch", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -245,7 +250,7 @@ test("Publish a release without assets on a main release branch", async (t) => {
   t.is(result.id, releaseId);
   t.deepEqual(t.context.log.args[0], ["Verify GitHub authentication"]);
   t.true(t.context.log.calledWith("Published GitHub release: %s", releaseUrl));
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Publish a release without assets on a non-main release branch", async (t) => {
@@ -261,15 +266,19 @@ test("Publish a release without assets on a non-main release branch", async (t) 
   const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
   const releaseId = 1;
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
-      permissions: {
-        push: true,
+  const fm = fetchMock
+    .createInstance()
+    .get(
+      `https://api.github.local/repos/${owner}/${repo}`,
+      {
+        permissions: {
+          push: true,
+        },
+        clone_url: `https://api.github.local/${owner}/${repo}.git`,
       },
-      clone_url: `https://api.github.local/${owner}/${repo}.git`,
-    })
-    .postOnce(
+      { repeat: 1 },
+    )
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/releases`,
       { html_url: releaseUrl, id: releaseId },
       {
@@ -280,6 +289,7 @@ test("Publish a release without assets on a non-main release branch", async (t) 
           prerelease: true,
           make_latest: "false",
         },
+        repeat: 1,
       },
     );
 
@@ -296,7 +306,7 @@ test("Publish a release without assets on a non-main release branch", async (t) 
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -306,7 +316,7 @@ test("Publish a release without assets on a non-main release branch", async (t) 
   t.is(result.id, releaseId);
   t.deepEqual(t.context.log.args[0], ["Verify GitHub authentication"]);
   t.true(t.context.log.calledWith("Published GitHub release: %s", releaseUrl));
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Publish a release without assets on a maintenance branch", async (t) => {
@@ -322,15 +332,19 @@ test("Publish a release without assets on a maintenance branch", async (t) => {
   const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
   const releaseId = 1;
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
-      permissions: {
-        push: true,
+  const fm = fetchMock
+    .createInstance()
+    .get(
+      `https://api.github.local/repos/${owner}/${repo}`,
+      {
+        permissions: {
+          push: true,
+        },
+        clone_url: `https://api.github.local/${owner}/${repo}.git`,
       },
-      clone_url: `https://api.github.local/${owner}/${repo}.git`,
-    })
-    .postOnce(
+      { repeat: 1 },
+    )
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/releases`,
       { html_url: releaseUrl, id: releaseId },
       {
@@ -341,6 +355,7 @@ test("Publish a release without assets on a maintenance branch", async (t) => {
           prerelease: false,
           make_latest: "false",
         },
+        repeat: 1,
       },
     );
 
@@ -357,7 +372,7 @@ test("Publish a release without assets on a maintenance branch", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -367,7 +382,7 @@ test("Publish a release without assets on a maintenance branch", async (t) => {
   t.is(result.id, releaseId);
   t.deepEqual(t.context.log.args[0], ["Verify GitHub authentication"]);
   t.true(t.context.log.calledWith("Published GitHub release: %s", releaseUrl));
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Publish a release with an array of assets", async (t) => {
@@ -392,15 +407,15 @@ test("Publish a release with an array of assets", async (t) => {
   const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
   const uploadUrl = `${uploadOrigin}${uploadUri}{?name,label}`;
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+  const fm = fetchMock
+    .createInstance()
+    .get(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .postOnce(
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/releases`,
       { upload_url: uploadUrl, html_url: releaseUrl, id: releaseId },
       {
@@ -414,14 +429,14 @@ test("Publish a release with an array of assets", async (t) => {
         },
       },
     )
-    .patchOnce(
+    .patch(
       `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
       { html_url: releaseUrl },
       {
         body: { draft: false, make_latest: "true" },
       },
     )
-    .postOnce(
+    .post(
       `${uploadOrigin}${uploadUri}?name=${encodeURIComponent(
         "upload_file_name.txt",
       )}&`,
@@ -429,7 +444,7 @@ test("Publish a release with an array of assets", async (t) => {
         browser_download_url: assetUrl,
       },
     )
-    .postOnce(
+    .post(
       `${uploadOrigin}${uploadUri}?name=${encodeURIComponent(
         "other_file.txt",
       )}&label=${encodeURIComponent("Other File")}`,
@@ -449,7 +464,7 @@ test("Publish a release with an array of assets", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -459,7 +474,7 @@ test("Publish a release with an array of assets", async (t) => {
   t.true(t.context.log.calledWith("Published file %s", otherAssetUrl));
   t.true(t.context.log.calledWith("Published file %s", assetUrl));
   t.true(t.context.log.calledWith("Published GitHub release: %s", releaseUrl));
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Publish a release with release information in assets", async (t) => {
@@ -488,15 +503,15 @@ test("Publish a release with release information in assets", async (t) => {
   const uploadUri = `/api/uploads/repos/${owner}/${repo}/releases/${releaseId}/assets`;
   const uploadUrl = `${uploadOrigin}${uploadUri}{?name,label}`;
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+  const fm = fetchMock
+    .createInstance()
+    .get(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .postOnce(
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/releases`,
       { upload_url: uploadUrl, html_url: releaseUrl, id: releaseId },
       {
@@ -510,14 +525,14 @@ test("Publish a release with release information in assets", async (t) => {
         },
       },
     )
-    .patchOnce(
+    .patch(
       `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
       { html_url: releaseUrl },
       {
         body: { draft: false, make_latest: "false" },
       },
     )
-    .postOnce(
+    .post(
       `${uploadOrigin}${uploadUri}?name=${encodeURIComponent(
         "file_with_release_v1.0.0_in_filename.txt",
       )}&label=${encodeURIComponent("File with release v1.0.0 in label")}`,
@@ -537,7 +552,7 @@ test("Publish a release with release information in assets", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -546,7 +561,7 @@ test("Publish a release with release information in assets", async (t) => {
   t.deepEqual(t.context.log.args[0], ["Verify GitHub authentication"]);
   t.true(t.context.log.calledWith("Published file %s", assetUrl));
   t.true(t.context.log.calledWith("Published GitHub release: %s", releaseUrl));
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Update a release", async (t) => {
@@ -562,19 +577,19 @@ test("Update a release", async (t) => {
   const releaseUrl = `https://github.com/${owner}/${repo}/releases/${nextRelease.version}`;
   const releaseId = 1;
 
-  const fetch = fetchMock
-    .sandbox()
-    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+  const fm = fetchMock
+    .createInstance()
+    .get(`https://api.github.local/repos/${owner}/${repo}`, {
       permissions: {
         push: true,
       },
       clone_url: `https://api.github.local/${owner}/${repo}.git`,
     })
-    .getOnce(
+    .get(
       `https://api.github.local/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`,
       { id: releaseId },
     )
-    .patchOnce(
+    .patch(
       `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
       { html_url: releaseUrl },
       {
@@ -599,7 +614,7 @@ test("Update a release", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -610,7 +625,7 @@ test("Update a release", async (t) => {
     "Updated GitHub release: %s",
     releaseUrl,
   ]);
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Comment and add labels on PR included in the releases", async (t) => {
@@ -628,8 +643,8 @@ test("Comment and add labels on PR included in the releases", async (t) => {
     { name: "GitHub release", url: "https://github.com/release" },
   ];
 
-  const fetch = fetchMock
-    .sandbox()
+  const fm = fetchMock
+    .createInstance()
     .get(
       `https://api.github.local/repos/${owner}/${repo}`,
       {
@@ -641,12 +656,10 @@ test("Comment and add labels on PR included in the releases", async (t) => {
         repeat: 2,
       },
     )
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getAssociatedPRs\(/);
-        return true;
-      },
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getAssociatedPRs\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -663,38 +676,30 @@ test("Comment and add labels on PR included in the releases", async (t) => {
           },
         },
       },
+      { repeat: 1 },
     )
-    .getOnce(
+    .get(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
       [{ sha: commits[0].hash }],
+      { repeat: 1 },
     )
-    .postOnce(
-      (url, { body }) => {
-        t.is(
-          url,
-          `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
-        );
-
-        const data = JSON.parse(body);
-        t.regex(data.body, /This PR is included/);
-
-        return true;
-      },
+    .post(
+      `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
       { html_url: "https://github.com/successcomment-1" },
+      { repeat: 1 },
     )
-    .postOnce(
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
       {},
       {
         body: ["released"],
+        repeat: 1,
       },
     )
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
-        return true;
-      },
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getSRIssues\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -702,6 +707,7 @@ test("Comment and add labels on PR included in the releases", async (t) => {
           },
         },
       },
+      { repeat: 1 },
     );
 
   await t.context.m.success(
@@ -718,7 +724,7 @@ test("Comment and add labels on PR included in the releases", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -734,7 +740,7 @@ test("Comment and add labels on PR included in the releases", async (t) => {
   t.true(
     t.context.log.calledWith("Added labels %O to PR #%d", ["released"], 1),
   );
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Open a new issue with the list of errors", async (t) => {
@@ -749,8 +755,8 @@ test("Open a new issue with the list of errors", async (t) => {
     new SemanticReleaseError("Error message 3", "ERR3", "Error 3 details"),
   ];
 
-  const fetch = fetchMock
-    .sandbox()
+  const fm = fetchMock
+    .createInstance()
     .get(
       `https://api.github.local/repos/${owner}/${repo}`,
       {
@@ -760,17 +766,18 @@ test("Open a new issue with the list of errors", async (t) => {
       },
       { repeat: 2 },
     )
-    .postOnce("https://api.github.local/graphql", {
+    .post("https://api.github.local/graphql", {
       data: {
         repository: {
           issues: { nodes: [] },
         },
       },
     })
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, `https://api.github.local/repos/${owner}/${repo}/issues`);
-        const data = JSON.parse(body);
+    .post(
+      ({ url, options }) => {
+        if (url !== `https://api.github.local/repos/${owner}/${repo}/issues`)
+          return false;
+        const data = JSON.parse(options.body);
         t.is(data.title, failTitle);
         t.regex(
           data.body,
@@ -796,7 +803,7 @@ test("Open a new issue with the list of errors", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -809,7 +816,7 @@ test("Open a new issue with the list of errors", async (t) => {
       "https://github.com/issues/1",
     ),
   );
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Verify, release and notify success", async (t) => {
@@ -843,8 +850,8 @@ test("Verify, release and notify success", async (t) => {
   const prs = [{ number: 1, pull_request: true, state: "closed" }];
   const commits = [{ hash: "123", message: "Commit 1 message" }];
 
-  const fetch = fetchMock
-    .sandbox()
+  const fm = fetchMock
+    .createInstance()
     .get(
       `https://api.github.local/repos/${owner}/${repo}`,
       {
@@ -856,10 +863,10 @@ test("Verify, release and notify success", async (t) => {
         repeat: 2,
       },
     )
-    .postOnce(
-      (url, { body }) =>
+    .post(
+      ({ url, options }) =>
         url === "https://api.github.local/graphql" &&
-        JSON.parse(body).query.includes("query getAssociatedPRs("),
+        JSON.parse(options.body).query.includes("query getAssociatedPRs("),
       {
         data: {
           repository: {
@@ -877,10 +884,10 @@ test("Verify, release and notify success", async (t) => {
         },
       },
     )
-    .postOnce(
-      (url, { body }) =>
+    .post(
+      ({ url, options }) =>
         url === "https://api.github.local/graphql" &&
-        JSON.parse(body).query.includes("query getSRIssues("),
+        JSON.parse(options.body).query.includes("query getSRIssues("),
       {
         data: {
           repository: {
@@ -889,7 +896,7 @@ test("Verify, release and notify success", async (t) => {
         },
       },
     )
-    .postOnce(
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/releases`,
       {
         upload_url: uploadUrl,
@@ -907,25 +914,24 @@ test("Verify, release and notify success", async (t) => {
         },
       },
     )
-    .patchOnce(
+    .patch(
       `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
       { html_url: releaseUrl },
       { body: { draft: false, make_latest: "true" } },
     )
-    .getOnce(
-      `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
-      [{ sha: commits[0].hash }],
-    )
-    .postOnce(
+    .get(`https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`, [
+      { sha: commits[0].hash },
+    ])
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
       {},
       { body: ["released"] },
     )
-    .postOnce(
+    .post(
       `${uploadOrigin}${uploadUri}?name=${encodeURIComponent("upload.txt")}&`,
       { browser_download_url: assetUrl },
     )
-    .postOnce(
+    .post(
       `${uploadOrigin}${uploadUri}?name=other_file.txt&label=${encodeURIComponent(
         "Other File",
       )}`,
@@ -933,12 +939,9 @@ test("Verify, release and notify success", async (t) => {
         browser_download_url: otherAssetUrl,
       },
     )
-    .postOnce(
-      `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
-      {
-        html_url: "https://github.com/successcomment-1",
-      },
-    );
+    .post(`https://api.github.local/repos/${owner}/${repo}/issues/1/comments`, {
+      html_url: "https://github.com/successcomment-1",
+    });
 
   await t.notThrowsAsync(
     t.context.m.verifyConditions(
@@ -947,7 +950,7 @@ test("Verify, release and notify success", async (t) => {
       {
         Octokit: TestOctokit.defaults((options) => ({
           ...options,
-          request: { ...options.request, fetch },
+          request: { ...options.request, fetch: fm.fetchHandler },
         })),
       },
     ),
@@ -965,7 +968,7 @@ test("Verify, release and notify success", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -983,7 +986,7 @@ test("Verify, release and notify success", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -992,7 +995,7 @@ test("Verify, release and notify success", async (t) => {
   t.true(t.context.log.calledWith("Published file %s", otherAssetUrl));
   t.true(t.context.log.calledWith("Published file %s", assetUrl));
   t.true(t.context.log.calledWith("Published GitHub release: %s", releaseUrl));
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Verify, update release and notify success", async (t) => {
@@ -1019,8 +1022,8 @@ test("Verify, update release and notify success", async (t) => {
     { hash: "123", message: "Commit 1 message", tree: { long: "aaa" } },
   ];
 
-  const fetch = fetchMock
-    .sandbox()
+  const fm = fetchMock
+    .createInstance()
     .get(
       `https://api.github.local/repos/${owner}/${repo}`,
       {
@@ -1032,11 +1035,11 @@ test("Verify, update release and notify success", async (t) => {
         repeat: 2,
       },
     )
-    .getOnce(
+    .get(
       `https://api.github.local/repos/${owner}/${repo}/releases/tags/${nextRelease.gitTag}`,
       { id: releaseId },
     )
-    .patchOnce(
+    .patch(
       `https://api.github.local/repos/${owner}/${repo}/releases/${releaseId}`,
       { html_url: releaseUrl },
       {
@@ -1047,12 +1050,10 @@ test("Verify, update release and notify success", async (t) => {
         },
       },
     )
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getAssociatedPRs\(/);
-        return true;
-      },
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getAssociatedPRs\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -1069,30 +1070,30 @@ test("Verify, update release and notify success", async (t) => {
           },
         },
       },
+      { repeat: 1 },
     )
-    .getOnce(
+    .get(
       `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
       [{ sha: commits[0].hash }],
+      { repeat: 1 },
     )
-    .postOnce(
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
-      {
-        html_url: "https://github.com/successcomment-1",
-      },
+      { html_url: "https://github.com/successcomment-1" },
+      { repeat: 1 },
     )
-    .postOnce(
+    .post(
       `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
       {},
       {
         body: ["released"],
+        repeat: 1,
       },
     )
-    .postOnce(
-      (url, { body }) => {
-        t.is(url, "https://api.github.local/graphql");
-        t.regex(JSON.parse(body).query, /query getSRIssues\(/);
-        return true;
-      },
+    .post(
+      ({ url, options }) =>
+        url === "https://api.github.local/graphql" &&
+        /query getSRIssues\(/.test(JSON.parse(options.body).query),
       {
         data: {
           repository: {
@@ -1100,6 +1101,7 @@ test("Verify, update release and notify success", async (t) => {
           },
         },
       },
+      { repeat: 1 },
     );
 
   await t.notThrowsAsync(
@@ -1109,7 +1111,7 @@ test("Verify, update release and notify success", async (t) => {
       {
         Octokit: TestOctokit.defaults((options) => ({
           ...options,
-          request: { ...options.request, fetch },
+          request: { ...options.request, fetch: fm.fetchHandler },
         })),
       },
     ),
@@ -1127,7 +1129,7 @@ test("Verify, update release and notify success", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -1145,7 +1147,7 @@ test("Verify, update release and notify success", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -1155,7 +1157,7 @@ test("Verify, update release and notify success", async (t) => {
     "Updated GitHub release: %s",
     releaseUrl,
   ]);
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Verify and notify failure", async (t) => {
@@ -1170,8 +1172,8 @@ test("Verify and notify failure", async (t) => {
     new SemanticReleaseError("Error message 3", "ERR3", "Error 3 details"),
   ];
 
-  const fetch = fetchMock
-    .sandbox()
+  const fm = fetchMock
+    .createInstance()
     .get(
       `https://api.github.local/repos/${owner}/${repo}`,
       {
@@ -1183,14 +1185,14 @@ test("Verify and notify failure", async (t) => {
         repeat: 2,
       },
     )
-    .postOnce("https://api.github.local/graphql", {
+    .post("https://api.github.local/graphql", {
       data: {
         repository: {
           issues: { nodes: [] },
         },
       },
     })
-    .postOnce(`https://api.github.local/repos/${owner}/${repo}/issues`, {
+    .post(`https://api.github.local/repos/${owner}/${repo}/issues`, {
       html_url: "https://github.com/issues/1",
       number: 1,
     });
@@ -1202,7 +1204,7 @@ test("Verify and notify failure", async (t) => {
       {
         Octokit: TestOctokit.defaults((options) => ({
           ...options,
-          request: { ...options.request, fetch },
+          request: { ...options.request, fetch: fm.fetchHandler },
         })),
       },
     ),
@@ -1220,7 +1222,7 @@ test("Verify and notify failure", async (t) => {
     {
       Octokit: TestOctokit.defaults((options) => ({
         ...options,
-        request: { ...options.request, fetch },
+        request: { ...options.request, fetch: fm.fetchHandler },
       })),
     },
   );
@@ -1233,5 +1235,5 @@ test("Verify and notify failure", async (t) => {
       "https://github.com/issues/1",
     ),
   );
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });

@@ -29,18 +29,20 @@ test("Filter out issues without ID", async (t) => {
     { number: 3, body: `Issue 3 body\n\n${ISSUE_ID}`, title },
   ];
 
-  const fetch = fetchMock
-    .sandbox()
-    .postOnce("https://api.github.local/graphql", {
+  const fm = fetchMock.createInstance().post(
+    "https://api.github.local/graphql",
+    {
       data: {
         repository: {
           issues: { nodes: issues },
         },
       },
-    });
+    },
+    { repeat: 1 },
+  );
 
   const srIssues = await findSRIssues(
-    new TestOctokit({ request: { fetch } }),
+    new TestOctokit({ request: { fetch: fm.fetchHandler } }),
     t.context.logger,
     title,
     labels,
@@ -61,7 +63,7 @@ test("Filter out issues without ID", async (t) => {
     },
   ]);
 
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Return empty array if not issues found", async (t) => {
@@ -69,18 +71,20 @@ test("Return empty array if not issues found", async (t) => {
   const repo = "test_repo";
   const title = "The automated release is failing 🚨";
   const labels = [];
-  const fetch = fetchMock
-    .sandbox()
-    .postOnce("https://api.github.local/graphql", {
+  const fm = fetchMock.createInstance().post(
+    "https://api.github.local/graphql",
+    {
       data: {
         repository: {
           issues: { nodes: [] },
         },
       },
-    });
+    },
+    { repeat: 1 },
+  );
 
   const srIssues = await findSRIssues(
-    new TestOctokit({ request: { fetch } }),
+    new TestOctokit({ request: { fetch: fm.fetchHandler } }),
     t.context.logger,
     title,
     labels,
@@ -90,7 +94,7 @@ test("Return empty array if not issues found", async (t) => {
 
   t.deepEqual(srIssues, []);
 
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
 
 test("Return empty array if not issues has matching ID", async (t) => {
@@ -102,18 +106,20 @@ test("Return empty array if not issues has matching ID", async (t) => {
     { number: 1, body: "Issue 1 body", title },
     { number: 2, body: "Issue 2 body", title },
   ];
-  const fetch = fetchMock
-    .sandbox()
-    .postOnce("https://api.github.local/graphql", {
+  const fm = fetchMock.createInstance().post(
+    "https://api.github.local/graphql",
+    {
       data: {
         repository: {
           issues: { nodes: issues },
         },
       },
-    });
+    },
+    { repeat: 1 },
+  );
 
   const srIssues = await findSRIssues(
-    new TestOctokit({ request: { fetch } }),
+    new TestOctokit({ request: { fetch: fm.fetchHandler } }),
     t.context.logger,
     title,
     labels,
@@ -122,5 +128,5 @@ test("Return empty array if not issues has matching ID", async (t) => {
   );
 
   t.deepEqual(srIssues, []);
-  t.true(fetch.done());
+  t.true(fm.callHistory.done());
 });
