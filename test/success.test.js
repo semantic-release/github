@@ -1306,7 +1306,7 @@ test("Do not add comment and labels for unrelated PR returned by search (compare
   t.true(fetch.done());
 });
 
-test("Do not add comment and labels if no PR is associated with release commits", async (t) => {
+test("Do not add comment and labels for PRs from another repository", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
   const env = { GITHUB_TOKEN: "github_token" };
@@ -1344,7 +1344,14 @@ test("Do not add comment and labels if no PR is associated with release commits"
                   endCursor: "NI",
                   hasNextPage: false,
                 },
-                nodes: [],
+                nodes: [
+                  {
+                    number: 1,
+                    __typename: "PullRequest",
+                    state: "closed",
+                    repository: { nameWithOwner: "other/repository" },
+                  },
+                ],
               },
             },
           },
