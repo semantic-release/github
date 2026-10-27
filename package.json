@@ -41,7 +41,7 @@
     "url-join": "^5.0.0"
   },
   "devDependencies": {
-    "ava": "8.1.1",
+    "ava": "8.1.2",
     "c8": "12.0.0",
     "cpy": "13.2.3",
     "cz-conventional-changelog": "3.3.0",
