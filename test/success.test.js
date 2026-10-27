@@ -1927,6 +1927,142 @@ test("Ignore missing and forbidden issues/PRs", async (t) => {
   t.true(fetch.done());
 });
 
+test("Ignore issues/PRs that do not exist when resolving related issues", async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GITHUB_TOKEN: "github_token" };
+  const pluginConfig = {};
+  const options = {
+    branch: "master",
+    repositoryUrl: `https://github.com/${owner}/${repo}.git`,
+  };
+  const commits = [
+    { hash: "123", message: "Commit 1 message\n\n Fix #4, #99" },
+  ];
+  const nextRelease = { version: "1.0.0" };
+  const releases = [
+    { name: "GitHub release", url: "https://github.com/release" },
+  ];
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      full_name: `${owner}/${repo}`,
+      clone_url: `https://api.github.local/${owner}/${repo}.git`,
+    })
+    .postOnce(
+      (url, { body }) =>
+        url === "https://api.github.local/graphql" &&
+        JSON.parse(body).query.includes("query getAssociatedPRs("),
+      {
+        data: {
+          repository: {
+            commit123: {
+              oid: "123",
+              associatedPullRequests: {
+                pageInfo: { endCursor: "NI", hasNextPage: false },
+                nodes: [],
+              },
+            },
+          },
+        },
+      },
+    )
+    .postOnce(
+      (url, { body }) =>
+        url === "https://api.github.local/graphql" &&
+        JSON.parse(body).query.includes("query getRelatedIssues("),
+      {
+        data: {
+          repository: {
+            issue4: {
+              __typename: "Issue",
+              id: "I_kw",
+              title: "issue title",
+              body: "",
+              url: "https://github.com/owner/repo/issues/4",
+              number: 4,
+              createdAt: "2024-07-13T09:58:09Z",
+              updatedAt: "2024-08-26T16:19:59Z",
+              closedAt: "2024-07-13T09:58:51Z",
+              comments: { totalCount: 0 },
+              state: "CLOSED",
+              author: {
+                login: "user",
+                url: "author_url",
+                avatarUrl: "author_avatar_url",
+                __typename: "User",
+              },
+              authorAssociation: "OWNER",
+              activeLockReason: null,
+              labels: { nodes: [] },
+              milestone: null,
+              locked: false,
+            },
+            issue99: null,
+          },
+        },
+        errors: [
+          {
+            type: "NOT_FOUND",
+            path: ["repository", "issue99"],
+            locations: [{ line: 4, column: 9 }],
+            message:
+              "Could not resolve to an issue or pull request with the number of 99.",
+          },
+        ],
+      },
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/4/comments`,
+      { html_url: "https://github.com/successcomment-4" },
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/4/labels`,
+      {},
+      { body: ["released"] },
+    )
+    .postOnce(
+      (url, { body }) =>
+        url === "https://api.github.local/graphql" &&
+        JSON.parse(body).query.includes("query getSRIssues("),
+      { data: { repository: { issues: { nodes: [] } } } },
+    );
+
+  await success(
+    pluginConfig,
+    {
+      env,
+      options,
+      commits,
+      nextRelease,
+      releases,
+      logger: t.context.logger,
+    },
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    },
+  );
+
+  t.true(
+    t.context.log.calledWith(
+      "Ignoring issues/PRs that do not exist: %s",
+      "issue99",
+    ),
+  );
+  t.true(
+    t.context.log.calledWith(
+      "Added comment to issue #%d: %s",
+      4,
+      "https://github.com/successcomment-4",
+    ),
+  );
+  t.true(fetch.done());
+});
+
 test("Add custom comment and labels", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
