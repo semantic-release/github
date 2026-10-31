@@ -38,7 +38,7 @@
     "p-filter": "^4.0.0",
     "tinyglobby": "^0.2.14",
     "undici": "^7.0.0",
-    "url-join": "^5.0.0"
+    "url-join": "^6.0.0"
   },
   "devDependencies": {
     "ava": "8.2.0",
