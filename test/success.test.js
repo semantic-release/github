@@ -1387,6 +1387,76 @@ test("Do not add comment and labels if no PR is associated with release commits"
   t.true(fetch.done());
 });
 
+test("Send associatedPRs queries for large releases one chunk at a time", async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GITHUB_TOKEN: "github_token" };
+  const options = {
+    branch: "master",
+    repositoryUrl: `https://github.com/${owner}/${repo}.git`,
+  };
+  const commits = Array.from({ length: 250 }, (_, index) => ({
+    hash: String(index).padStart(40, "0"),
+    message: `Commit ${index} message`,
+  }));
+  const nextRelease = { version: "1.0.0" };
+  const releases = [
+    { name: "GitHub release", url: "https://github.com/release" },
+  ];
+
+  let requestsInFlight = 0;
+  let maxRequestsInFlight = 0;
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      full_name: `${owner}/${repo}`,
+      clone_url: `https://api.github.local/${owner}/${repo}.git`,
+    })
+    .post(
+      (url, { body }) =>
+        url === "https://api.github.local/graphql" &&
+        JSON.parse(body).query.includes("query getAssociatedPRs("),
+      async () => {
+        requestsInFlight++;
+        maxRequestsInFlight = Math.max(maxRequestsInFlight, requestsInFlight);
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        requestsInFlight--;
+        return { data: { repository: {} } };
+      },
+    )
+    .postOnce(
+      (url, { body }) =>
+        url === "https://api.github.local/graphql" &&
+        JSON.parse(body).query.includes("query getSRIssues("),
+      { data: { repository: { issues: { nodes: [] } } } },
+    );
+
+  await success(
+    { failTitle: "The automated release is failing 🚨" },
+    {
+      env,
+      options,
+      commits,
+      nextRelease,
+      releases,
+      logger: t.context.logger,
+    },
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    },
+  );
+
+  const associatedPRsCalls = fetch
+    .calls("https://api.github.local/graphql")
+    .filter(([, { body }]) => body.includes("query getAssociatedPRs("));
+  t.is(associatedPRsCalls.length, 3);
+  t.is(maxRequestsInFlight, 1);
+  t.true(fetch.done());
+});
+
 test("Do not add comment and labels if no commits is found for release", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
