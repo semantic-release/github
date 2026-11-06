@@ -1440,6 +1440,11 @@ test("Do not add comment and labels if no commits is found for release", async (
   t.true(
     t.context.log.calledWith("Skip commenting on issues and pull requests."),
   );
+  t.false(
+    t.context.warn.calledWith(
+      "DEPRECATION: 'false' for 'successComment' is deprecated and will be removed in a future major version. Use 'successCommentCondition' instead.",
+    ),
+  );
 });
 
 test("Do not add comment and labels to PR/issues from other repo", async (t) => {
