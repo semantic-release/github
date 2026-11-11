@@ -1387,6 +1387,83 @@ test("Do not add comment and labels if no PR is associated with release commits"
   t.true(fetch.done());
 });
 
+test("Query associated PRs in serial chunks of 25 commits", async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GITHUB_TOKEN: "github_token" };
+  const options = {
+    branch: "master",
+    repositoryUrl: `https://github.com/${owner}/${repo}.git`,
+  };
+  const commits = Array.from({ length: 30 }, (_, index) => ({
+    hash: `${index}`,
+    message: `Commit ${index} message`,
+  }));
+  const nextRelease = { version: "1.0.0" };
+  const releases = [
+    { name: "GitHub release", url: "https://github.com/release" },
+  ];
+  const chunkSizes = [];
+  let inFlight = 0;
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      full_name: `${owner}/${repo}`,
+      clone_url: `https://api.github.local/${owner}/${repo}.git`,
+    })
+    .post(
+      (url, { body }) =>
+        JSON.parse(body).query.includes("query getAssociatedPRs("),
+      async (url, { body }) => {
+        inFlight += 1;
+        t.is(inFlight, 1);
+        const shas = [...JSON.parse(body).query.matchAll(/oid: "(\d+)"/g)].map(
+          ([, sha]) => sha,
+        );
+        chunkSizes.push(shas.length);
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        inFlight -= 1;
+        const nodes = { pageInfo: { hasNextPage: false }, nodes: [] };
+        return {
+          data: {
+            repository: Object.fromEntries(
+              shas.map((sha) => [
+                `commit${sha}`,
+                { oid: sha, associatedPullRequests: nodes },
+              ]),
+            ),
+          },
+        };
+      },
+    )
+    .postOnce(
+      (url, { body }) => JSON.parse(body).query.includes("query getSRIssues("),
+      { data: { repository: { issues: { nodes: [] } } } },
+    );
+
+  await success(
+    {},
+    {
+      env,
+      options,
+      commits,
+      nextRelease,
+      releases,
+      logger: t.context.logger,
+    },
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    },
+  );
+
+  t.deepEqual(chunkSizes, [25, 5]);
+  t.true(fetch.done());
+});
+
 test("Do not add comment and labels if no commits is found for release", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
