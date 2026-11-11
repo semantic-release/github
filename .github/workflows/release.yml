@@ -26,6 +26,6 @@ jobs:
       - run: npm clean-install
       - run: npm install --global corepack@latest
       - run: corepack npm audit signatures
-      - run: npx semantic-release@26.0.0-beta.5
+      - run: npx semantic-release@26.0.0-beta.6
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
