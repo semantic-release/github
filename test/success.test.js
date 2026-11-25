@@ -1228,6 +1228,150 @@ test("Make multiple search queries if necessary", async (t) => {
   t.true(fetch.done());
 });
 
+test("Add comment and labels to every pull request in a merged stack", async (t) => {
+  const owner = "test_user";
+  const repo = "test_repo";
+  const env = { GITHUB_TOKEN: "github_token" };
+  const pluginConfig = { failTitle: "The automated release is failing" };
+  const mergeCommit = { oid: "123" };
+  const bottomPR = {
+    number: 1,
+    __typename: "PullRequest",
+    state: "closed",
+    repository: { nameWithOwner: `${owner}/${repo}` },
+    mergeCommit,
+  };
+  const upperPR = {
+    number: 2,
+    __typename: "PullRequest",
+    state: "closed",
+    repository: { nameWithOwner: `${owner}/${repo}` },
+    mergeCommit,
+  };
+  const options = {
+    branch: "master",
+    repositoryUrl: `https://github.com/${owner}/${repo}.git`,
+  };
+  const commits = [{ hash: "123", message: "Merge pull request stack" }];
+  const nextRelease = { version: "1.0.0" };
+  const releases = [
+    { name: "GitHub release", url: "https://github.com/release" },
+  ];
+
+  const fetch = fetchMock
+    .sandbox()
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}`, {
+      full_name: `${owner}/${repo}`,
+      clone_url: `https://api.github.local/${owner}/${repo}.git`,
+    })
+    .postOnce(
+      (url, { body }) =>
+        url === "https://api.github.local/graphql" &&
+        JSON.parse(body).query.includes("query getAssociatedPRs("),
+      {
+        data: {
+          repository: {
+            commit123: {
+              oid: "123",
+              associatedPullRequests: {
+                pageInfo: { endCursor: "NI", hasNextPage: false },
+                nodes: [bottomPR],
+              },
+            },
+          },
+        },
+      },
+    )
+    .postOnce(
+      (url, { body }) =>
+        url === "https://api.github.local/graphql" &&
+        JSON.parse(body).query.includes("query getMergeCommitPRs("),
+      {
+        data: {
+          search0: { nodes: [bottomPR, upperPR] },
+        },
+      },
+    )
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/pulls/1/commits`,
+      [{ sha: "rebased_sha" }],
+    )
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}/pulls/1`, {
+      merge_commit_sha: "123",
+    })
+    .getOnce(
+      `https://api.github.local/repos/${owner}/${repo}/pulls/2/commits`,
+      [{ sha: "rebased_sha" }],
+    )
+    .getOnce(`https://api.github.local/repos/${owner}/${repo}/pulls/2`, {
+      merge_commit_sha: "123",
+    })
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/1/comments`,
+      {
+        html_url: "https://github.com/successcomment-1",
+      },
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/1/labels`,
+      {},
+      { body: ["released"] },
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/2/comments`,
+      {
+        html_url: "https://github.com/successcomment-2",
+      },
+    )
+    .postOnce(
+      `https://api.github.local/repos/${owner}/${repo}/issues/2/labels`,
+      {},
+      { body: ["released"] },
+    )
+    .postOnce(
+      (url, { body }) =>
+        url === "https://api.github.local/graphql" &&
+        JSON.parse(body).query.includes("query getSRIssues("),
+      {
+        data: { repository: { issues: { nodes: [] } } },
+      },
+    );
+
+  await success(
+    pluginConfig,
+    {
+      env,
+      options,
+      commits,
+      nextRelease,
+      releases,
+      logger: t.context.logger,
+    },
+    {
+      Octokit: TestOctokit.defaults((options) => ({
+        ...options,
+        request: { ...options.request, fetch },
+      })),
+    },
+  );
+
+  t.true(
+    t.context.log.calledWith(
+      "Added comment to PR #%d: %s",
+      1,
+      "https://github.com/successcomment-1",
+    ),
+  );
+  t.true(
+    t.context.log.calledWith(
+      "Added comment to PR #%d: %s",
+      2,
+      "https://github.com/successcomment-2",
+    ),
+  );
+  t.true(fetch.done());
+});
+
 test("Do not add comment and labels for unrelated PR returned by search (compare sha and merge_commit_sha)", async (t) => {
   const owner = "test_user";
   const repo = "test_repo";
